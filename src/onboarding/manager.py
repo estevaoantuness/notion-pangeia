@@ -277,7 +277,7 @@ class OnboardingManager:
         message += "Eu gerencio suas tarefas do Notion pelo WhatsApp.\n\n"
         message += "━━━━━━━━━━━━━━━━━━━━━━\n"
         message += "*🎯 COMO FUNCIONA*\n\n"
-        message += "*1️⃣ Digite:* minhas tarefas\n"
+        message += "*1️⃣ Digite:* tarefas\n"
         message += "   Você verá sua lista numerada:\n"
         message += "   1️⃣ Reunião com cliente\n"
         message += "   2️⃣ Revisar documento\n"
@@ -291,7 +291,7 @@ class OnboardingManager:
         message += "━━━━━━━━━━━━━━━━━━━━━━\n"
         message += "*📋 COMANDOS DISPONÍVEIS*\n\n"
         message += "*📌 VER TAREFAS*\n"
-        message += "• minhas tarefas → lista resumida\n"
+        message += "• tarefas → lista resumida\n"
         message += "• ver mais → lista completa\n"
         message += "• progresso → relatório detalhado\n\n"
         message += "*✅ MARCAR COMO CONCLUÍDA*\n"
@@ -311,11 +311,11 @@ class OnboardingManager:
         message += "━━━━━━━━━━━━━━━━━━━━━━\n"
         message += "*💡 DICAS*\n\n"
         message += "• Os números mudam conforme você conclui tarefas\n"
-        message += "• Sempre veja 'minhas tarefas' antes de marcar\n"
+        message += "• Sempre veja 'tarefas' antes de marcar\n"
         message += "• Tarefas concluídas somem da lista\n\n"
         message += "━━━━━━━━━━━━━━━━━━━━━━\n"
         message += "*🚀 Pronto!*\n\n"
-        message += "Digite: *minhas tarefas*"
+        message += "Digite: *tarefas*"
 
         return message
 
@@ -328,11 +328,11 @@ class OnboardingManager:
         """
         message = "✅ *Sem problemas!*\n\n"
         message += "*Comandos básicos:*\n"
-        message += "• minhas tarefas → ver lista\n"
+        message += "• tarefas → ver lista\n"
         message += "• feito 2 → marcar tarefa 2\n"
         message += "• progresso → resumo do dia\n\n"
         message += "Quando precisar: *ajuda*\n\n"
-        message += "Vamos começar? Digite: *minhas tarefas*"
+        message += "Vamos começar? Digite: *tarefas*"
 
         return message
 

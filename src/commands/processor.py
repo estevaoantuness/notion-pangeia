@@ -118,7 +118,7 @@ class CommandProcessor:
         """Retorna mensagem de desambiguação com sugestões"""
         return """Posso ajudar com:
 
-• *minhas tarefas* - ver suas tarefas
+• *tarefas* - ver suas tarefas
 • *progresso* - ver andamento do dia
 • *feito N* - marcar tarefa N como concluída
 • *andamento N* - marcar tarefa N em andamento
@@ -149,7 +149,7 @@ O que você precisa?"""
 
 Comandos disponíveis:
 
-• *minhas tarefas* - ver suas tarefas
+• *tarefas* - ver suas tarefas
 • *progresso* - ver andamento do dia
 • *feito N* - marcar tarefa N como concluída
 • *feito 2 5 6* - marcar múltiplas tarefas
@@ -312,7 +312,7 @@ Entre em contato com o administrador para cadastrar seu número."""
 
             elif confirmation is False:
                 self._clear_user_state(person_name)
-                return True, "Tranquilo! Se quiser, peça 'minhas tarefas' quando for a hora."
+                return True, "Tranquilo! Se quiser, peça 'tarefas' quando for a hora."
 
             # Ambíguo - não é confirmação clara, processar como mensagem normal
             # Não limpar estado ainda
@@ -386,7 +386,7 @@ Entre em contato com o administrador para cadastrar seu número."""
 
         # Smalltalk
         if intent == "smalltalk_mood":
-            return True, "Tudo certo! Posso te ajudar com 'minhas tarefas' ou 'progresso'. O que prefere?"
+            return True, "Tudo certo! Posso te ajudar com 'tarefas' ou 'progresso'. O que prefere?"
 
         # Ajuda - oferece tutorial completo ou básico
         if intent == "help":
@@ -396,7 +396,7 @@ Entre em contato com o administrador para cadastrar seu número."""
                 if help_type == "help_comandos" or help_type == "comandos":
                     return True, """Comandos disponíveis:
 
-• *minhas tarefas* - ver suas tarefas
+• *tarefas* - ver suas tarefas
 • *progresso* - ver andamento do dia
 • *feito N* - marcar tarefa N como concluída
 • *andamento N* - marcar tarefa N em andamento
@@ -407,7 +407,7 @@ Entre em contato com o administrador para cadastrar seu número."""
                 elif help_type == "help_exemplos" or help_type == "exemplos":
                     return True, """Exemplos de uso:
 
-• minhas tarefas
+• tarefas
 • feito 2
 • andamento 3
 • bloqueada 4 - sem acesso ao servidor
@@ -423,7 +423,7 @@ Entre em contato com o administrador para cadastrar seu número."""
                 # Fallback seguro
                 return True, """Posso ajudar com:
 
-• *minhas tarefas* - ver suas tarefas
+• *tarefas* - ver suas tarefas
 • *progresso* - ver andamento
 • *feito N* - marcar tarefa
 • *ajuda* - ver comandos"""
@@ -564,12 +564,12 @@ Entre em contato com o administrador para cadastrar seu número."""
                     return True, "Ok! 👍"
             else:
                 # Sem contexto - dar CTA útil
-                return True, "Beleza! Me diga: 'minhas tarefas' ou 'progresso' 😉"
+                return True, "Beleza! Me diga: 'tarefas' ou 'progresso' 😉"
 
         if intent == "confirm_no":
             # Limpar qualquer contexto pendente
             self._clear_user_state(person_name)
-            return True, "Tranquilo! Se quiser, peça 'minhas tarefas' quando for a hora."
+            return True, "Tranquilo! Se quiser, peça 'tarefas' quando for a hora."
 
         # Intent desconhecido
         logger.warning(f"Intent não tratado: {intent}")

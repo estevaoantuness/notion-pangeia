@@ -101,10 +101,11 @@ SYNONYM_MAP = {
     "blocked": "bloqueada", "⛔": "bloqueada",
 
     # Comandos - Listar tarefas
-    "lista": "minhas tarefas", "tasks": "minhas tarefas",
-    "meus itens": "minhas tarefas", "ver tarefas": "minhas tarefas",
-    "mostrar tarefas": "minhas tarefas", "quais tarefas": "minhas tarefas",
-    "o que tenho": "minhas tarefas", "o que falta": "minhas tarefas",
+    "lista": "tarefas", "tasks": "tarefas",
+    "minhas tarefas": "tarefas", "meus itens": "tarefas",
+    "ver tarefas": "tarefas", "mostrar tarefas": "tarefas",
+    "quais tarefas": "tarefas", "o que tenho": "tarefas",
+    "o que falta": "tarefas",
 
     # Comandos - Ver mais
     "mostrar mais": "ver mais",
@@ -414,8 +415,8 @@ PATTERNS: List[CommandPattern] = [
     ("show_task", re.compile(r"^(\d+)\s+(detalhes?|info)$"), 0.99),
 
     # Comandos simples
-    ("list_tasks", re.compile(r"^(minhas tarefas)$"), 0.98),
-    ("list_tasks", re.compile(r"^(lista|tarefas)$"), 0.98),
+    ("list_tasks", re.compile(r"^(tarefas)$"), 0.98),
+    ("list_tasks", re.compile(r"^(lista|minhas tarefas)$"), 0.98),
     ("show_more", re.compile(r"^(ver mais|mais|mostrar mais|todas|completa|lista completa)$"), 0.98),
     ("progress", re.compile(r"^(progresso)$"), 0.98),
     ("help", re.compile(r"^(ajuda|\?)$"), 0.95),

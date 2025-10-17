@@ -20,6 +20,7 @@ class Settings:
     # Notion Configuration
     NOTION_TOKEN: str = os.getenv("NOTION_TOKEN", "")
     NOTION_TASKS_DB_ID: str = os.getenv("NOTION_TASKS_DB_ID", "")
+    NOTION_USERS_DB_ID: Optional[str] = os.getenv("NOTION_USERS_DB_ID")  # Para onboarding
     NOTION_CHECKINS_DB_ID: Optional[str] = os.getenv("NOTION_CHECKINS_DB_ID")
     NOTION_INSIGHTS_DB_ID: Optional[str] = os.getenv("NOTION_INSIGHTS_DB_ID")
 

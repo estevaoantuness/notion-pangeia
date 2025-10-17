@@ -3,6 +3,11 @@ Gerenciador de onboarding para novos usuários.
 
 Este módulo controla o fluxo de onboarding, perguntando se o usuário
 quer tutorial completo ou explicação rápida.
+
+PERSISTÊNCIA: Agora usa Notion para armazenar estado, garantindo que:
+- Bot lembra conversas anteriores
+- Não repete onboarding após restart
+- Rastreia última interação de cada usuário
 """
 
 import logging
@@ -11,9 +16,10 @@ from datetime import datetime
 
 logger = logging.getLogger(__name__)
 
-# Estado de onboarding em memória (em produção, usar Redis)
+# Estado de onboarding em memória (apenas para sessão atual)
+# IMPORTANTE: _onboarding_complete não é mais usado! Agora usa Notion
 _onboarding_state = {}
-_onboarding_complete = set()
+_onboarding_complete = set()  # Deprecated - mantido por compatibilidade
 
 
 class OnboardingManager:
@@ -21,20 +27,38 @@ class OnboardingManager:
     Gerencia o processo de onboarding de novos usuários.
     """
 
-    # Sinônimos de SIM
+    # Sinônimos de SIM (EXPANDIDO - aceita 's', números, emojis)
     YES_SYNONYMS = [
-        'sim', 'yes', 'quero', 'ok', 'okay',
-        'pode ser', 'claro', 'com certeza', 'si', 'dale',
-        'bora', 'vamos', 'manda', 'aceito',
-        '👍', '✅', 'boa', 'blz', 'beleza'
+        # Variações de "sim"
+        'sim', 's', 'si', 'ss', 'sim!', 'sim.', 'sim,',
+        # Confirmações casuais
+        'quero', 'ok', 'okay', 'pode', 'pode ser',
+        'claro', 'com certeza', 'certeza', 'certo',
+        'dale', 'bora', 'vamos', 'manda', 'vai',
+        'aceito', 'beleza', 'blz', 'show', 'top',
+        # Inglês
+        'yes', 'y', 'yep', 'yeah', 'sure',
+        # Números (1 = sim)
+        '1',
+        # Emojis
+        '👍', '✅', '✓', '☑️'
     ]
 
-    # Sinônimos de NÃO
+    # Sinônimos de NÃO (EXPANDIDO - aceita 'n', números, emojis)
     NO_SYNONYMS = [
-        'nao', 'não', 'nope', 'não quero',
-        'nao quero', 'depois', 'agora não', 'agora nao',
+        # Variações de "não"
+        'nao', 'não', 'n', 'nn', 'nope',
+        'não quero', 'nao quero',
+        # Recusas casuais
+        'depois', 'agora não', 'agora nao',
         'pular', 'skip', 'talvez depois', 'mais tarde',
-        '👎', '❌', 'neg', 'negativo'
+        'deixa', 'deixa pra la', 'deixa pra lá',
+        # Negações
+        'neg', 'negativo', 'nada',
+        # Números (2 = não)
+        '2',
+        # Emojis
+        '👎', '❌', '✗', '☒'
     ]
 
     # Sinônimos para tutorial completo
@@ -50,30 +74,47 @@ class OnboardingManager:
     ]
 
     def __init__(self):
-        """Inicializa o gerenciador de onboarding."""
-        logger.info("OnboardingManager inicializado")
+        """Inicializa o gerenciador de onboarding com persistência."""
+        # Importação lazy para evitar ciclo
+        from src.onboarding.persistence import get_persistence
+        self.persistence = get_persistence()
+        logger.info(f"OnboardingManager inicializado (persistência: {self.persistence.is_enabled()})")
 
     @staticmethod
     def normalize_text(text: str) -> str:
         """
-        Normaliza texto para comparação.
+        Normaliza texto para comparação (aceita emojis, números, pontuação).
+
+        IMPORTANTE: Preserva emojis e números para matching!
+        Remove apenas pontuação comum (. ! ? ,) mas mantém símbolos especiais.
 
         Args:
             text: Texto a normalizar
 
         Returns:
-            Texto normalizado (lowercase, sem acentos)
+            Texto normalizado (lowercase, sem acentos, sem pontuação comum)
         """
         import unicodedata
 
         # Lowercase
         text = text.lower().strip()
 
-        # Remove acentos
-        text = ''.join(
-            c for c in unicodedata.normalize('NFD', text)
-            if unicodedata.category(c) != 'Mn'
-        )
+        # Remove acentos (mas preserva outros caracteres unicode como emojis)
+        normalized = []
+        for c in unicodedata.normalize('NFD', text):
+            # Remove apenas combining marks (acentos)
+            if unicodedata.category(c) != 'Mn':
+                normalized.append(c)
+        text = ''.join(normalized)
+
+        # Remove pontuação comum (mas preserva emojis e símbolos especiais)
+        # Remove: . ! ? , ; : - " ' ( )
+        # Preserva: números, letras, espaços, emojis (✅ ✓ etc)
+        import re
+        text = re.sub(r'[.!?,;:\-"\'()]', '', text)
+
+        # Remove espaços extras
+        text = ' '.join(text.split())
 
         return text
 
@@ -81,14 +122,26 @@ class OnboardingManager:
         """
         Verifica se é primeira interação do usuário.
 
+        IMPORTANTE: Agora usa persistência do Notion!
+        - Verifica se usuário já completou onboarding
+        - Funciona mesmo após reinicialização do bot
+        - Atualiza última interação automaticamente
+
         Args:
             person_name: Nome do colaborador
 
         Returns:
             True se for primeira vez, False caso contrário
         """
-        # Verifica se já completou onboarding
-        return person_name not in _onboarding_complete
+        # Usa persistência do Notion (se habilitada)
+        if self.persistence.is_enabled():
+            has_completed = self.persistence.has_completed_onboarding(person_name)
+            logger.info(f"[PERSISTÊNCIA] {person_name}: has_completed={has_completed}")
+            return not has_completed
+        else:
+            # Fallback: usa cache em memória (deprecated)
+            logger.warning("Persistência desabilitada - usando cache em memória")
+            return person_name not in _onboarding_complete
 
     def is_waiting_onboarding_answer(self, person_name: str) -> bool:
         """
@@ -249,12 +302,36 @@ class OnboardingManager:
         """
         Marca onboarding como completo.
 
+        IMPORTANTE: Agora salva no Notion para persistir entre reinicializações!
+
         Args:
             person_name: Nome do colaborador
             onboarding_type: 'full' ou 'quick'
         """
+        # Mapeia tipo interno para nome amigável
+        type_map = {
+            'full': 'completo',
+            'quick': 'básico'
+        }
+        notion_type = type_map.get(onboarding_type, onboarding_type)
+
+        # Salvar no Notion (se habilitado)
+        if self.persistence.is_enabled():
+            success = self.persistence.mark_onboarding_complete(
+                person_name=person_name,
+                onboarding_type=notion_type
+            )
+            if success:
+                logger.info(f"✅ Onboarding salvo no Notion: {person_name} (tipo: {notion_type})")
+            else:
+                logger.error(f"❌ Erro ao salvar onboarding no Notion para {person_name}")
+        else:
+            logger.warning(f"Persistência desabilitada - onboarding de {person_name} não será salvo")
+
+        # Atualizar cache em memória (fallback)
         _onboarding_complete.add(person_name)
         _onboarding_state.pop(person_name, None)
+
         logger.info(f"Onboarding completo para {person_name} (tipo: {onboarding_type})")
 
     def _clear_state(self, person_name: str):

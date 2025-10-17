@@ -551,6 +551,31 @@ Entre em contato com o administrador para cadastrar seu número."""
         #     })
         #     return True, f"Entendi que a tarefa {task_number} está bloqueada. Qual o motivo?"
 
+        # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        # COMANDOS DE TUTORIAIS DIRETOS
+        # Respondem imediatamente sem perguntar ao usuário
+        # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+        # Tutorial completo
+        if intent == "tutorial_complete":
+            return self.handlers.handle_tutorial_complete(person_name)
+
+        # Tutorial básico/rápido
+        if intent == "tutorial_quick":
+            return self.handlers.handle_tutorial_quick(person_name)
+
+        # Começar do zero
+        if intent == "start_from_scratch":
+            return self.handlers.handle_start_from_scratch(person_name)
+
+        # Mostrar exemplos
+        if intent == "show_examples":
+            return self.handlers.handle_show_examples(person_name)
+
+        # Mostrar dicas
+        if intent == "show_tips":
+            return self.handlers.handle_show_tips(person_name)
+
         # Confirmações (contextuais)
         if intent == "confirm_yes":
             # Verificar se há contexto pendente

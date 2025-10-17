@@ -416,3 +416,177 @@ class CommandHandlers:
             return False, "❌ Erro ao processar comando. Tente novamente."
 
         return True, ""  # Mensagem já foi enviada
+
+    # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    # COMANDOS DE TUTORIAIS DIRETOS
+    # Respondem imediatamente sem perguntar ao usuário
+    # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+    def handle_tutorial_complete(self, person_name: str) -> Tuple[bool, str]:
+        """
+        Handler para comando "tutorial" - Mostra tutorial completo.
+
+        Args:
+            person_name: Nome do colaborador
+
+        Returns:
+            Tuple (sucesso, mensagem_resposta)
+        """
+        logger.info(f"Processando comando 'tutorial completo' de {person_name}")
+
+        from src.onboarding.manager import get_onboarding_manager
+
+        onboarding = get_onboarding_manager()
+        message = onboarding._get_full_tutorial()
+
+        # Envia mensagem
+        self.whatsapp_sender.send_message(person_name, message)
+
+        return True, ""  # Mensagem já foi enviada
+
+    def handle_tutorial_quick(self, person_name: str) -> Tuple[bool, str]:
+        """
+        Handler para comando "básico" - Mostra tutorial rápido.
+
+        Args:
+            person_name: Nome do colaborador
+
+        Returns:
+            Tuple (sucesso, mensagem_resposta)
+        """
+        logger.info(f"Processando comando 'tutorial básico' de {person_name}")
+
+        from src.onboarding.manager import get_onboarding_manager
+
+        onboarding = get_onboarding_manager()
+        message = onboarding._get_quick_explanation()
+
+        # Envia mensagem
+        self.whatsapp_sender.send_message(person_name, message)
+
+        return True, ""  # Mensagem já foi enviada
+
+    def handle_start_from_scratch(self, person_name: str) -> Tuple[bool, str]:
+        """
+        Handler para comando "começar" - Mostra tutorial completo + primeira interação.
+
+        Args:
+            person_name: Nome do colaborador
+
+        Returns:
+            Tuple (sucesso, mensagem_resposta)
+        """
+        logger.info(f"Processando comando 'começar do zero' de {person_name}")
+
+        from src.onboarding.manager import get_onboarding_manager
+
+        onboarding = get_onboarding_manager()
+
+        # Mostra tutorial completo
+        tutorial = onboarding._get_full_tutorial()
+
+        # Adiciona CTA para pedir lista de tarefas
+        message = f"{tutorial}\n\n━━━━━━━━━━━━━━━━━━━━━━\n"
+        message += "✨ *Pronto para começar?*\n\n"
+        message += "Digite: *tarefas*"
+
+        # Envia mensagem
+        self.whatsapp_sender.send_message(person_name, message)
+
+        return True, ""  # Mensagem já foi enviada
+
+    def handle_show_examples(self, person_name: str) -> Tuple[bool, str]:
+        """
+        Handler para comando "exemplos" - Mostra exemplos práticos.
+
+        Args:
+            person_name: Nome do colaborador
+
+        Returns:
+            Tuple (sucesso, mensagem_resposta)
+        """
+        logger.info(f"Processando comando 'exemplos' de {person_name}")
+
+        message = "💡 *EXEMPLOS PRÁTICOS*\n\n"
+        message += "━━━━━━━━━━━━━━━━━━━━━━\n"
+        message += "*📋 VER TAREFAS*\n\n"
+        message += "Você: tarefas\n"
+        message += "Bot: 📋 Suas tarefas de hoje:\n"
+        message += "     1️⃣ Reunião com cliente\n"
+        message += "     2️⃣ Revisar documento\n"
+        message += "     3️⃣ Ligar fornecedor\n\n"
+        message += "━━━━━━━━━━━━━━━━━━━━━━\n"
+        message += "*✅ MARCAR COMO CONCLUÍDA*\n\n"
+        message += "Você: feito 2\n"
+        message += "Bot: ✅ Task 2 concluída!\n"
+        message += "     Revisar documento ✓\n\n"
+        message += "Você: feito 1 3\n"
+        message += "Bot: ✅ 2 tasks concluídas!\n\n"
+        message += "━━━━━━━━━━━━━━━━━━━━━━\n"
+        message += "*🔵 MARCAR EM ANDAMENTO*\n\n"
+        message += "Você: andamento 1\n"
+        message += "Bot: 🔵 Task 1 em andamento!\n"
+        message += "     Reunião com cliente\n\n"
+        message += "━━━━━━━━━━━━━━━━━━━━━━\n"
+        message += "*📊 VER PROGRESSO*\n\n"
+        message += "Você: progresso\n"
+        message += "Bot: 📊 Progresso de hoje:\n"
+        message += "     ✅ 2/5 concluídas (40%)\n"
+        message += "     🔵 1 em andamento\n"
+        message += "     ⚪ 2 pendentes\n\n"
+        message += "━━━━━━━━━━━━━━━━━━━━━━\n"
+        message += "Digite: *tarefas* para começar!"
+
+        # Envia mensagem
+        self.whatsapp_sender.send_message(person_name, message)
+
+        return True, ""  # Mensagem já foi enviada
+
+    def handle_show_tips(self, person_name: str) -> Tuple[bool, str]:
+        """
+        Handler para comando "dicas" - Mostra dicas de uso.
+
+        Args:
+            person_name: Nome do colaborador
+
+        Returns:
+            Tuple (sucesso, mensagem_resposta)
+        """
+        logger.info(f"Processando comando 'dicas' de {person_name}")
+
+        message = "💡 *DICAS E TRUQUES*\n\n"
+        message += "━━━━━━━━━━━━━━━━━━━━━━\n"
+        message += "*🎯 PRODUTIVIDADE*\n\n"
+        message += "1️⃣ *Marque várias de uma vez*\n"
+        message += "   Digite: feito 1 2 3\n"
+        message += "   (economiza tempo!)\n\n"
+        message += "2️⃣ *Use sinônimos naturais*\n"
+        message += "   • feito = pronto = concluí\n"
+        message += "   • andamento = fazendo = comecei\n"
+        message += "   • tarefas = lista = minhas tarefas\n\n"
+        message += "3️⃣ *Sempre atualize antes de marcar*\n"
+        message += "   Digite 'tarefas' antes de 'feito N'\n"
+        message += "   (os números mudam!)\n\n"
+        message += "━━━━━━━━━━━━━━━━━━━━━━\n"
+        message += "*⏰ NOTIFICAÇÕES*\n\n"
+        message += "• 08:00 → Lista do dia\n"
+        message += "• 13:30, 15:30, 17:00, 21:00 → Check-ins\n"
+        message += "  (responda para manter seu progresso atualizado)\n\n"
+        message += "━━━━━━━━━━━━━━━━━━━━━━\n"
+        message += "*📱 COMANDOS RÁPIDOS*\n\n"
+        message += "• 'tarefas' → ver lista\n"
+        message += "• 'progresso' → resumo do dia\n"
+        message += "• 'ver mais' → lista completa\n"
+        message += "• 'mostre 2' → detalhes da task 2\n\n"
+        message += "━━━━━━━━━━━━━━━━━━━━━━\n"
+        message += "*🚀 BÔNUS*\n\n"
+        message += "• Tarefas concluídas somem da lista\n"
+        message += "• Alta prioridade aparece primeiro\n"
+        message += "• Use emojis: 👍 ✅ para confirmar\n\n"
+        message += "━━━━━━━━━━━━━━━━━━━━━━\n"
+        message += "Digite: *tarefas* para começar!"
+
+        # Envia mensagem
+        self.whatsapp_sender.send_message(person_name, message)
+
+        return True, ""  # Mensagem já foi enviada

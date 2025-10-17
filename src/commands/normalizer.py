@@ -123,6 +123,80 @@ SYNONYM_MAP = {
     "help": "ajuda", "comandos": "ajuda",
     "comando": "ajuda", "como usar": "ajuda", "como uso": "ajuda",
 
+    # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    # COMANDOS DE TUTORIAIS DIRETOS
+    # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+    # Tutorial completo (30+ sinônimos)
+    "tutorial": "tutorial_completo", "guia": "tutorial_completo",
+    "guia completo": "tutorial_completo", "como funciona": "tutorial_completo",
+    "como funciona tudo": "tutorial_completo", "ensina": "tutorial_completo",
+    "ensinar": "tutorial_completo", "me ensina": "tutorial_completo",
+    "me ajuda": "tutorial_completo", "explica": "tutorial_completo",
+    "explicacao": "tutorial_completo", "explicação": "tutorial_completo",
+    "documentacao": "tutorial_completo", "documentação": "tutorial_completo",
+    "manual": "tutorial_completo", "instrucoes": "tutorial_completo",
+    "instruções": "tutorial_completo", "passo a passo": "tutorial_completo",
+    "tutorial completo": "tutorial_completo", "completo": "tutorial_completo",
+    "detalhado": "tutorial_completo", "tudo": "tutorial_completo",
+    "mostra tudo": "tutorial_completo", "quero aprender": "tutorial_completo",
+    "preciso aprender": "tutorial_completo", "como usar tudo": "tutorial_completo",
+    "o que posso fazer": "tutorial_completo", "o que consigo fazer": "tutorial_completo",
+    "lista de comandos": "tutorial_completo", "todos os comandos": "tutorial_completo",
+    "mostre os comandos": "tutorial_completo",
+
+    # Tutorial básico/rápido (25+ sinônimos)
+    "basico": "tutorial_basico", "básico": "tutorial_basico",
+    "resumo": "tutorial_basico", "rapido": "tutorial_basico",
+    "rápido": "tutorial_basico", "quick": "tutorial_basico",
+    "simples": "tutorial_basico", "so o basico": "tutorial_basico",
+    "só o básico": "tutorial_basico", "resumido": "tutorial_basico",
+    "versao curta": "tutorial_basico", "versão curta": "tutorial_basico",
+    "explicacao rapida": "tutorial_basico", "explicação rápida": "tutorial_basico",
+    "tutorial basico": "tutorial_basico", "tutorial básico": "tutorial_basico",
+    "tutorial rapido": "tutorial_basico", "tutorial rápido": "tutorial_basico",
+    "inicio rapido": "tutorial_basico", "início rápido": "tutorial_basico",
+    "fast": "tutorial_basico", "tldr": "tutorial_basico",
+    "principais comandos": "tutorial_basico", "comandos principais": "tutorial_basico",
+    "essencial": "tutorial_basico", "o essencial": "tutorial_basico",
+    "o importante": "tutorial_basico",
+
+    # Começar do zero (20+ sinônimos)
+    "comecar": "comecar_zero", "começar": "comecar_zero",
+    "inicio": "comecar_zero", "início": "comecar_zero",
+    "primeira vez": "comecar_zero", "nunca usei": "comecar_zero",
+    "nao sei usar": "comecar_zero", "não sei usar": "comecar_zero",
+    "como comecar": "comecar_zero", "como começar": "comecar_zero",
+    "por onde comecar": "comecar_zero", "por onde começar": "comecar_zero",
+    "sou novo": "comecar_zero", "primeira interacao": "comecar_zero",
+    "primeira interação": "comecar_zero", "comeco": "comecar_zero",
+    "começo": "comecar_zero", "iniciar": "comecar_zero",
+    "quero comecar": "comecar_zero", "quero começar": "comecar_zero",
+    "vamos comecar": "comecar_zero", "vamos começar": "comecar_zero",
+    "do zero": "comecar_zero",
+
+    # Exemplos (15+ sinônimos)
+    "exemplos": "mostrar_exemplos", "exemplo": "mostrar_exemplos",
+    "da um exemplo": "mostrar_exemplos", "dá um exemplo": "mostrar_exemplos",
+    "me da um exemplo": "mostrar_exemplos", "me dá um exemplo": "mostrar_exemplos",
+    "mostra um exemplo": "mostrar_exemplos", "mostra exemplos": "mostrar_exemplos",
+    "na pratica": "mostrar_exemplos", "na prática": "mostrar_exemplos",
+    "como e na pratica": "mostrar_exemplos", "como é na prática": "mostrar_exemplos",
+    "exemplos praticos": "mostrar_exemplos", "exemplos práticos": "mostrar_exemplos",
+    "exemplo pratico": "mostrar_exemplos", "exemplo prático": "mostrar_exemplos",
+    "cases": "mostrar_exemplos", "casos de uso": "mostrar_exemplos",
+
+    # Dicas (15+ sinônimos)
+    "dicas": "mostrar_dicas", "dica": "mostrar_dicas",
+    "truques": "mostrar_dicas", "truque": "mostrar_dicas",
+    "macetes": "mostrar_dicas", "macete": "mostrar_dicas",
+    "tips": "mostrar_dicas", "hacks": "mostrar_dicas",
+    "me da dicas": "mostrar_dicas", "me dá dicas": "mostrar_dicas",
+    "me da uma dica": "mostrar_dicas", "me dá uma dica": "mostrar_dicas",
+    "tem dicas": "mostrar_dicas", "alguma dica": "mostrar_dicas",
+    "sugestoes": "mostrar_dicas", "sugestões": "mostrar_dicas",
+    "recomendacoes": "mostrar_dicas", "recomendações": "mostrar_dicas",
+
     # Despedidas
     "tchau": "ate", "falou": "ate", "até logo": "ate",
     "ate logo": "ate", "até mais": "ate", "ate mais": "ate",
@@ -424,6 +498,13 @@ PATTERNS: List[CommandPattern] = [
     ("show_more", re.compile(r"^(ver mais|mais|mostrar mais|todas|completa|lista completa)$"), 0.98),
     ("progress", re.compile(r"^(progresso)$"), 0.98),
     ("help", re.compile(r"^(ajuda|\?)$"), 0.95),
+
+    # Tutoriais diretos (alta confiança - respondem imediatamente)
+    ("tutorial_complete", re.compile(r"^(tutorial_completo|tutorial|guia|guia completo|como funciona|passo a passo|manual|documentacao|lista de comandos|todos os comandos)$"), 0.98),
+    ("tutorial_quick", re.compile(r"^(tutorial_basico|basico|resumo|rapido|quick|simples|tldr|principais comandos|essencial)$"), 0.98),
+    ("start_from_scratch", re.compile(r"^(comecar_zero|comecar|inicio|1 vez|primeira vez|nunca usei|como comecar|por onde comecar|do 0|do zero|sou novo)$"), 0.98),
+    ("show_examples", re.compile(r"^(mostrar_exemplos|exemplos|exemplo|na pratica|casos de uso|da um exemplo|me da um exemplo)$"), 0.98),
+    ("show_tips", re.compile(r"^(mostrar_dicas|dicas|dica|truques|macetes|tips|hacks|sugestoes|me da dicas)$"), 0.98),
 
     # Confirmações (incluindo emojis)
     ("confirm_yes", re.compile(r"^(sim|s|isso|pode|ok|okay|okey|manda ver|beleza|blz|confirmo|vamos|👍|✅)$"), 0.98),

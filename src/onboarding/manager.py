@@ -350,7 +350,7 @@ class OnboardingManager:
         Returns:
             Mensagem com tutorial detalhado
         """
-        message = "👋 *Bem-vindo ao Pangeia Bot!*\n\n"
+        message = "👋 *Pangeia Bot - Tutorial Completo*\n\n"
         message += "Eu gerencio suas tarefas do Notion pelo WhatsApp.\n\n"
         message += "━━━━━━━━━━━━━━━━━━━━━━\n"
         message += "*🎯 COMO FUNCIONA*\n\n"

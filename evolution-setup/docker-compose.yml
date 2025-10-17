@@ -1,50 +1,80 @@
-version: '3.3'
-
 services:
+  # PostgreSQL Database
+  postgres:
+    container_name: evolution_postgres
+    image: postgres:15-alpine
+    restart: always
+    environment:
+      - POSTGRES_USER=evolution
+      - POSTGRES_PASSWORD=evolution123
+      - POSTGRES_DB=evolution
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - evolution_network
+
+  # Evolution API
   evolution-api:
     container_name: evolution_api
-    image: atendai/evolution-api:latest
+    image: atendai/evolution-api:v2.1.1
     restart: always
     ports:
       - "8080:8080"
+    depends_on:
+      - postgres
     environment:
       # Server
       - SERVER_URL=http://localhost:8080
-      - SERVER_PORT=8080
-      
-      # Cors
+
+      # Authentication
+      - AUTHENTICATION_API_KEY=pange-bot-secret-key-2024
+
+      # Database - PostgreSQL
+      - DATABASE_ENABLED=true
+      - DATABASE_PROVIDER=postgresql
+      - DATABASE_CONNECTION_URI=postgresql://evolution:evolution123@postgres:5432/evolution?schema=public
+      - DATABASE_SAVE_DATA_INSTANCE=true
+      - DATABASE_SAVE_DATA_NEW_MESSAGE=false
+      - DATABASE_SAVE_MESSAGE_UPDATE=false
+      - DATABASE_SAVE_DATA_CONTACTS=false
+      - DATABASE_SAVE_DATA_CHATS=false
+
+      # Cache
+      - REDIS_ENABLED=false
+
+      # Logs
+      - LOG_LEVEL=ERROR,WARN,INFO
+      - LOG_COLOR=true
+
+      # CORS
       - CORS_ORIGIN=*
       - CORS_METHODS=GET,POST,PUT,DELETE
       - CORS_CREDENTIALS=true
-      
-      # Log
-      - LOG_LEVEL=ERROR,WARN,DEBUG,INFO,LOG,VERBOSE,DARK,WEBHOOKS
-      - LOG_COLOR=true
-      
-      # Database (usando in-memory por enquanto)
-      - DATABASE_ENABLED=false
-      
-      # Authentication
-      - AUTHENTICATION_API_KEY=pange-bot-secret-key-2024
-      
-      # Webhook
-      - WEBHOOK_GLOBAL_ENABLED=false
-      - WEBHOOK_BY_EVENTS=true
-      
+
       # QR Code
       - QRCODE_LIMIT=30
-      - QRCODE_COLOR=#198754
-      
-      # Instance
-      - DEL_INSTANCE=false
-      
+
+      # Baileys Config (Fix para QR Code)
+      - CONFIG_SESSION_PHONE_CLIENT=Evolution API
+      - CONFIG_SESSION_PHONE_NAME=Chrome
+
     volumes:
       - evolution_instances:/evolution/instances
-      - evolution_store:/evolution/store
+
+    networks:
+      - evolution_network
+
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8080 || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+networks:
+  evolution_network:
+    driver: bridge
 
 volumes:
+  postgres_data:
   evolution_instances:
-  evolution_store:
-
-
-

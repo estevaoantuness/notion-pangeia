@@ -1,0 +1,533 @@
+# ==============================================================================
+# BANCO DE INTENÇÕES E FRASES (PT-BR)
+# ==============================================================================
+# Sistema de NLP para reconhecimento robusto de comandos em português brasileiro
+# Suporta variações, sinônimos, acentos, emojis e linguagem natural
+# ==============================================================================
+
+intents:
+  # ==========================================================================
+  # SAUDAÇÕES
+  # ==========================================================================
+  greet:
+    synonyms:
+      - "oi"
+      - "ola"
+      - "olá"
+      - "opa"
+      - "e ai"
+      - "e aí"
+      - "eae"
+      - "salve"
+      - "fala"
+      - "bom dia"
+      - "boa tarde"
+      - "boa noite"
+    examples:
+      - "oi"
+      - "olá!"
+      - "e aí?"
+      - "bom diaaa ☀️"
+      - "boa noite!!"
+      - "salve!"
+      - "opa, beleza?"
+      - "fala mano"
+    regex:
+      - "^(oi|ol[aã]|opa|e ?a[ií]|eae|salve|fala|bom dia|boa tarde|boa noite)[!,. ]*$"
+    confidence: 0.95
+
+  # ==========================================================================
+  # DESPEDIDAS
+  # ==========================================================================
+  goodbye:
+    synonyms:
+      - "tchau"
+      - "falou"
+      - "até"
+      - "ate"
+      - "valeu"
+      - "até logo"
+      - "ate logo"
+      - "até mais"
+      - "ate mais"
+    examples:
+      - "tchau!"
+      - "até mais"
+      - "valeu!"
+      - "falou!"
+      - "até logo"
+    regex:
+      - "^(tchau|ate( logo| mais)?|até( logo| mais)?|valeu|falou)[!,. ]*$"
+    confidence: 0.95
+
+  # ==========================================================================
+  # AGRADECIMENTOS
+  # ==========================================================================
+  thanks:
+    synonyms:
+      - "obrigado"
+      - "obrigada"
+      - "valeu"
+      - "brigado"
+      - "brigada"
+      - "thanks"
+      - "vlw"
+    examples:
+      - "obrigado!"
+      - "valeu demais"
+      - "thanks!"
+      - "brigadão"
+      - "vlw!"
+    regex:
+      - "^(obrigad[ao]|brigad[ao]|valeu|thanks|vlw)[!,. ]*$"
+    confidence: 0.95
+
+  # ==========================================================================
+  # AJUDA / HELP
+  # ==========================================================================
+  help:
+    synonyms:
+      - "ajuda"
+      - "help"
+      - "?"
+      - "como usar"
+      - "como uso"
+      - "o que você faz"
+      - "o que voce faz"
+      - "comandos"
+      - "comando"
+    examples:
+      - "ajuda"
+      - "help"
+      - "como uso isso?"
+      - "quais comandos?"
+      - "o que você faz?"
+      - "me ajuda"
+      - "?"
+    regex:
+      - "^(ajuda|help|\\?|como us[oa]r?|como us[oa]|comandos?|o que (voce|você) faz?)[!,. ]*$"
+    confidence: 0.95
+
+  # ==========================================================================
+  # LISTAR TAREFAS
+  # ==========================================================================
+  list_tasks:
+    synonyms:
+      - "minhas tarefas"
+      - "lista"
+      - "tarefas"
+      - "meus itens"
+      - "o que falta"
+      - "ver tarefas"
+      - "mostrar tarefas"
+      - "quais tarefas"
+      - "o que tenho"
+      - "o que tenho hoje"
+    examples:
+      - "minhas tarefas"
+      - "lista"
+      - "ver tarefas"
+      - "o que tenho hoje?"
+      - "mostra minhas tarefas"
+      - "quais são minhas tarefas?"
+      - "o que falta fazer?"
+    regex:
+      - "^(minhas tarefas|lista|tarefas|ver tarefas|mostrar tarefas|meus itens|o que (tenho|falta)( hoje)?|quais (sao|são) minhas tarefas)[!,. ?]*$"
+    confidence: 0.98
+
+  # ==========================================================================
+  # PROGRESSO / STATUS
+  # ==========================================================================
+  progress:
+    synonyms:
+      - "progresso"
+      - "status"
+      - "andamento do dia"
+      - "como estou"
+      - "quanto falta"
+      - "como está"
+      - "como esta"
+      - "resumo"
+    examples:
+      - "progresso"
+      - "status"
+      - "quanto falta?"
+      - "como estou hoje?"
+      - "me dá um resumo"
+      - "andamento do dia"
+    regex:
+      - "^(progresso|status|andamento do dia|quanto falta|como estou|resumo|como (esta|está))[!,. ?]*$"
+    confidence: 0.98
+
+  # ==========================================================================
+  # MARCAR TAREFA COMO CONCLUÍDA
+  # ==========================================================================
+  done_task:
+    synonyms:
+      - "feito"
+      - "feita"
+      - "conclui"
+      - "concluí"
+      - "finalizei"
+      - "terminei"
+      - "completei"
+      - "pronto"
+      - "pronta"
+    examples:
+      - "feito 2"
+      - "concluí 3"
+      - "terminei a 4"
+      - "2 foi feita"
+      - "finalizei a 3"
+      - "completei 1"
+      - "pronto 5"
+    regex:
+      - "^(feito|feita|conclui|concluí|finalizei|terminei|completei|pronto|pronta)\\s*(a|o)?\\s*(\\d+)$"
+      - "^(\\d+)\\s*(foi|ta|tá|está|esta)?\\s*(feito|feita|pronto|pronta|concluída|concluida)$"
+    confidence: 0.99
+
+  # ==========================================================================
+  # MARCAR TAREFA EM ANDAMENTO
+  # ==========================================================================
+  in_progress_task:
+    synonyms:
+      - "andamento"
+      - "fazendo"
+      - "vou começar"
+      - "vou comecar"
+      - "iniciar"
+      - "iniciei"
+      - "começando"
+      - "comecando"
+      - "começar"
+      - "comecar"
+      - "comecei"
+    examples:
+      - "andamento 3"
+      - "fazendo 4"
+      - "vou começar a 2"
+      - "iniciei 1"
+      - "começando 5"
+      - "comecei a 3"
+    regex:
+      - "^(andamento|fazendo|vou (comecar|começar)|iniciar|iniciei|comecando|começando|comecei|comecar|começar)\\s*(a|o)?\\s*(\\d+)$"
+      - "^(\\d+)\\s*(em andamento|fazendo|começando|comecando)$"
+    confidence: 0.99
+
+  # ==========================================================================
+  # MARCAR TAREFA BLOQUEADA (COM MOTIVO)
+  # ==========================================================================
+  blocked_task:
+    synonyms:
+      - "bloqueada"
+      - "bloqueado"
+      - "travou"
+      - "travado"
+      - "impedido"
+      - "impedida"
+      - "não consigo"
+      - "nao consigo"
+      - "bloqueio"
+      - "trava"
+    examples:
+      - "bloqueada 4 - sem acesso"
+      - "travou a 3 — falta aprovação"
+      - "não consigo 2: pendente de fulano"
+      - "bloqueio 5 - aguardando resposta"
+      - "impedido 1: falta informação"
+    regex:
+      - "^(bloquead[ao]|travou|travado|travada|nao consigo|não consigo|impedid[ao]|bloqueio|trava)[^\\d]*(\\d+).*(?:-|—|:|,)+\\s*(.+)$"
+      - "^(\\d+)\\s*(bloquead[ao]|travou|travado|travada|impedid[ao])\\s*(?:-|—|:|,)+\\s*(.+)$"
+    confidence: 0.99
+
+  # ==========================================================================
+  # MARCAR TAREFA BLOQUEADA (SEM MOTIVO - requer slot filling)
+  # ==========================================================================
+  blocked_task_no_reason:
+    synonyms:
+      - "bloqueada"
+      - "bloqueado"
+      - "travou"
+      - "travado"
+      - "impedido"
+      - "impedida"
+    examples:
+      - "bloqueada 4"
+      - "travou 3"
+      - "impedido 2"
+    regex:
+      - "^(bloquead[ao]|travou|travado|travada|impedid[ao])[^\\d]*(\\d+)$"
+      - "^(\\d+)\\s*(bloquead[ao]|travou|travado|travada|impedid[ao])$"
+    confidence: 0.90
+    requires_slot_filling: true
+
+  # ==========================================================================
+  # CRIAR NOVA TAREFA
+  # ==========================================================================
+  create_task:
+    synonyms:
+      - "criar tarefa"
+      - "nova tarefa"
+      - "adicione tarefa"
+      - "adicionar tarefa"
+      - "add tarefa"
+      - "quero criar"
+      - "quero adicionar"
+    examples:
+      - "criar tarefa"
+      - "nova tarefa"
+      - "quero adicionar uma tarefa"
+      - "add tarefa"
+    regex:
+      - "^(criar tarefa|nova tarefa|ad(icion|d)(ar|e) tarefa|quero (criar|adicionar)( uma tarefa)?)[!,. ]*$"
+    confidence: 0.95
+
+  # ==========================================================================
+  # CONFIRMAÇÃO POSITIVA
+  # ==========================================================================
+  confirm_yes:
+    synonyms:
+      - "sim"
+      - "s"
+      - "pode"
+      - "isso"
+      - "ok"
+      - "manda ver"
+      - "beleza"
+      - "confirmo"
+      - "confirmar"
+      - "👍"
+      - "✅"
+      - "✓"
+    examples:
+      - "sim"
+      - "pode marcar"
+      - "👍"
+      - "ok"
+      - "beleza"
+      - "manda ver"
+      - "isso mesmo"
+    regex:
+      - "^(sim|s|isso( mesmo)?|pode|ok|manda ver|beleza|confirmo|confirmar|👍|✅|✓)[!,. ]*$"
+    confidence: 0.98
+
+  # ==========================================================================
+  # CONFIRMAÇÃO NEGATIVA
+  # ==========================================================================
+  confirm_no:
+    synonyms:
+      - "não"
+      - "nao"
+      - "n"
+      - "agora não"
+      - "agora nao"
+      - "deixa"
+      - "cancelar"
+      - "cancela"
+      - "❌"
+      - "🚫"
+      - "✗"
+    examples:
+      - "não"
+      - "agora não"
+      - "❌"
+      - "deixa pra depois"
+      - "cancela"
+    regex:
+      - "^(nao|não|n|agora (nao|não)|deixa( pra depois)?|cancelar?|❌|🚫|✗)[!,. ]*$"
+    confidence: 0.98
+
+  # ==========================================================================
+  # SMALLTALK - ESTADO / HUMOR
+  # ==========================================================================
+  smalltalk_mood:
+    synonyms:
+      - "tudo bem"
+      - "como vai"
+      - "como você está"
+      - "como voce esta"
+      - "e ai, beleza"
+      - "como ta"
+      - "como tá"
+      - "beleza"
+      - "de boa"
+    examples:
+      - "tudo bem?"
+      - "como vai?"
+      - "beleza?"
+      - "e aí, tudo certo?"
+      - "como você está?"
+    regex:
+      - "^(tudo bem|como vai|como (vc|voce|você) (esta|está|ta|tá)|beleza|de boa)[!,. ?]*$"
+    confidence: 0.90
+
+  # ==========================================================================
+  # INFORMAÇÕES SOBRE HORÁRIOS / AGENDA
+  # ==========================================================================
+  scheduler_info:
+    synonyms:
+      - "horários"
+      - "horarios"
+      - "agenda"
+      - "check-ins"
+      - "checkins"
+      - "que horas envia"
+      - "que horas são os checkins"
+      - "que horas sao os checkins"
+      - "quando envia"
+    examples:
+      - "que horas envia as metas?"
+      - "quais os check-ins do dia?"
+      - "quando você envia mensagem?"
+      - "horários do bot"
+    regex:
+      - "^(que horas (envia|sao|são)|quando (envia|manda)|horarios|horários|agenda|check-?ins?)[!,. ?]*$"
+    confidence: 0.95
+
+  # ==========================================================================
+  # REENVIAR LISTA DE TAREFAS
+  # ==========================================================================
+  resend_list:
+    synonyms:
+      - "reenviar lista"
+      - "me manda a lista"
+      - "manda de novo"
+      - "repete a lista"
+      - "envia de novo"
+      - "manda novamente"
+    examples:
+      - "manda a lista de novo"
+      - "repete a lista"
+      - "reenviar lista"
+      - "envia de novo"
+    regex:
+      - "^(re(en)?viar lista|manda (a )?lista( de novo| novamente)?|repete a lista|envia de novo)[!,. ]*$"
+    confidence: 0.98
+
+  # ==========================================================================
+  # AGRADECIMENTO COM FECHAMENTO
+  # ==========================================================================
+  thanks_closing:
+    synonyms:
+      - "obrigado, pode fechar"
+      - "valeu, era isso"
+      - "só isso"
+      - "so isso"
+      - "fechou"
+      - "era isso"
+    examples:
+      - "valeu, era isso"
+      - "só isso"
+      - "fechou!"
+      - "obrigado, pode fechar"
+      - "era isso mesmo"
+    regex:
+      - "^(valeu(,)? era isso|so isso|só isso|fechou|era isso( mesmo)?|obrigado(,)? pode fechar)[!,. ]*$"
+    confidence: 0.95
+
+# ==============================================================================
+# CONFIGURAÇÕES GLOBAIS DO NLP
+# ==============================================================================
+config:
+  default_confidence_threshold: 0.75
+  fuzzy_matching_threshold: 92
+  enable_emoji_parsing: true
+  enable_number_word_parsing: true
+  enable_accent_normalization: true
+  enable_punctuation_normalization: true
+  enable_elongation_reduction: true
+  enable_synonym_mapping: true
+  max_message_length: 500
+  slot_filling_timeout_seconds: 120
+
+# ==============================================================================
+# RESPOSTAS DE DESAMBIGUAÇÃO (quando confiança < threshold)
+# ==============================================================================
+disambiguation:
+  default_message: "Não tenho certeza. Você quis dizer uma destas opções?"
+  suggestions:
+    - "minhas tarefas - ver suas tarefas"
+    - "progresso - ver andamento do dia"
+    - "feito 2 - marcar tarefa 2 como concluída"
+    - "andamento 3 - marcar tarefa 3 em andamento"
+    - "bloqueada 4 - motivo - marcar tarefa 4 como bloqueada"
+    - "ajuda - ver todos os comandos"
+
+# ==============================================================================
+# RESPOSTAS CONTEXTUAIS
+# ==============================================================================
+contextual_responses:
+  greet_morning: "Bom dia! Quer ver suas tarefas de hoje?"
+  greet_afternoon: "Boa tarde! Como está o andamento das tarefas?"
+  greet_evening: "Boa noite! Vamos revisar o que foi feito hoje?"
+  thanks: "Por nada! Estou aqui pra ajudar. 😊"
+  goodbye: "Até logo! Qualquer coisa é só chamar."
+  smalltalk_mood: "Tudo certo! Posso te ajudar com 'minhas tarefas' ou 'progresso'. O que prefere?"
+
+# ==============================================================================
+# FALLBACKS INTELIGENTES (evitar "não entendi")
+# ==============================================================================
+fallbacks:
+  low_confidence: "Posso ajudar com:\n• 'minhas tarefas' - ver suas tarefas\n• 'progresso' - ver andamento\n• 'feito N' - marcar tarefa\n• 'ajuda' - todos os comandos\n\nO que você precisa?"
+
+  task_not_found: "Não encontrei a tarefa {index}. Quer que eu envie a lista atualizada?"
+
+  index_out_of_range: "Você tem {total} tarefas. Qual delas você quis dizer?"
+
+  blocked_no_reason_prompt: "Entendi que a tarefa {index} está bloqueada. Qual o motivo do bloqueio?"
+
+  repeated_message: "Já registrei isso há pouco. Quer que eu confirme novamente?"
+
+  only_attachment: "Vi que você enviou um anexo. Quer que eu registre algo para alguma tarefa? Posso te enviar a lista."
+
+  number_ambiguity: "Você quis dizer a tarefa número {number}? Responda 'sim' ou 'não'."
+
+# ==============================================================================
+# VARIAÇÕES NUMÉRICAS (por extenso)
+# ==============================================================================
+number_words:
+  cardinals:
+    zero: 0
+    um: 1
+    uma: 1
+    dois: 2
+    duas: 2
+    tres: 3
+    três: 3
+    quatro: 4
+    cinco: 5
+    seis: 6
+    sete: 7
+    oito: 8
+    nove: 9
+    dez: 10
+
+  ordinals:
+    primeiro: 1
+    primeira: 1
+    segundo: 2
+    segunda: 2
+    terceiro: 3
+    terceira: 3
+    quarto: 4
+    quarta: 4
+    quinto: 5
+    quinta: 5
+    sexto: 6
+    sexta: 6
+    setimo: 7
+    sétimo: 7
+    oitavo: 8
+    nono: 9
+    decimo: 10
+    décimo: 10
+
+# ==============================================================================
+# LOGS E ANALYTICS
+# ==============================================================================
+logging:
+  log_normalized_text: true
+  log_intent: true
+  log_confidence: true
+  log_entities: true
+  log_unknown_intents: true

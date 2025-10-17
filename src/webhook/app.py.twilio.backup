@@ -1,0 +1,310 @@
+"""
+Servidor Flask para webhook do Twilio.
+
+Este módulo implementa o servidor web que recebe mensagens do WhatsApp
+via webhook do Twilio e processa comandos dos colaboradores.
+"""
+
+import logging
+from flask import Flask, request, Response
+from twilio.twiml.messaging_response import MessagingResponse
+from twilio.request_validator import RequestValidator
+
+from src.commands.processor import CommandProcessor
+from src.scheduler import get_scheduler
+from config.settings import settings
+
+# Configuração de logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
+
+# Inicializa Flask
+app = Flask(__name__)
+
+# Inicializa processador de comandos
+command_processor = CommandProcessor()
+
+# Inicializa e configura scheduler
+scheduler = get_scheduler()
+scheduler.setup_jobs()
+scheduler.start()
+
+# Request validator do Twilio (para segurança)
+validator = RequestValidator(settings.TWILIO_AUTH_TOKEN)
+
+
+@app.route('/health', methods=['GET'])
+def health_check():
+    """
+    Endpoint de health check.
+
+    Returns:
+        JSON com status do serviço
+    """
+    return {
+        "status": "healthy",
+        "service": "notion-pangeia-webhook",
+        "version": "1.0.0",
+        "scheduler": "running" if scheduler.scheduler.running else "stopped"
+    }, 200
+
+
+@app.route('/scheduler/jobs', methods=['GET'])
+def scheduler_jobs():
+    """
+    Lista todos os jobs agendados.
+
+    Returns:
+        JSON com lista de jobs
+    """
+    try:
+        jobs = scheduler.scheduler.get_jobs()
+        jobs_data = []
+
+        for job in jobs:
+            next_run = job.next_run_time
+            jobs_data.append({
+                "id": job.id,
+                "name": job.name,
+                "next_run": next_run.isoformat() if next_run else None,
+                "trigger": str(job.trigger)
+            })
+
+        return {
+            "status": "success",
+            "total_jobs": len(jobs_data),
+            "jobs": jobs_data
+        }, 200
+
+    except Exception as e:
+        logger.error(f"Erro ao listar jobs: {e}")
+        return {
+            "status": "error",
+            "message": str(e)
+        }, 500
+
+
+@app.route('/scheduler/run/<job_id>', methods=['POST'])
+def scheduler_run_job(job_id: str):
+    """
+    Executa um job manualmente (para testes).
+
+    Args:
+        job_id: ID do job a executar
+
+    Returns:
+        JSON com resultado
+    """
+    try:
+        success = scheduler.run_job_now(job_id)
+
+        if success:
+            return {
+                "status": "success",
+                "message": f"Job '{job_id}' executado com sucesso"
+            }, 200
+        else:
+            return {
+                "status": "error",
+                "message": f"Job '{job_id}' não encontrado"
+            }, 404
+
+    except Exception as e:
+        logger.error(f"Erro ao executar job: {e}")
+        return {
+            "status": "error",
+            "message": str(e)
+        }, 500
+
+
+@app.route('/webhook/whatsapp', methods=['POST'])
+def whatsapp_webhook():
+    """
+    Webhook principal para receber mensagens do WhatsApp via Twilio.
+
+    Recebe mensagens, processa comandos e retorna resposta via TwiML.
+
+    Returns:
+        Response TwiML
+    """
+    try:
+        # Log da requisição
+        logger.info("=" * 60)
+        logger.info("📨 MENSAGEM RECEBIDA VIA WEBHOOK")
+        logger.info("=" * 60)
+
+        # Extrai dados da mensagem
+        from_number = request.form.get('From', '')
+        message_body = request.form.get('Body', '').strip()
+        message_sid = request.form.get('MessageSid', '')
+
+        logger.info(f"From: {from_number}")
+        logger.info(f"Message: {message_body}")
+        logger.info(f"SID: {message_sid}")
+
+        # Valida que temos os dados necessários
+        if not from_number or not message_body:
+            logger.warning("Mensagem sem dados necessários")
+            return _create_error_response("Mensagem inválida")
+
+        # Processa comando
+        success, response_text = command_processor.process(
+            from_number=from_number,
+            message=message_body
+        )
+
+        # Log do resultado
+        if success:
+            logger.info(f"✅ Comando processado com sucesso")
+            if response_text:
+                logger.info(f"Resposta: {response_text[:100]}...")
+        else:
+            logger.warning(f"❌ Falha ao processar comando")
+            if response_text:
+                logger.warning(f"Erro: {response_text}")
+
+        # Cria resposta TwiML
+        # Se o handler já enviou a mensagem, não precisamos responder aqui
+        # (ex: send_daily_tasks envia via API)
+        if response_text:
+            return _create_success_response(response_text)
+        else:
+            # Resposta vazia (mensagem já foi enviada via API)
+            return _create_empty_response()
+
+    except Exception as e:
+        logger.error(f"💥 Erro ao processar webhook: {e}")
+        import traceback
+        traceback.print_exc()
+
+        return _create_error_response(
+            "Erro ao processar sua mensagem. Tente novamente."
+        )
+
+
+@app.route('/webhook/whatsapp/status', methods=['POST'])
+def whatsapp_status_callback():
+    """
+    Callback de status de mensagens (delivery, read, etc).
+
+    Returns:
+        Response vazia
+    """
+    try:
+        message_sid = request.form.get('MessageSid', '')
+        message_status = request.form.get('MessageStatus', '')
+
+        logger.info(f"📊 Status callback - SID: {message_sid}, Status: {message_status}")
+
+        # Aqui você pode implementar lógica para rastrear status de mensagens
+        # Por exemplo, atualizar um banco de dados com o status de entrega
+
+        return Response(status=200)
+
+    except Exception as e:
+        logger.error(f"Erro no status callback: {e}")
+        return Response(status=200)  # Sempre retorna 200 para não causar retries
+
+
+def _create_success_response(message: str) -> Response:
+    """
+    Cria resposta TwiML de sucesso.
+
+    Args:
+        message: Mensagem a ser enviada
+
+    Returns:
+        Response com TwiML
+    """
+    response = MessagingResponse()
+    response.message(message)
+
+    return Response(str(response), mimetype='application/xml')
+
+
+def _create_error_response(error_message: str) -> Response:
+    """
+    Cria resposta TwiML de erro.
+
+    Args:
+        error_message: Mensagem de erro
+
+    Returns:
+        Response com TwiML
+    """
+    response = MessagingResponse()
+    response.message(f"❌ {error_message}")
+
+    return Response(str(response), mimetype='application/xml')
+
+
+def _create_empty_response() -> Response:
+    """
+    Cria resposta TwiML vazia.
+
+    Útil quando a mensagem já foi enviada via API do Twilio
+    e não queremos enviar uma resposta via webhook.
+
+    Returns:
+        Response vazia com TwiML
+    """
+    response = MessagingResponse()
+    return Response(str(response), mimetype='application/xml')
+
+
+def validate_twilio_request(request_url: str) -> bool:
+    """
+    Valida que a requisição veio do Twilio.
+
+    Args:
+        request_url: URL completa da requisição
+
+    Returns:
+        True se válida, False caso contrário
+    """
+    try:
+        # Extrai signature do header
+        signature = request.headers.get('X-Twilio-Signature', '')
+
+        # Pega todos os parâmetros do POST
+        params = request.form.to_dict()
+
+        # Valida
+        is_valid = validator.validate(request_url, params, signature)
+
+        if not is_valid:
+            logger.warning("⚠️  Requisição com signature inválida!")
+
+        return is_valid
+
+    except Exception as e:
+        logger.error(f"Erro ao validar requisição: {e}")
+        return False
+
+
+if __name__ == '__main__':
+    """
+    Execução direta do servidor (desenvolvimento).
+
+    Para produção, use gunicorn ou similar:
+    gunicorn -w 4 -b 0.0.0.0:5000 src.webhook.app:app
+    """
+    PORT = 5001  # Mudado para 5001 (porta 5000 usada pelo AirPlay no macOS)
+
+    logger.info("=" * 60)
+    logger.info("🚀 SERVIDOR WEBHOOK INICIANDO")
+    logger.info("=" * 60)
+    logger.info(f"Porta: {PORT}")
+    logger.info(f"Endpoint: http://localhost:{PORT}/webhook/whatsapp")
+    logger.info(f"Health: http://localhost:{PORT}/health")
+    logger.info("=" * 60)
+
+    # Executa servidor
+    app.run(
+        host='0.0.0.0',
+        port=PORT,
+        debug=settings.DEBUG if hasattr(settings, 'DEBUG') else False
+    )

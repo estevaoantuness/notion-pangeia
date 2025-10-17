@@ -1,0 +1,22 @@
+# Core Framework
+flask==3.0.0
+gunicorn==21.2.0
+
+# Notion Integration
+notion-client==2.2.1
+
+# WhatsApp Integration (Evolution API)
+# Uses requests library for REST API calls
+
+# Job Scheduling
+APScheduler==3.10.4
+pytz==2024.1
+
+# Environment & Configuration
+python-dotenv==1.0.0
+
+# HTTP Requests
+requests==2.31.0
+
+# Utilities
+python-dateutil==2.8.2

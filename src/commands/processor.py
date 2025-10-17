@@ -122,7 +122,6 @@ class CommandProcessor:
 • *progresso* - ver andamento do dia
 • *feito N* - marcar tarefa N como concluída
 • *andamento N* - marcar tarefa N em andamento
-• *bloqueada N - motivo* - marcar tarefa N como bloqueada
 • *ajuda* - ver todos os comandos
 
 O que você precisa?"""
@@ -154,7 +153,6 @@ Comandos disponíveis:
 • *feito N* - marcar tarefa N como concluída
 • *feito 2 5 6* - marcar múltiplas tarefas
 • *andamento N* - marcar tarefa N em andamento
-• *bloqueada N - motivo* - marcar tarefa N como bloqueada
 • *ajuda* - ver todos os comandos"""
 
         return greeting + commands_list, None
@@ -319,28 +317,32 @@ Entre em contato com o administrador para cadastrar seu número."""
 
         intent = pending_state.get("intent")
 
-        if intent == "blocked_task":
-            # Esperando motivo do bloqueio
-            task_index = pending_state.get("index")
+        # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        # SLOT-FILLING BLOQUEADA - DESABILITADO
+        # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-            # Verificar se é cancelamento
-            confirmation = is_confirmation(message)
-            if confirmation is False:
-                self._clear_user_state(person_name)
-                return True, "Ok, cancelei. Se precisar, é só chamar!"
-
-            # Usar a mensagem como motivo
-            reason = message.strip()
-
-            # Limpar estado
-            self._clear_user_state(person_name)
-
-            # Executar comando bloqueada
-            return self.handlers.handle_blocked(
-                person_name=person_name,
-                task_number=task_index,
-                reason=reason
-            )
+        # if intent == "blocked_task":
+        #     # Esperando motivo do bloqueio
+        #     task_index = pending_state.get("index")
+        #
+        #     # Verificar se é cancelamento
+        #     confirmation = is_confirmation(message)
+        #     if confirmation is False:
+        #         self._clear_user_state(person_name)
+        #         return True, "Ok, cancelei. Se precisar, é só chamar!"
+        #
+        #     # Usar a mensagem como motivo
+        #     reason = message.strip()
+        #
+        #     # Limpar estado
+        #     self._clear_user_state(person_name)
+        #
+        #     # Executar comando bloqueada
+        #     return self.handlers.handle_blocked(
+        #         person_name=person_name,
+        #         task_number=task_index,
+        #         reason=reason
+        #     )
 
         # Estado desconhecido
         self._clear_user_state(person_name)
@@ -400,7 +402,6 @@ Entre em contato com o administrador para cadastrar seu número."""
 • *progresso* - ver andamento do dia
 • *feito N* - marcar tarefa N como concluída
 • *andamento N* - marcar tarefa N em andamento
-• *bloqueada N - motivo* - marcar tarefa N como bloqueada
 • *criar tarefa* - criar nova tarefa
 • *ajuda* - ver este guia"""
 
@@ -410,7 +411,6 @@ Entre em contato com o administrador para cadastrar seu número."""
 • tarefas
 • feito 2
 • andamento 3
-• bloqueada 4 - sem acesso ao servidor
 • progresso
 • ajuda"""
 
@@ -510,41 +510,46 @@ Entre em contato com o administrador para cadastrar seu número."""
             else:
                 return True, "Qual o número da tarefa? Ex: 'andamento 3' ou 'andamento 2 3'"
 
-        # Tarefa bloqueada (com motivo)
-        if intent == "blocked_task":
-            task_number = entities.get("index")
-            reason = entities.get("reason")
+        # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        # COMANDO BLOQUEADA - DESABILITADO
+        # Manter código comentado caso precise reativar no futuro
+        # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-            if not task_number:
-                return True, "Qual tarefa está bloqueada? Ex: 'bloqueada 4 - sem acesso'"
-
-            if not reason:
-                # Slot-filling: pedir motivo
-                self._set_user_state(person_name, {
-                    "intent": "blocked_task",
-                    "index": task_number
-                })
-                return True, f"Entendi que a tarefa {task_number} está bloqueada. Qual o motivo?"
-
-            return self.handlers.handle_blocked(
-                person_name=person_name,
-                task_number=task_number,
-                reason=reason
-            )
-
-        # Tarefa bloqueada (sem motivo) - slot-filling
-        if intent == "blocked_task_no_reason":
-            task_number = entities.get("index")
-
-            if not task_number:
-                return True, "Qual tarefa está bloqueada? Ex: 'bloqueada 4'"
-
-            # Iniciar slot-filling
-            self._set_user_state(person_name, {
-                "intent": "blocked_task",
-                "index": task_number
-            })
-            return True, f"Entendi que a tarefa {task_number} está bloqueada. Qual o motivo?"
+        # # Tarefa bloqueada (com motivo)
+        # if intent == "blocked_task":
+        #     task_number = entities.get("index")
+        #     reason = entities.get("reason")
+        #
+        #     if not task_number:
+        #         return True, "Qual tarefa está bloqueada? Ex: 'bloqueada 4 - sem acesso'"
+        #
+        #     if not reason:
+        #         # Slot-filling: pedir motivo
+        #         self._set_user_state(person_name, {
+        #             "intent": "blocked_task",
+        #             "index": task_number
+        #         })
+        #         return True, f"Entendi que a tarefa {task_number} está bloqueada. Qual o motivo?"
+        #
+        #     return self.handlers.handle_blocked(
+        #         person_name=person_name,
+        #         task_number=task_number,
+        #         reason=reason
+        #     )
+        #
+        # # Tarefa bloqueada (sem motivo) - slot-filling
+        # if intent == "blocked_task_no_reason":
+        #     task_number = entities.get("index")
+        #
+        #     if not task_number:
+        #         return True, "Qual tarefa está bloqueada? Ex: 'bloqueada 4'"
+        #
+        #     # Iniciar slot-filling
+        #     self._set_user_state(person_name, {
+        #         "intent": "blocked_task",
+        #         "index": task_number
+        #     })
+        #     return True, f"Entendi que a tarefa {task_number} está bloqueada. Qual o motivo?"
 
         # Confirmações (contextuais)
         if intent == "confirm_yes":

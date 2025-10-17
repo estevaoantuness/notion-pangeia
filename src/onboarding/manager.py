@@ -378,8 +378,6 @@ class OnboardingManager:
         message += "*🔵 MARCAR EM ANDAMENTO*\n"
         message += "• andamento 3 → marca tarefa 3\n"
         message += "• fazendo 2 / comecei 2 → sinônimos\n\n"
-        message += "*🔴 MARCAR COMO BLOQUEADA*\n"
-        message += "• bloqueada 4 aguardando aprovação\n\n"
         message += "━━━━━━━━━━━━━━━━━━━━━━\n"
         message += "*⏰ NOTIFICAÇÕES AUTOMÁTICAS*\n\n"
         message += "Você receberá mensagens:\n"

@@ -92,13 +92,15 @@ SYNONYM_MAP = {
     "progress": "andamento", "wip": "andamento",
     "⏳": "andamento", "🔄": "andamento",
 
-    # Comandos - Tarefas bloqueadas
-    "bloqueado": "bloqueada", "travou": "bloqueada", "travado": "bloqueada",
-    "travada": "bloqueada", "impedido": "bloqueada", "impedida": "bloqueada",
-    "parado": "bloqueada", "parada": "bloqueada",
-    "nao consigo": "bloqueada", "não consigo": "bloqueada",
-    "bloqueio": "bloqueada", "trava": "bloqueada",
-    "blocked": "bloqueada", "⛔": "bloqueada",
+    # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    # SINÔNIMOS DE BLOQUEADA - DESABILITADO
+    # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    # "bloqueado": "bloqueada", "travou": "bloqueada", "travado": "bloqueada",
+    # "travada": "bloqueada", "impedido": "bloqueada", "impedida": "bloqueada",
+    # "parado": "bloqueada", "parada": "bloqueada",
+    # "nao consigo": "bloqueada", "não consigo": "bloqueada",
+    # "bloqueio": "bloqueada", "trava": "bloqueada",
+    # "blocked": "bloqueada", "⛔": "bloqueada",
 
     # Comandos - Listar tarefas
     "lista": "tarefas", "tasks": "tarefas",
@@ -395,9 +397,11 @@ CommandPattern = Tuple[str, re.Pattern, float]
 
 # Padrões ordenados por especificidade (mais específico primeiro)
 PATTERNS: List[CommandPattern] = [
-    # Tarefas com motivo de bloqueio (mais específico)
-    ("blocked_task", re.compile(r"^(bloqueada)\s+(\d+)\s*(?:-|—|:|,)+\s*(.+)$"), 0.99),
-    ("blocked_task", re.compile(r"^(\d+)\s+(bloqueada)\s*(?:-|—|:|,)+\s*(.+)$"), 0.99),
+    # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    # PATTERNS DE BLOQUEADA - DESABILITADO
+    # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    # ("blocked_task", re.compile(r"^(bloqueada)\s+(\d+)\s*(?:-|—|:|,)+\s*(.+)$"), 0.99),
+    # ("blocked_task", re.compile(r"^(\d+)\s+(bloqueada)\s*(?:-|—|:|,)+\s*(.+)$"), 0.99),
 
     # Tarefas - aceita UM ou VÁRIOS números
     # Ex: "feito 1", "feito 1 2 3", "1 2 3 feito"
@@ -407,8 +411,8 @@ PATTERNS: List[CommandPattern] = [
     ("in_progress_task", re.compile(r"^(andamento|fazendo)\s+((?:\d+\s*)+)$"), 0.99),
     ("in_progress_task", re.compile(r"^((?:\d+\s*)+)\s+(andamento|fazendo)$"), 0.99),
 
-    ("blocked_task_no_reason", re.compile(r"^(bloqueada)\s+(\d+)$"), 0.90),
-    ("blocked_task_no_reason", re.compile(r"^(\d+)\s+(bloqueada)$"), 0.90),
+    # ("blocked_task_no_reason", re.compile(r"^(bloqueada)\s+(\d+)$"), 0.90),
+    # ("blocked_task_no_reason", re.compile(r"^(\d+)\s+(bloqueada)$"), 0.90),
 
     # Mostrar detalhes de tarefa
     ("show_task", re.compile(r"^(mostre?|mostra|ver|veja|abra?|detalhes?|info)\s+(?:a\s+)?(\d+)$"), 0.99),
@@ -461,23 +465,25 @@ def extract_task_entities(intent: str, match_groups: tuple) -> Dict[str, Any]:
                 break
         return entities
 
-    # Comandos de bloqueio
-    if intent in {"blocked_task", "blocked_task_no_reason"}:
-        # Extrair índice (número da tarefa)
-        nums = [g for g in match_groups if g and g.strip() and g.strip().isdigit()]
-        if nums:
-            entities["index"] = int(nums[0].strip())
-
-        # Extrair motivo do bloqueio (se presente)
-        if intent == "blocked_task":
-            # Filtra grupos vazios e remove palavras-chave de comando
-            reasons = [
-                g for g in match_groups
-                if g and g.strip() and not g.strip().isdigit()
-                and g.strip() not in {"bloqueada", "bloqueado", "a", "a "}
-            ]
-            if reasons:
-                entities["reason"] = reasons[-1].strip()
+    # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    # EXTRAÇÃO DE ENTIDADES BLOQUEADA - DESABILITADO
+    # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    # if intent in {"blocked_task", "blocked_task_no_reason"}:
+    #     # Extrair índice (número da tarefa)
+    #     nums = [g for g in match_groups if g and g.strip() and g.strip().isdigit()]
+    #     if nums:
+    #         entities["index"] = int(nums[0].strip())
+    #
+    #     # Extrair motivo do bloqueio (se presente)
+    #     if intent == "blocked_task":
+    #         # Filtra grupos vazios e remove palavras-chave de comando
+    #         reasons = [
+    #             g for g in match_groups
+    #             if g and g.strip() and not g.strip().isdigit()
+    #             and g.strip() not in {"bloqueada", "bloqueado", "a", "a "}
+    #         ]
+    #         if reasons:
+    #             entities["reason"] = reasons[-1].strip()
 
     return entities
 
@@ -545,8 +551,8 @@ def parse(text: str, log_result: bool = False) -> ParseResult:
     if "andamento" in first_tokens or "fazendo" in first_tokens:
         return ParseResult("in_progress_task", {}, 0.60, normalized, original)
 
-    if "bloqueada" in first_tokens:
-        return ParseResult("blocked_task_no_reason", {}, 0.60, normalized, original)
+    # if "bloqueada" in first_tokens:
+    #     return ParseResult("blocked_task_no_reason", {}, 0.60, normalized, original)
 
     # 3) Unknown
     return ParseResult(
@@ -606,7 +612,7 @@ if __name__ == "__main__":
         "Olá!!!",
         "e aííí",
         "finalizei a terceira",
-        "bloqueada 4 - sem acesso",
+        # "bloqueada 4 - sem acesso",  # DESABILITADO
         "vou começar a 2",
         "minhas tarefas",
         "progresso",
@@ -631,7 +637,7 @@ if __name__ == "__main__":
         ("Olá", "oi"),
         ("finalizei a 3", "feito 3"),
         ("vou começar 2", "andamento 2"),
-        ("bloqueada 4 - sem acesso", "bloqueada 4: sem acesso"),
+        # ("bloqueada 4 - sem acesso", "bloqueada 4: sem acesso"),  # DESABILITADO
     ]
 
     for a, b in equiv_tests:

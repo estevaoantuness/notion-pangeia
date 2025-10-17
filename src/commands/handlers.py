@@ -175,69 +175,74 @@ class CommandHandlers:
 
         return True, ""
 
-    def handle_blocked(
-        self,
-        person_name: str,
-        task_number: int,
-        reason: str
-    ) -> Tuple[bool, str]:
-        """
-        Handler para comando "bloqueada".
+    # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    # COMANDO BLOQUEADA - DESABILITADO
+    # Manter código comentado caso precise reativar no futuro
+    # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-        Args:
-            person_name: Nome do colaborador
-            task_number: Número da task
-            reason: Motivo do bloqueio
-
-        Returns:
-            Tuple (sucesso, mensagem_resposta)
-        """
-        logger.info(
-            f"Processando comando 'bloqueada' de {person_name} "
-            f"para task {task_number}. Motivo: {reason}"
-        )
-
-        # Busca task
-        task = self.task_mapper.get_task(person_name, task_number)
-
-        if not task:
-            all_tasks = self.task_mapper.get_all_tasks(person_name)
-            total = len(all_tasks) if all_tasks else 0
-
-            error_msg = self.humanizer.get_error_message(
-                'invalid_index',
-                index=task_number,
-                total=total
-            )
-            return False, error_msg
-
-        # Atualiza no Notion
-        success, error = self.task_updater.mark_as_blocked(
-            task_id=task["id"],
-            reason=reason,
-            notify_manager=True
-        )
-
-        if not success:
-            logger.error(f"Erro ao marcar task como bloqueada: {error}")
-            error_msg = self.humanizer.get_error_message('technical_error')
-            return False, error_msg
-
-        # Verifica se é alta prioridade
-        is_high_priority = task.get("prioridade") == "Alta"
-
-        # Cria mensagem contextual
-        message = self.humanizer.get_task_blocked_message(
-            task_number=task_number,
-            task_title=task["nome"],
-            reason=reason,
-            is_high_priority=is_high_priority
-        )
-
-        # Envia confirmação
-        self.whatsapp_sender.send_message(person_name, message)
-
-        return True, ""
+    # def handle_blocked(
+    #     self,
+    #     person_name: str,
+    #     task_number: int,
+    #     reason: str
+    # ) -> Tuple[bool, str]:
+    #     """
+    #     Handler para comando "bloqueada".
+    #
+    #     Args:
+    #         person_name: Nome do colaborador
+    #         task_number: Número da task
+    #         reason: Motivo do bloqueio
+    #
+    #     Returns:
+    #         Tuple (sucesso, mensagem_resposta)
+    #     """
+    #     logger.info(
+    #         f"Processando comando 'bloqueada' de {person_name} "
+    #         f"para task {task_number}. Motivo: {reason}"
+    #     )
+    #
+    #     # Busca task
+    #     task = self.task_mapper.get_task(person_name, task_number)
+    #
+    #     if not task:
+    #         all_tasks = self.task_mapper.get_all_tasks(person_name)
+    #         total = len(all_tasks) if all_tasks else 0
+    #
+    #         error_msg = self.humanizer.get_error_message(
+    #             'invalid_index',
+    #             index=task_number,
+    #             total=total
+    #         )
+    #         return False, error_msg
+    #
+    #     # Atualiza no Notion
+    #     success, error = self.task_updater.mark_as_blocked(
+    #         task_id=task["id"],
+    #         reason=reason,
+    #         notify_manager=True
+    #     )
+    #
+    #     if not success:
+    #         logger.error(f"Erro ao marcar task como bloqueada: {error}")
+    #         error_msg = self.humanizer.get_error_message('technical_error')
+    #         return False, error_msg
+    #
+    #     # Verifica se é alta prioridade
+    #     is_high_priority = task.get("prioridade") == "Alta"
+    #
+    #     # Cria mensagem contextual
+    #     message = self.humanizer.get_task_blocked_message(
+    #         task_number=task_number,
+    #         task_title=task["nome"],
+    #         reason=reason,
+    #         is_high_priority=is_high_priority
+    #     )
+    #
+    #     # Envia confirmação
+    #     self.whatsapp_sender.send_message(person_name, message)
+    #
+    #     return True, ""
 
     def handle_list(self, person_name: str) -> Tuple[bool, str]:
         """

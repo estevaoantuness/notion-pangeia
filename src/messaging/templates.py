@@ -396,9 +396,6 @@ def format_help_message() -> str:
 • 'andamento [N]' ou 'fazendo [N]'
   → Marca task N como em andamento
 
-• 'bloqueada [N] - [motivo]'
-  → Marca task N como bloqueada
-
 ━━━━━━━━━━━━━━━━━━━━━━
 📊 CONSULTAR
 

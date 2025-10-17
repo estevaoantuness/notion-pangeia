@@ -149,7 +149,7 @@ class TasksManager:
             parsed_task = self._parse_task(task)
             status = parsed_task.get("status", "")
 
-            if status == "Concluída":
+            if status in ["Concluído", "Concluída", "Done", "Completed"]:
                 # NÃO adiciona à lista - usuário não precisa ver
                 # Tasks concluídas só aparecem no contador de progresso
                 continue
@@ -237,10 +237,12 @@ class TasksManager:
         if nome_prop.get("title"):
             nome = nome_prop["title"][0].get("plain_text", "")
 
-        # Status
+        # Status (tipo 'status', não 'select')
         status_prop = properties.get("Status", {})
         status = ""
-        if status_prop.get("select"):
+        if status_prop.get("status"):
+            status = status_prop["status"].get("name", "")
+        elif status_prop.get("select"):  # Fallback para databases antigas
             status = status_prop["select"].get("name", "")
 
         # Prazo
@@ -257,7 +259,7 @@ class TasksManager:
 
         # Data de Conclusão
         data_conclusao = None
-        if status == "Concluída":
+        if status in ["Concluído", "Concluída", "Done", "Completed"]:
             # Primeiro tenta campo "Data de Conclusão" se existir
             conclusao_prop = properties.get("Data de Conclusão", {})
             if conclusao_prop.get("date"):
@@ -401,10 +403,15 @@ class TasksManager:
             for task in results:
                 status_prop = task.get("properties", {}).get("Status", {})
 
-                if status_prop.get("select"):
+                # Tipo 'status' (novo) ou 'select' (antigo)
+                status = ""
+                if status_prop.get("status"):
+                    status = status_prop["status"].get("name", "")
+                elif status_prop.get("select"):
                     status = status_prop["select"].get("name", "")
 
-                    if status == "Concluída":
+                if status:
+                    if status in ["Concluído", "Concluída", "Done", "Completed"]:
                         concluidas += 1
                     elif status == "Em Andamento":
                         em_andamento += 1

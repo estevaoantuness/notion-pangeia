@@ -88,6 +88,9 @@ class Settings:
         # Configuração do formato de log
         log_format = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 
+        # Criar diretório de logs se não existir
+        os.makedirs('logs', exist_ok=True)
+
         # Configurar logging para arquivo e console
         logging.basicConfig(
             level=log_level,

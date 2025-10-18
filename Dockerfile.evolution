@@ -1,4 +1,4 @@
-FROM atendai/evolution-api:v2.1.1
+FROM atendai/evolution-api:v2.2.0
 
 # Expor porta
 EXPOSE 8080

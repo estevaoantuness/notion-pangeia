@@ -8,6 +8,9 @@ notion-client==2.2.1
 # WhatsApp Integration (Evolution API)
 requests==2.31.0
 
+# OpenAI Integration
+openai==1.30.0
+
 # Job Scheduling
 APScheduler==3.10.4
 pytz==2024.1

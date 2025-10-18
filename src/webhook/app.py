@@ -181,10 +181,6 @@ def whatsapp_webhook():
             logger.info(f"Evento ignorado: {event}")
             return jsonify({"status": "success", "message": "Event ignored"}), 200
 
-        # Análise psicológica da mensagem recebida
-        psychological_context = psych_engine.analyze_message_sentiment(data.get('message', {}).get('conversation', ''))
-        logger.info(f"Contexto psicológico: {psychological_context}")
-
         # Extrai informações da mensagem
         key = data.get('key', {})
         message_data = data.get('message', {})
@@ -226,12 +222,18 @@ def whatsapp_webhook():
             return jsonify({"status": "error", "message": "Invalid message"}), 400
 
         # **NOVA: Usa Agente Conversacional com GPT-4o-mini**
-        logger.info(f"Processando com Agente Conversacional: {push_name}")
-        success, response_text = conversational_agent.generate_response(
-            user_id=from_number,
-            message=message_body,
-            person_name=push_name
-        )
+        try:
+            logger.info(f"🤖 Processando com GPT-4o-mini Agent: {push_name}")
+            success, response_text = conversational_agent.generate_response(
+                user_id=from_number,
+                message=message_body,
+                person_name=push_name
+            )
+            logger.info(f"✅ Agente respondeu: {response_text[:80]}...")
+        except Exception as e:
+            logger.error(f"❌ Erro no agente: {e}")
+            success = False
+            response_text = "Desculpa, algo deu errado. Tenta de novo? 💙"
 
         # Log do resultado com contexto
         if success:

@@ -36,7 +36,7 @@ COLABORADORES: Dict[str, Dict[str, any]] = {
         "aliases": ["leebuani", "Leebuani"]
     },
     "Joaquim": {
-        "telefone": "+551198099410",
+        "telefone": "+5511980992410",
         "cargo": "Desenvolvedor",
         "ativo": True,
         "notion_id": None
@@ -48,8 +48,14 @@ COLABORADORES: Dict[str, Dict[str, any]] = {
         "notion_id": None
     },
     "Leo Confettura": {
-        "telefone": "+552498170330",
+        "telefone": "+552498117033",
         "cargo": "Desenvolvedor",
+        "ativo": True,
+        "notion_id": None
+    },
+    "Luna Machado": {
+        "telefone": "+55448428260",
+        "cargo": "Desenvolvedora",
         "ativo": True,
         "notion_id": None
     },

@@ -16,8 +16,8 @@ NC='\033[0m'
 
 # Evolution API Config
 EVOLUTION_URL="https://pange-evolution-api.u5qiqp.easypanel.host"
-API_KEY="4487C5C69D4A-4795-8FE8-E1296D76978F"
-INSTANCE="48019ee7-c9f5-4409-825c-41888e6b0b27"
+API_KEY="429683C4C977415CAAFCCE10F7D57E11"
+INSTANCE="Pange.IA Bot"
 
 # Verificar se tem deploy info
 if [ -f ".render_deploy_info" ]; then
@@ -78,15 +78,21 @@ else
     echo ""
 fi
 
-# Configurar webhook
-RESPONSE=$(curl -s -X PUT \
-  "${EVOLUTION_URL}/webhook/${INSTANCE}" \
+# Configurar webhook (URL encode do nome da instância)
+INSTANCE_ENCODED=$(echo "$INSTANCE" | sed 's/ /%20/g')
+
+RESPONSE=$(curl -s -X POST \
+  "${EVOLUTION_URL}/webhook/set/${INSTANCE_ENCODED}" \
   -H "apikey: ${API_KEY}" \
   -H "Content-Type: application/json" \
   -d "{
-    \"url\": \"${WEBHOOK_URL}\",
-    \"webhook_by_events\": false,
-    \"events\": [\"MESSAGES_UPSERT\"]
+    \"webhook\": {
+      \"enabled\": true,
+      \"url\": \"${WEBHOOK_URL}\",
+      \"webhook_by_events\": false,
+      \"webhook_base64\": false,
+      \"events\": [\"MESSAGES_UPSERT\"]
+    }
   }")
 
 echo ""
@@ -130,11 +136,11 @@ else
 
     echo "Tente manualmente:"
     echo ""
-    echo "curl -X PUT \\"
-    echo "  ${EVOLUTION_URL}/webhook/${INSTANCE} \\"
+    echo "curl -X POST \\"
+    echo "  ${EVOLUTION_URL}/webhook/set/${INSTANCE_ENCODED} \\"
     echo "  -H \"apikey: ${API_KEY}\" \\"
     echo "  -H \"Content-Type: application/json\" \\"
-    echo "  -d '{\"url\": \"${WEBHOOK_URL}\", \"events\": [\"MESSAGES_UPSERT\"]}'"
+    echo "  -d '{\"webhook\": {\"enabled\": true, \"url\": \"${WEBHOOK_URL}\", \"webhook_by_events\": false, \"webhook_base64\": false, \"events\": [\"MESSAGES_UPSERT\"]}}'"
     echo ""
     exit 1
 fi

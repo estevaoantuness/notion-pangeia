@@ -51,15 +51,41 @@ SERVICE_NAME="notion-pangeia-bot"
 echo -e "${BLUE}📦 Criando web service no Render...${NC}"
 echo ""
 
+# Obter owner ID
+echo -e "${BLUE}🔍 Obtendo informações da conta...${NC}"
+OWNERS_RESPONSE=$(curl -s -X GET "${RENDER_API_URL}/owners" \
+  -H "Authorization: Bearer ${RENDER_API_KEY}")
+
+OWNER_ID=$(echo "$OWNERS_RESPONSE" | grep -o '"id":"[^"]*"' | head -1 | cut -d'"' -f4)
+
+if [ -z "$OWNER_ID" ]; then
+    echo -e "${RED}❌ Erro ao obter owner ID${NC}"
+    echo ""
+    echo "Resposta da API:"
+    echo "$OWNERS_RESPONSE"
+    exit 1
+fi
+
+echo -e "${GREEN}✅ Owner ID: ${OWNER_ID}${NC}"
+echo ""
+
 # Criar payload JSON para criar serviço
 PAYLOAD=$(cat <<EOF
 {
   "type": "web_service",
   "name": "${SERVICE_NAME}",
+  "ownerId": "${OWNER_ID}",
   "repo": "https://github.com/${GITHUB_REPO}",
+  "autoDeploy": "yes",
   "branch": "main",
-  "buildCommand": "pip install -r requirements.txt",
-  "startCommand": "gunicorn -w 4 -b 0.0.0.0:\$PORT app:app",
+  "serviceDetails": {
+    "env": "python",
+    "plan": "starter",
+    "envSpecificDetails": {
+      "buildCommand": "pip install -r requirements.txt",
+      "startCommand": "gunicorn -w 4 -b 0.0.0.0:\$PORT app:app"
+    }
+  },
   "envVars": [
     {"key": "NOTION_TOKEN", "value": "${NOTION_TOKEN}"},
     {"key": "NOTION_TASKS_DB_ID", "value": "${NOTION_TASKS_DB_ID}"},
@@ -80,12 +106,7 @@ PAYLOAD=$(cat <<EOF
     {"key": "CHECKIN_3_TIME", "value": "${CHECKIN_3_TIME:-18:00}"},
     {"key": "CHECKIN_4_TIME", "value": "${CHECKIN_4_TIME:-22:00}"},
     {"key": "TIMEZONE", "value": "${TIMEZONE:-America/Sao_Paulo}"}
-  ],
-  "serviceDetails": {
-    "runtime": "python",
-    "plan": "free",
-    "autoDeploy": true
-  }
+  ]
 }
 EOF
 )

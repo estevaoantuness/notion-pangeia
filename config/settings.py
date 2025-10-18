@@ -26,8 +26,8 @@ class Settings:
 
     # Evolution API WhatsApp Configuration
     EVOLUTION_API_URL: str = os.getenv("EVOLUTION_API_URL", "https://pange-evolution-api.u5qiqp.easypanel.host")
-    EVOLUTION_API_KEY: str = os.getenv("EVOLUTION_API_KEY", "4487C5C69D4A-4795-8FE8-E1296D76978F")
-    EVOLUTION_INSTANCE_NAME: str = os.getenv("EVOLUTION_INSTANCE_NAME", "48019ee7-c9f5-4409-825c-41888e6b0b27")
+    EVOLUTION_API_KEY: str = os.getenv("EVOLUTION_API_KEY", "429683C4C977415CAAFCCE10F7D57E11")
+    EVOLUTION_INSTANCE_NAME: str = os.getenv("EVOLUTION_INSTANCE_NAME", "Pange.IA Bot")
 
     # Flask Configuration
     FLASK_SECRET_KEY: str = os.getenv("FLASK_SECRET_KEY", "dev-secret-key")

@@ -314,7 +314,7 @@ def whatsapp_webhook():
         should_respond_with_audio = (message_type == 'audioMessage')
 
         # Log do resultado com contexto
-        if success:
+        if success and response_text:
             logger.info(
                 f"✅ Comando processado com sucesso",
                 extra={
@@ -322,58 +322,78 @@ def whatsapp_webhook():
                     "push_name": push_name,
                     "user_message": message_body[:50] if message_body else "",
                     "success": success,
-                    "response_length": len(response_text) if response_text else 0,
+                    "response_length": len(response_text),
                     "respond_with_audio": should_respond_with_audio
                 }
             )
-            if response_text:
-                logger.info(f"Resposta (texto): {response_text[:100]}...")
+            logger.info(f"Resposta (texto): {response_text[:100]}...")
 
-                # Se foi áudio de entrada, enviar áudio de saída
-                if should_respond_with_audio:
-                    logger.info(f"🎵 Gerando resposta em áudio...")
-                    try:
-                        audio_success, audio_path = audio_processor.generate_audio_response(
-                            text=response_text,
+            # Se foi áudio de entrada, enviar áudio de saída
+            if should_respond_with_audio:
+                logger.info(f"🎵 Gerando resposta em áudio...")
+                try:
+                    audio_success, audio_path = audio_processor.generate_audio_response(
+                        text=response_text,
+                        person_name=push_name
+                    )
+
+                    if audio_success and audio_path:
+                        logger.info(f"✅ Áudio gerado: {audio_path}")
+                        # Enviar áudio
+                        send_audio_response(
+                            phone_number=from_number,
+                            audio_file_path=audio_path,
                             person_name=push_name
                         )
-
-                        if audio_success and audio_path:
-                            logger.info(f"✅ Áudio gerado: {audio_path}")
-                            # Enviar áudio
-                            send_audio_response(
-                                phone_number=from_number,
-                                audio_file_path=audio_path,
-                                person_name=push_name
-                            )
-                        else:
-                            logger.warning(f"❌ Falha ao gerar áudio: {audio_path}")
-                            # Fallback para texto
-                            sender.send_message(person_name=push_name, message=response_text)
-
-                    except Exception as e:
-                        logger.error(f"❌ Erro ao gerar resposta em áudio: {e}")
+                    else:
+                        logger.warning(f"❌ Falha ao gerar áudio: {audio_path}")
                         # Fallback para texto
-                        sender.send_message(person_name=push_name, message=response_text)
+                        send_success, send_sid, send_error = sender.send_message(
+                            person_name=from_number,
+                            message=response_text
+                        )
+                        if not send_success:
+                            logger.error(f"❌ Erro ao enviar fallback de texto: {send_error}")
+
+                except Exception as e:
+                    logger.error(f"❌ Erro ao gerar resposta em áudio: {e}")
+                    # Fallback para texto
+                    send_success, send_sid, send_error = sender.send_message(
+                        person_name=from_number,
+                        message=response_text
+                    )
+                    if not send_success:
+                        logger.error(f"❌ Erro ao enviar fallback de texto: {send_error}")
+            else:
+                # Resposta de texto normal
+                send_success, send_sid, send_error = sender.send_message(
+                    person_name=from_number,
+                    message=response_text
+                )
+                if not send_success:
+                    logger.error(f"❌ Erro ao enviar resposta: {send_error}")
                 else:
-                    # Resposta de texto normal
-                    sender.send_message(person_name=push_name, message=response_text)
+                    logger.info(f"✅ Resposta enviada com sucesso. SID: {send_sid}")
 
         else:
             logger.warning(
-                f"❌ Falha ao processar comando",
+                f"⚠️ Processamento incompleto ou sem resposta",
                 extra={
                     "from_number": from_number,
                     "push_name": push_name,
                     "user_message": message_body[:50] if message_body else "",
-                    "success": success
+                    "success": success,
+                    "response_text": response_text[:50] if response_text else ""
                 }
             )
+            # Sempre tenta enviar algo, mesmo se falhou
             if response_text:
-                logger.warning(f"Erro: {response_text}")
-
-                # Enviar erro como texto (sempre)
-                sender.send_message(person_name=push_name, message=response_text)
+                send_success, send_sid, send_error = sender.send_message(
+                    person_name=from_number,
+                    message=response_text
+                )
+                if not send_success:
+                    logger.error(f"❌ Erro ao enviar resposta de erro: {send_error}")
 
         # Retorna sucesso
         # Com Evolution API, não retornamos mensagens no webhook

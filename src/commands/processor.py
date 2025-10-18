@@ -185,11 +185,18 @@ Comandos disponíveis:
         # Identifica pessoa pelo telefone
         person_name = get_colaborador_by_phone(from_number)
 
+        # Se não encontrar, cria usuário automaticamente com número
         if not person_name:
-            logger.warning(f"Número não reconhecido: {from_number}")
-            return False, """❌ Número não reconhecido.
+            logger.info(f"Usuário novo detected: {from_number}")
+            person_name = from_number  # Usa o número como nome temporário
 
-Entre em contato com o administrador para cadastrar seu número."""
+            # Tenta criar perfil automaticamente
+            try:
+                self.people_analytics.get_or_create_profile(person_name)
+                logger.info(f"✅ Perfil criado automaticamente para {from_number}")
+            except Exception as e:
+                logger.debug(f"Não foi possível criar perfil em Notion: {e}")
+                # Continua mesmo se não conseguir criar em Notion
 
         logger.info(f"Mensagem de: {person_name}")
 

@@ -296,7 +296,7 @@ class WhatsAppSender:
         Envia mensagem genérica para um colaborador.
 
         Args:
-            person_name: Nome do colaborador
+            person_name: Nome do colaborador OU número de telefone (formato: +5511999999999)
             message: Texto da mensagem
 
         Returns:
@@ -305,18 +305,35 @@ class WhatsAppSender:
         logger.info(f"Enviando mensagem para {person_name}")
 
         try:
-            # Busca telefone
-            phone = get_phone_by_name(person_name)
-            if not phone:
-                error_msg = f"Telefone não encontrado para {person_name}"
-                logger.error(error_msg)
-                return False, None, error_msg
+            # Se já é um número (começa com + ou é só números), usa direto
+            if person_name.startswith('+') or (person_name.isdigit() and len(person_name) > 10):
+                phone = person_name
+                # Adiciona + se não tiver
+                if not phone.startswith('+'):
+                    phone = f"+{phone}"
+            else:
+                # Busca telefone pelo nome
+                phone = get_phone_by_name(person_name)
+                if not phone:
+                    logger.warning(f"Telefone não encontrado para {person_name} - tentando usar nome como número")
+                    # Fallback: usa o nome como número (para usuários novos)
+                    if person_name.isdigit() and len(person_name) > 10:
+                        phone = f"+{person_name}"
+                    else:
+                        error_msg = f"Telefone não encontrado para {person_name}"
+                        logger.error(error_msg)
+                        return False, None, error_msg
 
             # Limpa whitespace
             message = self._clean_whitespace(message)
 
             # Envia mensagem
             success, sid, error = self.whatsapp_client.send_message(phone, message)
+
+            if not success:
+                logger.warning(f"Falha ao enviar para {phone}: {error}")
+            else:
+                logger.info(f"✅ Mensagem enviada para {phone}. SID: {sid}")
 
             return success, sid, error
 

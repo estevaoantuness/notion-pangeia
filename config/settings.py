@@ -25,9 +25,9 @@ class Settings:
     NOTION_INSIGHTS_DB_ID: Optional[str] = os.getenv("NOTION_INSIGHTS_DB_ID")
 
     # Evolution API WhatsApp Configuration
-    EVOLUTION_API_URL: str = os.getenv("EVOLUTION_API_URL", "")
-    EVOLUTION_API_KEY: str = os.getenv("EVOLUTION_API_KEY", "")
-    EVOLUTION_INSTANCE_NAME: str = os.getenv("EVOLUTION_INSTANCE_NAME", "")
+    EVOLUTION_API_URL: str = os.getenv("EVOLUTION_API_URL", "https://pange-evolution-api.u5qiqp.easypanel.host")
+    EVOLUTION_API_KEY: str = os.getenv("EVOLUTION_API_KEY", "4487C5C69D4A-4795-8FE8-E1296D76978F")
+    EVOLUTION_INSTANCE_NAME: str = os.getenv("EVOLUTION_INSTANCE_NAME", "48019ee7-c9f5-4409-825c-41888e6b0b27")
 
     # Flask Configuration
     FLASK_SECRET_KEY: str = os.getenv("FLASK_SECRET_KEY", "dev-secret-key")
@@ -47,6 +47,11 @@ class Settings:
     CACHE_EXPIRY_HOURS: int = int(os.getenv("CACHE_EXPIRY_HOURS", "24"))
     MAX_RETRIES: int = int(os.getenv("MAX_RETRIES", "3"))
     ENVIRONMENT: str = os.getenv("ENVIRONMENT", "development")
+
+    # Psychological Engine
+    ENABLE_PSYCHOLOGY: bool = os.getenv("ENABLE_PSYCHOLOGY", "true").lower() == "true"
+    ENABLE_MESSAGE_CHUNKING: bool = os.getenv("ENABLE_MESSAGE_CHUNKING", "true").lower() == "true"
+    ENABLE_DEDUPLICATION: bool = os.getenv("ENABLE_DEDUPLICATION", "true").lower() == "true"
 
     @classmethod
     def validate(cls) -> tuple[bool, list[str]]:

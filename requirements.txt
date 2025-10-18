@@ -6,7 +6,7 @@ gunicorn==21.2.0
 notion-client==2.2.1
 
 # WhatsApp Integration (Evolution API)
-# Uses requests library for REST API calls
+requests==2.31.0
 
 # Job Scheduling
 APScheduler==3.10.4
@@ -15,8 +15,8 @@ pytz==2024.1
 # Environment & Configuration
 python-dotenv==1.0.0
 
-# HTTP Requests
-requests==2.31.0
+# YAML Configuration (for psychological responses)
+pyyaml==6.0.1
 
 # Utilities
 python-dateutil==2.8.2

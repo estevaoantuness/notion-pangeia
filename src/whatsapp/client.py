@@ -210,6 +210,125 @@ class WhatsAppClient:
 
         return results
 
+    def send_audio(
+        self,
+        to_number: str,
+        audio_file_path: str,
+        retry_count: int = 0
+    ) -> Tuple[bool, Optional[str], Optional[str]]:
+        """
+        Envia mensagem de áudio via WhatsApp com retry logic.
+
+        Args:
+            to_number: Número de destino (formato: +55XXXXXXXXXXX ou 55XXXXXXXXXXX)
+            audio_file_path: Caminho local do arquivo de áudio (mp3, opus, ogg, etc)
+            retry_count: Contador de tentativas (interno)
+
+        Returns:
+            Tuple[bool, Optional[str], Optional[str]]:
+                (sucesso, message_id, erro)
+        """
+        import os
+
+        # Valida número
+        is_valid, validation_msg = self.validate_number(to_number)
+        if not is_valid:
+            logger.error(validation_msg)
+            return False, None, validation_msg
+
+        # Valida arquivo
+        if not os.path.exists(audio_file_path):
+            error_msg = f"Arquivo de áudio não encontrado: {audio_file_path}"
+            logger.error(error_msg)
+            return False, None, error_msg
+
+        # Remove prefixo whatsapp: se existir
+        clean_number = to_number.replace("whatsapp:", "")
+
+        # Endpoint da Evolution API
+        url = f"{self.api_url}/message/sendAudio/{self.instance_name}"
+
+        try:
+            # Prepare audio file for upload
+            with open(audio_file_path, 'rb') as audio_file:
+                files = {
+                    'audio': (os.path.basename(audio_file_path), audio_file, 'audio/mpeg')
+                }
+
+                data = {
+                    'number': clean_number
+                }
+
+                # Headers para multipart/form-data (sem Content-Type, requests vai setar)
+                headers = {
+                    "apikey": self.api_key
+                }
+
+                # Envia requisição
+                response = requests.post(
+                    url,
+                    headers=headers,
+                    data=data,
+                    files=files,
+                    timeout=60
+                )
+
+                # Verifica status
+                if response.status_code in [200, 201]:
+                    resp_data = response.json()
+                    message_id = resp_data.get("key", {}).get("id", "unknown")
+
+                    logger.info(
+                        f"✅ Áudio enviado para {clean_number}. "
+                        f"ID: {message_id}"
+                    )
+
+                    return True, message_id, None
+
+                else:
+                    error_msg = f"Erro HTTP {response.status_code}: {response.text}"
+
+                    # Tenta fazer retry em alguns casos
+                    recoverable_codes = [429, 500, 502, 503, 504]
+                    if response.status_code in recoverable_codes and retry_count < settings.MAX_RETRIES:
+                        wait_time = (2 ** retry_count) * 2
+                        logger.warning(
+                            f"⚠️ {error_msg}. "
+                            f"Tentando novamente em {wait_time}s "
+                            f"(tentativa {retry_count + 1}/{settings.MAX_RETRIES})"
+                        )
+                        time.sleep(wait_time)
+                        return self.send_audio(to_number, audio_file_path, retry_count + 1)
+
+                    logger.error(f"❌ {error_msg}")
+                    return False, None, error_msg
+
+        except requests.exceptions.Timeout:
+            error_msg = "Timeout ao enviar áudio"
+
+            if retry_count < settings.MAX_RETRIES:
+                wait_time = (2 ** retry_count) * 2
+                logger.warning(
+                    f"⚠️ {error_msg}. "
+                    f"Tentando novamente em {wait_time}s "
+                    f"(tentativa {retry_count + 1}/{settings.MAX_RETRIES})"
+                )
+                time.sleep(wait_time)
+                return self.send_audio(to_number, audio_file_path, retry_count + 1)
+
+            logger.error(f"❌ {error_msg}")
+            return False, None, error_msg
+
+        except requests.exceptions.RequestException as e:
+            error_msg = f"Erro de conexão: {str(e)}"
+            logger.error(f"❌ {error_msg}")
+            return False, None, error_msg
+
+        except Exception as e:
+            error_msg = f"Erro inesperado: {str(e)}"
+            logger.error(f"❌ {error_msg}")
+            return False, None, error_msg
+
     def test_connection(self) -> Tuple[bool, str]:
         """
         Testa conexão com Evolution API.

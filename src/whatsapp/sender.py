@@ -333,3 +333,38 @@ class WhatsAppSender:
     ) -> Tuple[bool, Optional[str], Optional[str]]:
         """Alias para send_message (compatibilidade)."""
         return self.send_message(person_name, message)
+
+    def send_audio_message(
+        self,
+        person_name: str,
+        audio_file_path: str
+    ) -> Tuple[bool, Optional[str], Optional[str]]:
+        """
+        Envia mensagem de áudio para um colaborador.
+
+        Args:
+            person_name: Nome do colaborador
+            audio_file_path: Caminho local do arquivo de áudio
+
+        Returns:
+            Tuple (sucesso, message_sid, erro)
+        """
+        logger.info(f"Enviando áudio para {person_name}: {audio_file_path}")
+
+        try:
+            # Busca telefone
+            phone = get_phone_by_name(person_name)
+            if not phone:
+                error_msg = f"Telefone não encontrado para {person_name}"
+                logger.error(error_msg)
+                return False, None, error_msg
+
+            # Envia áudio
+            success, sid, error = self.whatsapp_client.send_audio(phone, audio_file_path)
+
+            return success, sid, error
+
+        except Exception as e:
+            error_msg = f"Erro ao enviar áudio: {str(e)}"
+            logger.error(error_msg)
+            return False, None, error_msg

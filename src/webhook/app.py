@@ -6,6 +6,10 @@ via webhook da Evolution API e processa comandos dos colaboradores.
 """
 
 import logging
+import os
+import requests
+import tempfile
+from pathlib import Path
 from flask import Flask, request, Response, jsonify
 
 from src.commands.processor import CommandProcessor
@@ -13,6 +17,7 @@ from src.scheduler import get_scheduler
 from src.whatsapp.psychological_sender import PsychologicalSender
 from src.psychology.engine import PsychologicalEngine
 from src.agents.conversational_agent import get_conversational_agent
+from src.audio import get_processor as get_audio_processor
 from config.settings import settings
 
 # Configuração de logging
@@ -34,6 +39,9 @@ conversational_agent = get_conversational_agent()
 
 # Inicializa processador de comandos
 command_processor = CommandProcessor()
+
+# Inicializa processador de áudio
+audio_processor = get_audio_processor()
 
 # Inicializa e configura scheduler
 scheduler = get_scheduler()
@@ -198,23 +206,71 @@ def whatsapp_webhook():
         if not from_number.startswith('+'):
             from_number = '+' + from_number
 
-        # Extrai texto da mensagem
-        message_body = message_data.get('conversation', '')
-
-        # Tenta outros campos se conversation estiver vazio
-        if not message_body:
-            # Tenta extendedTextMessage
-            extended = message_data.get('extendedTextMessage', {})
-            message_body = extended.get('text', '')
-
-        message_body = message_body.strip()
-
         # Extrai nome do contato
         push_name = data.get('pushName', 'Desconhecido')
 
         logger.info(f"From: {from_number} ({push_name})")
-        logger.info(f"Message: {message_body}")
         logger.info(f"Event: {event}")
+
+        # **DETECÇÃO DE TIPO DE MENSAGEM**
+        message_type = data.get('messageType', 'conversation')
+        logger.info(f"MessageType: {message_type}")
+
+        # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        # CASO 1: MENSAGEM DE ÁUDIO
+        # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        if message_type == 'audioMessage':
+            logger.info("🎤 MENSAGEM DE ÁUDIO DETECTADA")
+
+            try:
+                # Extrai URL do áudio
+                audio_message = message_data.get('audioMessage', {})
+                audio_url = audio_message.get('url', '')
+
+                if not audio_url:
+                    logger.warning("URL de áudio não encontrada")
+                    return jsonify({"status": "error", "message": "Audio URL not found"}), 400
+
+                logger.info(f"🔗 URL do áudio: {audio_url[:100]}...")
+
+                # Download do áudio
+                audio_file_path = download_audio_from_url(audio_url)
+
+                # Transcrição
+                logger.info(f"📝 Iniciando transcrição...")
+                success, transcription = audio_processor.process_audio_message(
+                    audio_file_path=audio_file_path,
+                    user_id=from_number,
+                    person_name=push_name
+                )
+
+                if not success:
+                    logger.error(f"❌ Erro na transcrição: {transcription}")
+                    message_body = ""
+                else:
+                    logger.info(f"✅ Transcrição concluída: {transcription[:100]}...")
+                    message_body = transcription
+
+            except Exception as e:
+                logger.error(f"❌ Erro ao processar áudio: {e}")
+                message_body = ""
+
+        # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        # CASO 2: MENSAGEM DE TEXTO (padrão)
+        # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        else:
+            # Extrai texto da mensagem
+            message_body = message_data.get('conversation', '')
+
+            # Tenta outros campos se conversation estiver vazio
+            if not message_body:
+                # Tenta extendedTextMessage
+                extended = message_data.get('extendedTextMessage', {})
+                message_body = extended.get('text', '')
+
+            message_body = message_body.strip()
+
+        logger.info(f"Message: {message_body[:100] if message_body else '(vazio)'}")
 
         # Valida que temos os dados necessários
         if not from_number or not message_body:
@@ -248,6 +304,15 @@ def whatsapp_webhook():
                 message=message_body
             )
 
+        # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        # ENVIO DE RESPOSTA
+        # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        from src.whatsapp.sender import WhatsAppSender
+        sender = WhatsAppSender()
+
+        # Se a mensagem original foi áudio, responder com áudio
+        should_respond_with_audio = (message_type == 'audioMessage')
+
         # Log do resultado com contexto
         if success:
             logger.info(
@@ -255,32 +320,59 @@ def whatsapp_webhook():
                 extra={
                     "from_number": from_number,
                     "push_name": push_name,
-                    "user_message": message_body,
+                    "user_message": message_body[:50] if message_body else "",
                     "success": success,
-                    "response_length": len(response_text) if response_text else 0
+                    "response_length": len(response_text) if response_text else 0,
+                    "respond_with_audio": should_respond_with_audio
                 }
             )
             if response_text:
-                logger.info(f"Resposta: {response_text[:100]}...")
-                # Envia resposta via WhatsApp
-                from src.whatsapp.sender import WhatsAppSender
-                sender = WhatsAppSender()
-                sender.send_message(person_name=push_name, message=response_text)
+                logger.info(f"Resposta (texto): {response_text[:100]}...")
+
+                # Se foi áudio de entrada, enviar áudio de saída
+                if should_respond_with_audio:
+                    logger.info(f"🎵 Gerando resposta em áudio...")
+                    try:
+                        audio_success, audio_path = audio_processor.generate_audio_response(
+                            text=response_text,
+                            person_name=push_name
+                        )
+
+                        if audio_success and audio_path:
+                            logger.info(f"✅ Áudio gerado: {audio_path}")
+                            # Enviar áudio
+                            send_audio_response(
+                                phone_number=from_number,
+                                audio_file_path=audio_path,
+                                person_name=push_name
+                            )
+                        else:
+                            logger.warning(f"❌ Falha ao gerar áudio: {audio_path}")
+                            # Fallback para texto
+                            sender.send_message(person_name=push_name, message=response_text)
+
+                    except Exception as e:
+                        logger.error(f"❌ Erro ao gerar resposta em áudio: {e}")
+                        # Fallback para texto
+                        sender.send_message(person_name=push_name, message=response_text)
+                else:
+                    # Resposta de texto normal
+                    sender.send_message(person_name=push_name, message=response_text)
+
         else:
             logger.warning(
                 f"❌ Falha ao processar comando",
                 extra={
                     "from_number": from_number,
                     "push_name": push_name,
-                    "user_message": message_body,
+                    "user_message": message_body[:50] if message_body else "",
                     "success": success
                 }
             )
             if response_text:
                 logger.warning(f"Erro: {response_text}")
-                # Envia mensagem de erro via WhatsApp
-                from src.whatsapp.sender import WhatsAppSender
-                sender = WhatsAppSender()
+
+                # Enviar erro como texto (sempre)
                 sender.send_message(person_name=push_name, message=response_text)
 
         # Retorna sucesso
@@ -352,6 +444,99 @@ def validate_api_key() -> bool:
 
     except Exception as e:
         logger.error(f"Erro ao validar API Key: {e}")
+        return False
+
+
+def download_audio_from_url(audio_url: str) -> str:
+    """
+    Baixa áudio de uma URL (Evolution API).
+
+    Args:
+        audio_url: URL do arquivo de áudio
+
+    Returns:
+        Caminho local do arquivo baixado
+
+    Raises:
+        Exception: Se falhar ao baixar
+    """
+    try:
+        logger.info(f"📥 Baixando áudio de: {audio_url[:80]}...")
+
+        # Criar arquivo temporário
+        temp_file = tempfile.NamedTemporaryFile(
+            suffix=".opus",
+            delete=False,
+            dir=tempfile.gettempdir()
+        )
+        temp_path = temp_file.name
+        temp_file.close()
+
+        # Download com timeout
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (compatible; Pangeia/1.0)',
+            'Accept': '*/*'
+        }
+
+        response = requests.get(audio_url, headers=headers, timeout=30)
+        response.raise_for_status()
+
+        # Salvar arquivo
+        with open(temp_path, 'wb') as f:
+            f.write(response.content)
+
+        logger.info(f"✅ Áudio baixado: {temp_path} ({len(response.content)} bytes)")
+        return temp_path
+
+    except Exception as e:
+        logger.error(f"❌ Erro ao baixar áudio: {e}")
+        raise
+
+
+def send_audio_response(
+    phone_number: str,
+    audio_file_path: str,
+    person_name: str
+) -> bool:
+    """
+    Envia resposta em áudio via WhatsApp (Evolution API).
+
+    Args:
+        phone_number: Número do telefone do destinatário
+        audio_file_path: Caminho local do arquivo de áudio
+        person_name: Nome da pessoa
+
+    Returns:
+        True se enviado com sucesso, False caso contrário
+    """
+    try:
+        logger.info(f"📤 Enviando áudio para {person_name} ({phone_number})")
+
+        # Importar sender aqui para evitar circular imports
+        from src.whatsapp.sender import WhatsAppSender
+
+        sender = WhatsAppSender()
+
+        # Enviar áudio
+        success = sender.send_audio_message(
+            person_name=person_name,
+            audio_file_path=audio_file_path
+        )
+
+        if success:
+            logger.info(f"✅ Áudio enviado com sucesso")
+
+            # Cleanup do arquivo temporário
+            try:
+                os.unlink(audio_file_path)
+                logger.debug(f"Removido arquivo temporário: {audio_file_path}")
+            except Exception as e:
+                logger.debug(f"Não foi possível remover arquivo: {e}")
+
+        return success
+
+    except Exception as e:
+        logger.error(f"❌ Erro ao enviar áudio: {e}")
         return False
 
 

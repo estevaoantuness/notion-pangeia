@@ -1,0 +1,42 @@
+services:
+  - type: web
+    name: notion-pangeia-bot
+    runtime: python
+    plan: starter
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn app:app --bind 0.0.0.0:$PORT --workers 4 --timeout 120
+    envVars:
+      - key: EVOLUTION_API_URL
+        value: https://pange-evolution-api.u5qiqp.easypanel.host
+      - key: EVOLUTION_API_KEY
+        sync: false
+      - key: EVOLUTION_INSTANCE_NAME
+        value: Pange.IA Bot
+      - key: NOTION_TOKEN
+        sync: false
+      - key: NOTION_TASKS_DB_ID
+        sync: false
+      - key: FLASK_SECRET_KEY
+        generateValue: true
+      - key: LOG_LEVEL
+        value: INFO
+      - key: ENVIRONMENT
+        value: production
+      - key: ENABLE_PSYCHOLOGY
+        value: "true"
+      - key: ENABLE_MESSAGE_CHUNKING
+        value: "true"
+      - key: ENABLE_DEDUPLICATION
+        value: "true"
+      - key: DAILY_SEND_TIME
+        value: "08:00"
+      - key: CHECKIN_1_TIME
+        value: "13:30"
+      - key: CHECKIN_2_TIME
+        value: "15:30"
+      - key: CHECKIN_3_TIME
+        value: "18:00"
+      - key: CHECKIN_4_TIME
+        value: "22:00"
+      - key: TIMEZONE
+        value: America/Sao_Paulo

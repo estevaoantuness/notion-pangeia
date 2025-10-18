@@ -221,19 +221,32 @@ def whatsapp_webhook():
             logger.warning("Mensagem sem dados necessários")
             return jsonify({"status": "error", "message": "Invalid message"}), 400
 
-        # **NOVA: Usa Agente Conversacional com GPT-4o-mini**
+        # **PROCESSAMENTO: Tenta GPT-4o-mini, se falhar usa NLP robusto**
         try:
-            logger.info(f"🤖 Processando com GPT-4o-mini Agent: {push_name}")
+            logger.info(f"🤖 Tentando Agente Conversacional (GPT-4o-mini): {push_name}")
             success, response_text = conversational_agent.generate_response(
                 user_id=from_number,
                 message=message_body,
                 person_name=push_name
             )
-            logger.info(f"✅ Agente respondeu: {response_text[:80]}...")
+
+            # Se agente retornar False, tenta fallback com command_processor
+            if not success:
+                logger.info(f"⚠️  Agente falhou ({response_text}), usando NLP robusto como fallback")
+                success, response_text = command_processor.process(
+                    from_number=from_number,
+                    message=message_body
+                )
+                logger.info(f"✅ NLP Fallback respondeu: {response_text[:80]}...")
+            else:
+                logger.info(f"✅ Agente respondeu com sucesso: {response_text[:80]}...")
+
         except Exception as e:
-            logger.error(f"❌ Erro no agente: {e}")
-            success = False
-            response_text = "Desculpa, algo deu errado. Tenta de novo? 💙"
+            logger.error(f"❌ Erro crítico: {e} - usando fallback NLP")
+            success, response_text = command_processor.process(
+                from_number=from_number,
+                message=message_body
+            )
 
         # Log do resultado com contexto
         if success:

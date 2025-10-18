@@ -172,6 +172,10 @@ class ConversationalAgent:
 
             return True, bot_response
 
+        except openai.error.AuthenticationError:
+            logger.error(f"Erro de autenticação OpenAI - verifique OPENAI_API_KEY")
+            return False, FALLBACK_RESPONSES["error"]
+
         except openai.error.Timeout:
             logger.warning(f"Timeout na API OpenAI para {person_name}")
             return False, FALLBACK_RESPONSES["timeout"]
@@ -186,6 +190,10 @@ class ConversationalAgent:
 
         except Exception as e:
             logger.error(f"Erro ao gerar resposta: {e}")
+            # Se não tem OpenAI key, usa fallback
+            if not OPENAI_API_KEY:
+                logger.warning("Sem OPENAI_API_KEY - retornando resposta genérica")
+                return False, "Oi! Estou aqui para ajudar. 💙 (Configure OPENAI_API_KEY para ativar GPT-4o-mini)"
             return False, FALLBACK_RESPONSES["unknown"]
 
     def _track_cost(self, user_id: str, tokens_used: int) -> None:
@@ -232,5 +240,8 @@ def get_conversational_agent() -> ConversationalAgent:
     """Obtém instância singleton do agente."""
     global _agent_instance
     if _agent_instance is None:
+        # Verificar se API key está configurada
+        if not OPENAI_API_KEY or OPENAI_API_KEY == "":
+            logger.warning("⚠️  OPENAI_API_KEY não configurada - usando fallback")
         _agent_instance = ConversationalAgent()
     return _agent_instance

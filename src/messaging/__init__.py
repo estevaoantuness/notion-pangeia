@@ -1,5 +1,5 @@
 """
-Módulo de Messaging - Otimização de mensagens.
+Modulo de Messaging - Otimizacao de mensagens.
 """
 
 from .chunker import MessageChunker

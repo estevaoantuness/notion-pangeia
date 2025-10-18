@@ -1,0 +1,246 @@
+# Respostas Psicologicamente Calibradas
+# Baseado em: Entrevista Motivacional (OARS), Comunicação Não-Violenta (OFNR),
+# Teoria da Autodeterminação (SDT)
+
+encouragement:
+  task_completed:
+    - "🎉 Incrível, {name}! Você concluiu '{task_name}'!"
+    - "👏 Parabéns! Mais uma vitória para você!"
+    - "💪 Você é incrível! '{task_name}' concluída!"
+    - "✨ Que show! '{task_name}' está feita!"
+    - "🚀 Uau! Você mandou bem em '{task_name}'!"
+    - "🏆 Excelente trabalho em '{task_name}'!"
+
+  first_task_of_day:
+    - "☀️ Que começo fantástico de dia, {name}!"
+    - "🚀 {name}, você já começou com o pé direito!"
+    - "⚡ Essa energia matinal é tudo, {name}!"
+    - "🌟 Primeiro do dia! Você está imparável!"
+    - "💫 Começou bem, {name}! Continue assim!"
+
+  last_task_completed:
+    - "🎊 {name}, você completou TODAS as tarefas! Isso merece comemoração!"
+    - "🏅 Todas concluídas! Você é uma máquina, {name}!"
+    - "🎉 100% do dia! Incrível, {name}!"
+    - "✅ Dia completo! Você arrasou, {name}!"
+
+  milestone_achieved:
+    - "🎯 {name}, você atingiu uma marca importante: {milestone}!"
+    - "🏆 Marco alcançado! {milestone} - Parabéns, {name}!"
+    - "⭐ Isso é um feito, {name}! {milestone}"
+
+  streak_recognition:
+    - "🔥 {name}, você está em uma sequência de {days} dias! Continue!"
+    - "💪 {days} dias seguidos produzindo! Você é consistente, {name}!"
+    - "⚡ Sequência de {days} dias! Isso é disciplina, {name}!"
+
+empathy:
+  task_blocked:
+    - "Ei {name}, vi que '{task}' está travada. Como posso ajudar?"
+    - "Bloqueios acontecem, {name}. Vamos resolver juntos?"
+    - "{name}, sem pressão! Que tal conversarmos sobre '{task}'?"
+    - "Entendo que '{task}' está difícil. O que está te bloqueando?"
+    - "{name}, percebo que '{task}' está parada. Quer dividir ela em partes menores?"
+
+  low_energy:
+    - "Percebi que você está mais quieto(a) hoje, {name}. Tudo bem?"
+    - "Dias difíceis acontecem, {name}. Como você está se sentindo?"
+    - "Não precisa ser produtivo todo dia, {name}. Como posso ajudar?"
+    - "{name}, tudo bem aí? Você parece mais cansado(a) hoje."
+    - "Sem pressão, {name}. Às vezes precisamos de um dia mais leve. Tudo bem com você?"
+
+  overload_detected:
+    - "{name}, percebi que você está com muita coisa. Vamos priorizar juntos?"
+    - "Ei {name}, parece que você está sobrecarregado(a). Que tal reduzirmos a carga?"
+    - "{name}, você não precisa fazer tudo sozinho(a). Posso ajudar a reorganizar?"
+    - "Muita coisa ao mesmo tempo, {name}? Vamos focar nas 3 mais importantes?"
+
+  struggling:
+    - "{name}, percebo que você está lutando com isso. É normal - não desista!"
+    - "Desafios são oportunidades, {name}. Você vai superar isso!"
+    - "{name}, você já superou coisas difíceis antes. Isso também vai passar!"
+    - "Está difícil agora, {name}, mas você tem capacidade. Acredito em você!"
+
+autonomy:
+  task_order:
+    - "Você tem {n} tarefas hoje, {name}. Por qual quer começar?"
+    - "Qual tarefa faz mais sentido pra você agora, {name}?"
+    - "{name}, você escolhe: começar pela mais difícil ou mais fácil?"
+    - "Como você prefere organizar suas tarefas hoje, {name}?"
+
+  timing:
+    - "Quando você acha melhor fazer '{task}', {name}?"
+    - "Você se sente mais produtivo(a) de manhã ou tarde, {name}?"
+    - "{name}, em qual horário você prefere trabalhar em '{task}'?"
+
+  approach:
+    - "Como você prefere abordar '{task}', {name}?"
+    - "{name}, você quer fazer '{task}' de uma vez ou em partes?"
+    - "Qual estratégia você acha melhor para '{task}', {name}?"
+
+  choice_given:
+    - "A escolha é sua, {name}. O que faz mais sentido pra você?"
+    - "Você decide, {name}! Qual caminho você quer seguir?"
+    - "{name}, você conhece seu ritmo melhor que ninguém. Como quer fazer?"
+
+competence:
+  skill_recognition:
+    - "Você tem talento pra isso, {name}! Suas habilidades em {skill} são ótimas!"
+    - "{name}, você é excelente em {skill}. Isso faz diferença!"
+    - "Suas competências em {skill} estão aparecendo, {name}!"
+
+  growth_observed:
+    - "{name}, vi que você evoluiu muito em {area}. Continua assim!"
+    - "Você está crescendo em {area}, {name}. É nítido!"
+    - "{name}, seu progresso em {area} é impressionante!"
+
+  expertise_acknowledged:
+    - "Você domina {domain}, {name}! Seu trabalho mostra isso!"
+    - "{name}, você é referência em {domain} aqui!"
+    - "Sua expertise em {domain} é valiosa, {name}!"
+
+relatedness:
+  team_impact:
+    - "{name}, seu trabalho em '{task}' ajudou muito a equipe!"
+    - "A equipe toda se beneficia do seu trabalho, {name}!"
+    - "{name}, você faz diferença real para o time!"
+    - "Seu esforço não passa despercebido, {name}. A equipe agradece!"
+
+  collaboration:
+    - "{name}, adorei ver você ajudando {peer}!"
+    - "Trabalho em equipe é tudo, {name}. Obrigado por colaborar!"
+    - "{name}, você é um(a) excelente parceiro(a) de equipe!"
+
+  belonging:
+    - "Estamos juntos nisso, {name}!"
+    - "{name}, você é parte essencial deste time!"
+    - "Conte conosco, {name}. Somos uma equipe!"
+    - "{name}, você pertence aqui. Seu trabalho importa!"
+
+check_in:
+  morning:
+    greeting:
+      - "Bom dia, {name}! ☀️"
+      - "Olá, {name}! Como você dormiu?"
+      - "Oi {name}! Pronto(a) para mais um dia?"
+
+    energy_check:
+      - "Como está sua energia hoje?"
+      - "Numa escala de 1-10, como você se sente?"
+      - "Como você está se sentindo hoje?"
+
+    task_intro:
+      - "Aqui estão suas tarefas para hoje:"
+      - "Suas missões de hoje:"
+      - "Vamos ver o que temos pra hoje:"
+
+  afternoon:
+    greeting:
+      - "E aí, {name}!"
+      - "Opa, {name}!"
+      - "Olá {name}, como está indo?"
+
+    progress_check:
+      - "Como está indo sua manhã?"
+      - "Como você está se sentindo até agora?"
+      - "Tudo fluindo bem?"
+
+    support_offer:
+      - "Precisa de ajuda com algo?"
+      - "Posso fazer algo por você?"
+      - "Como posso ajudar?"
+
+  evening:
+    greeting:
+      - "Oi {name}!"
+      - "E aí, {name}!"
+      - "Olá {name}, quase fim do dia!"
+
+    reflection_intro:
+      - "Antes de encerrar, que tal refletir um pouco?"
+      - "Vamos fazer uma reflexão rápida?"
+      - "Momento de olhar para trás:"
+
+    closing:
+      - "Descanse bem, {name}! 💙"
+      - "Até amanhã, {name}! 🌙"
+      - "Boa noite, {name}! Você merece descansar! ✨"
+
+reflection:
+  victory_question:
+    - "Qual foi sua maior vitória hoje, {name}? 🏆"
+    - "O que você fez hoje que te deixou orgulhoso(a)?"
+    - "Qual conquista de hoje você quer celebrar?"
+
+  learning_question:
+    - "O que você aprendeu hoje?"
+    - "Qual foi seu principal aprendizado de hoje?"
+    - "Que insight você teve hoje?"
+
+  tomorrow_question:
+    - "Como você quer se sentir amanhã?"
+    - "O que você quer priorizar amanhã?"
+    - "Que intenção você tem para amanhã?"
+
+  gratitude_question:
+    - "Pelo que você é grato(a) hoje?"
+    - "O que de bom aconteceu hoje?"
+    - "Qual foi um momento positivo de hoje?"
+
+intervention:
+  burnout_warning:
+    - "⚠️ {name}, percebi alguns sinais de sobrecarga. Vamos conversar?"
+    - "Ei {name}, você está bem? Notei que você pode estar se esgotando."
+    - "{name}, sem julgamento: você está se cuidando?"
+
+  break_suggestion:
+    - "Que tal uma pausa, {name}? Você já fez muito hoje!"
+    - "{name}, seu cérebro agradece se você descansar um pouco!"
+    - "Pausas são produtivas, {name}! Que tal relaxar uns minutos?"
+
+  workload_reduction:
+    - "Vamos reduzir sua carga de trabalho, {name}?"
+    - "{name}, que tal adiarmos algumas coisas menos urgentes?"
+    - "Podemos redistribuir algumas tarefas, {name}. O que acha?"
+
+  help_offer:
+    - "Estou aqui pra ajudar, {name}. O que você precisa?"
+    - "{name}, não precisa carregar tudo sozinho(a). Como posso ajudar?"
+    - "Vamos dividir isso, {name}? Juntos é melhor!"
+
+positive_reinforcement:
+  consistency:
+    - "Sua consistência é admirável, {name}!"
+    - "{name}, você é disciplinado(a) e isso se reflete no resultado!"
+    - "Sua regularidade faz toda diferença, {name}!"
+
+  quality:
+    - "A qualidade do seu trabalho é excepcional, {name}!"
+    - "{name}, você não faz - você capricha!"
+    - "Seu padrão de qualidade é alto, {name}! Parabéns!"
+
+  attitude:
+    - "Sua atitude positiva é contagiante, {name}!"
+    - "{name}, sua energia eleva todo o time!"
+    - "Você traz leveza pro ambiente, {name}. Obrigado!"
+
+  improvement:
+    - "Vi seu progresso, {name}! Você está evoluindo!"
+    - "{name}, você está cada vez melhor nisso!"
+    - "Sua curva de aprendizado é incrível, {name}!"
+
+acknowledgment:
+  effort:
+    - "Vejo seu esforço, {name}. Mesmo que não tenha ficado perfeito!"
+    - "{name}, o importante é que você tentou. Isso conta muito!"
+    - "Seu empenho é reconhecido, {name}!"
+
+  challenge_faced:
+    - "Enfrentar '{task}' exigiu coragem, {name}!"
+    - "{name}, você não fugiu do desafio. Isso é admirável!"
+    - "Tarefas difíceis mostram quem você é, {name}. E você mandou bem!"
+
+  perseverance:
+    - "Você não desistiu, {name}. Isso é força!"
+    - "{name}, sua persistência vai te levar longe!"
+    - "Continuar tentando mostra caráter, {name}!"

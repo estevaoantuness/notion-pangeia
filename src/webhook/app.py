@@ -12,6 +12,7 @@ from src.commands.processor import CommandProcessor
 from src.scheduler import get_scheduler
 from src.whatsapp.psychological_sender import PsychologicalSender
 from src.psychology.engine import PsychologicalEngine
+from src.agents.conversational_agent import get_conversational_agent
 from config.settings import settings
 
 # Configuração de logging
@@ -27,6 +28,9 @@ app = Flask(__name__)
 # Inicializa componentes psicológicos
 psych_engine = PsychologicalEngine()
 psychological_sender = PsychologicalSender()
+
+# Inicializa agente conversacional com GPT-4o-mini
+conversational_agent = get_conversational_agent()
 
 # Inicializa processador de comandos
 command_processor = CommandProcessor()
@@ -221,10 +225,12 @@ def whatsapp_webhook():
             logger.warning("Mensagem sem dados necessários")
             return jsonify({"status": "error", "message": "Invalid message"}), 400
 
-        # Processa comando
-        success, response_text = command_processor.process(
-            from_number=from_number,
-            message=message_body
+        # **NOVA: Usa Agente Conversacional com GPT-4o-mini**
+        logger.info(f"Processando com Agente Conversacional: {push_name}")
+        success, response_text = conversational_agent.generate_response(
+            user_id=from_number,
+            message=message_body,
+            person_name=push_name
         )
 
         # Log do resultado com contexto

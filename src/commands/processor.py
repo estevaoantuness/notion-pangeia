@@ -23,6 +23,9 @@ from src.commands.handlers import CommandHandlers
 from config.colaboradores import get_colaborador_by_phone
 from src.messaging.humanizer import get_humanizer
 from src.onboarding.manager import get_onboarding_manager
+from src.psychology.engine import PsychologicalEngine
+from src.psychology.communicator import EmpatheticCommunicator
+from src.people.analytics import PeopleAnalytics
 
 logger = logging.getLogger(__name__)
 
@@ -49,7 +52,7 @@ class CommandProcessor:
 
     def __init__(self, handlers: Optional[CommandHandlers] = None):
         """
-        Inicializa o processador.
+        Inicializa o processador com suporte conversacional e psicologia.
 
         Args:
             handlers: Handlers de comandos (cria um novo se não fornecido)
@@ -59,13 +62,18 @@ class CommandProcessor:
         self.humanizer = get_humanizer()
         self.onboarding = get_onboarding_manager()
 
+        # Componentes psicológicos
+        self.psych_engine = PsychologicalEngine()
+        self.empathetic_communicator = EmpatheticCommunicator()
+        self.people_analytics = PeopleAnalytics()
+
         # Estado de slot-filling por usuário
         self.user_states: Dict[str, Dict[str, Any]] = {}
 
         # Cache de mensagens recentes (para detectar repetições)
         self.recent_messages: Dict[str, Tuple[str, datetime]] = {}
 
-        logger.info("CommandProcessor inicializado com sistema NLP robusto")
+        logger.info("CommandProcessor inicializado com NLP robusto + inteligência psicológica")
 
     def _check_repeated_message(self, user_id: str, message: str) -> bool:
         """

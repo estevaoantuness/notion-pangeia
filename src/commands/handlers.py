@@ -11,7 +11,10 @@ from typing import Optional, Tuple
 from src.notion.updater import TaskUpdater
 from src.cache.task_mapper import get_task_mapper
 from src.whatsapp.sender import WhatsAppSender
+from src.whatsapp.psychological_sender import PsychologicalSender
 from src.messaging.humanizer import get_humanizer
+from src.psychology.communicator import EmpatheticCommunicator
+from src.psychology.engine import PsychologicalEngine
 
 logger = logging.getLogger(__name__)
 
@@ -29,17 +32,20 @@ class CommandHandlers:
         whatsapp_sender: Optional[WhatsAppSender] = None
     ):
         """
-        Inicializa os handlers.
+        Inicializa os handlers com inteligência psicológica.
 
         Args:
             task_updater: Atualizador de tasks
             whatsapp_sender: Sender de WhatsApp
         """
         self.task_updater = task_updater or TaskUpdater()
-        self.whatsapp_sender = whatsapp_sender or WhatsAppSender()
+        # Usa PsychologicalSender em vez de WhatsAppSender comum
+        self.whatsapp_sender = whatsapp_sender or PsychologicalSender()
         self.task_mapper = get_task_mapper()
         self.humanizer = get_humanizer()
-        logger.info("CommandHandlers inicializado")
+        self.psych_engine = PsychologicalEngine()
+        self.empathetic_communicator = EmpatheticCommunicator()
+        logger.info("CommandHandlers inicializado com inteligência psicológica")
 
     def handle_done(
         self,

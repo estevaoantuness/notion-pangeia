@@ -10,6 +10,8 @@ from flask import Flask, request, Response, jsonify
 
 from src.commands.processor import CommandProcessor
 from src.scheduler import get_scheduler
+from src.whatsapp.psychological_sender import PsychologicalSender
+from src.psychology.engine import PsychologicalEngine
 from config.settings import settings
 
 # Configuração de logging
@@ -21,6 +23,10 @@ logger = logging.getLogger(__name__)
 
 # Inicializa Flask
 app = Flask(__name__)
+
+# Inicializa componentes psicológicos
+psych_engine = PsychologicalEngine()
+psychological_sender = PsychologicalSender()
 
 # Inicializa processador de comandos
 command_processor = CommandProcessor()
@@ -170,6 +176,10 @@ def whatsapp_webhook():
         if event != 'messages.upsert':
             logger.info(f"Evento ignorado: {event}")
             return jsonify({"status": "success", "message": "Event ignored"}), 200
+
+        # Análise psicológica da mensagem recebida
+        psychological_context = psych_engine.analyze_message_sentiment(data.get('message', {}).get('conversation', ''))
+        logger.info(f"Contexto psicológico: {psychological_context}")
 
         # Extrai informações da mensagem
         key = data.get('key', {})

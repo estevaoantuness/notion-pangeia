@@ -19,6 +19,7 @@ from config.openai_config import (
 )
 from src.psychology.engine import PsychologicalEngine
 from src.people.analytics import PeopleAnalytics
+from src.notion.tasks import TasksManager
 
 logger = logging.getLogger(__name__)
 
@@ -38,6 +39,7 @@ class ConversationalAgent:
         """Inicializa o agente conversacional."""
         self.psych_engine = PsychologicalEngine()
         self.analytics = PeopleAnalytics()
+        self.tasks_manager = TasksManager()
 
         # Memory por usuário: {user_id: deque de mensagens}
         self.conversation_memory: Dict[str, deque] = {}
@@ -74,19 +76,70 @@ class ConversationalAgent:
         Retorna dicionário com dados mesmo se análise falhar.
         """
         try:
-            # Tenta obter perfil
-            profile = self.analytics.get_or_create_profile(person_name)
+            # Busca tarefas reais do Notion
+            tasks = self.tasks_manager.get_person_tasks(person_name, include_completed=True)
+            progress = self.tasks_manager.calculate_progress(person_name)
 
-            # Dados padrão se tudo falhar
+            # Conta tarefas por status
+            total_pendentes = len(tasks.get("a_fazer", [])) + len(tasks.get("em_andamento", []))
+            em_andamento = len(tasks.get("em_andamento", []))
+            a_fazer = len(tasks.get("a_fazer", []))
+            concluidas = progress.get("concluidas", 0)
+            total = progress.get("total", 0)
+            percentual = progress.get("percentual", 0)
+
+            # Monta descrição das tarefas ativas
+            if total_pendentes == 0:
+                active_tasks = "nenhuma tarefa pendente no momento"
+            elif total_pendentes == 1:
+                active_tasks = "1 tarefa pendente"
+            else:
+                active_tasks = f"{total_pendentes} tarefas pendentes ({em_andamento} em andamento, {a_fazer} a fazer)"
+
+            # Monta descrição do progresso
+            if total == 0:
+                progress_desc = "sem tarefas registradas no momento"
+            elif percentual == 100:
+                progress_desc = "todas as tarefas concluídas! 🎉"
+            elif percentual >= 80:
+                progress_desc = f"excelente progresso: {concluidas} de {total} tarefas concluídas ({percentual}%)"
+            elif percentual >= 50:
+                progress_desc = f"bom progresso: {concluidas} de {total} tarefas concluídas ({percentual}%)"
+            elif percentual >= 25:
+                progress_desc = f"progresso moderado: {concluidas} de {total} tarefas concluídas ({percentual}%)"
+            else:
+                progress_desc = f"início do dia: {concluidas} de {total} tarefas concluídas ({percentual}%)"
+
+            # Determina nível de energia baseado na carga de trabalho
+            if total_pendentes == 0:
+                energy_level = "tranquila"
+            elif total_pendentes <= 3:
+                energy_level = "boa"
+            elif total_pendentes <= 7:
+                energy_level = "moderada"
+            else:
+                energy_level = "alta carga"
+
+            # Estado emocional baseado no progresso
+            if percentual >= 80:
+                emotional_state = "Motivado"
+            elif percentual >= 50:
+                emotional_state = "Equilibrado"
+            elif total_pendentes > 10:
+                emotional_state = "Sobrecarregado"
+            else:
+                emotional_state = "Tranquilo"
+
             return {
-                "emotional_state": "Tranquilo",
-                "energy_level": "boa",
-                "active_tasks": "algumas tarefas",
-                "progress": "em progresso"
+                "emotional_state": emotional_state,
+                "energy_level": energy_level,
+                "active_tasks": active_tasks,
+                "progress": progress_desc
             }
+
         except Exception as e:
-            logger.debug(f"Não foi possível analisar usuário {person_name}: {e}")
-            # Retorna sempre dados padrão
+            logger.error(f"Erro ao analisar usuário {person_name}: {e}", exc_info=True)
+            # Retorna dados padrão em caso de erro
             return {
                 "emotional_state": "Tranquilo",
                 "energy_level": "boa",

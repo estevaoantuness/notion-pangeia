@@ -7,7 +7,7 @@ services:
     startCommand: gunicorn app:app --bind 0.0.0.0:$PORT --workers 4 --timeout 120
     envVars:
       - key: REDIS_URL
-        value: redis://default:9ed186549c48a450e1f2@pange_pangeia_redis:6379
+        value: redis://default:9ed186549c48a450e1f2@31.97.255.95:3005
       - key: EVOLUTION_API_URL
         value: https://pange-evolution-api.u5qiqp.easypanel.host
       - key: EVOLUTION_API_KEY
@@ -45,4 +45,4 @@ services:
       - key: TIMEZONE
         value: America/Sao_Paulo
       - key: DATABASE_URL
-        value: postgres://postgres:b434ebf056660d52c6ac@pange_pangeia_post:5432/pange?sslmode=disable
+        value: postgres://postgres:b434ebf056660d52c6ac@31.97.255.95:3004/pange?sslmode=disable

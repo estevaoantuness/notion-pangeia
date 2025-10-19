@@ -17,9 +17,11 @@ from config.openai_config import (
     SYSTEM_PROMPT_TEMPLATE, FALLBACK_RESPONSES, LOG_CONVERSATIONS,
     APIError, APIConnectionError, RateLimitError, AuthenticationError
 )
-from src.psychology.engine import PsychologicalEngine
+from src.psychology.engine import PsychologicalEngine, EmotionalState
 from src.people.analytics import PeopleAnalytics
 from src.notion.tasks import TasksManager
+from src.interventions.nudge_engine import NudgeEngine
+from src.interventions.personalization import PersonalizationEngine
 
 logger = logging.getLogger(__name__)
 
@@ -40,6 +42,8 @@ class ConversationalAgent:
         self.psych_engine = PsychologicalEngine()
         self.analytics = PeopleAnalytics()
         self.tasks_manager = TasksManager()
+        self.nudge_engine = NudgeEngine()
+        self.personalization_engine = PersonalizationEngine()
 
         # Memory por usuário: {user_id: deque de mensagens}
         self.conversation_memory: Dict[str, deque] = {}
@@ -50,7 +54,7 @@ class ConversationalAgent:
         # Últimas respostas (para evitar repetição)
         self.response_cache: Dict[str, Tuple[str, datetime]] = {}
 
-        logger.info("ConversationalAgent inicializado com GPT-4o-mini")
+        logger.info("ConversationalAgent inicializado com GPT-4o-mini + Nudge Engine")
 
     def get_conversation_history(self, user_id: str) -> List[Dict]:
         """Obtém histórico da conversa do usuário."""
@@ -327,6 +331,87 @@ class ConversationalAgent:
 
         if self.cost_tracking[user_id] > 0.50:  # Log se ultrapassar $0.50
             logger.warning(f"Custo para {user_id}: ${self.cost_tracking[user_id]:.4f}")
+
+    def get_nudge_if_appropriate(
+        self,
+        person_name: str,
+        phone: str,
+        context: Optional[Dict] = None
+    ) -> Optional[str]:
+        """
+        Retorna nudge apropriado se for o momento certo.
+
+        Args:
+            person_name: Nome da pessoa
+            phone: Telefone da pessoa
+            context: Contexto adicional (opcional)
+
+        Returns:
+            Mensagem de nudge ou None
+        """
+        try:
+            # Obter perfil e métricas
+            profile = self.analytics.get_or_create_profile(person_name, phone)
+
+            # Buscar tarefas e calcular métricas psicológicas
+            tasks = self.tasks_manager.get_person_tasks(person_name)
+            progress = self.tasks_manager.calculate_progress(person_name)
+
+            # Criar métricas psicológicas básicas
+            from src.psychology.engine import PsychologicalMetrics
+
+            metrics = PsychologicalMetrics()
+            metrics.tasks_completed_today = progress.get("concluidas", 0)
+            metrics.tasks_pending = progress.get("pendentes", 0)
+            metrics.completion_rate = progress.get("percentual", 0) / 100.0
+
+            # Determinar estado emocional aproximado
+            total_pendentes = len(tasks.get("a_fazer", [])) + len(tasks.get("em_andamento", []))
+
+            if total_pendentes > 10:
+                metrics.emotional_state = EmotionalState.OVERWHELMED
+            elif progress.get("percentual", 0) >= 80:
+                metrics.emotional_state = EmotionalState.MOTIVATED
+            else:
+                metrics.emotional_state = EmotionalState.BALANCED
+
+            # Selecionar melhor nudge
+            nudge = self.nudge_engine.select_best_nudge(
+                person_name,
+                profile,
+                metrics,
+                context or {}
+            )
+
+            if not nudge:
+                return None
+
+            # Verificar se deve enviar
+            should_send = self.personalization_engine.should_send_nudge(
+                person_name,
+                profile,
+                metrics,
+                nudge.nudge_type
+            )
+
+            if not should_send:
+                logger.debug(f"Nudge suprimido para {person_name} - contexto inadequado")
+                return None
+
+            # Personalizar nudge
+            personalized_nudge = self.personalization_engine.personalize_nudge(
+                nudge,
+                person_name,
+                profile
+            )
+
+            logger.info(f"Nudge selecionado para {person_name}: {personalized_nudge.nudge_type.value}")
+
+            return personalized_nudge.message
+
+        except Exception as e:
+            logger.error(f"Erro ao buscar nudge: {e}", exc_info=True)
+            return None
 
     def clear_old_memories(self, max_age_hours: int = 24) -> None:
         """Remove históricos antigos para liberar memória."""

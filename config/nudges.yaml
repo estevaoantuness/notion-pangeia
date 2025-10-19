@@ -1,0 +1,421 @@
+# Biblioteca de Nudges Psicológicos - Pange.IA
+# Sistema de micro-interventions personalizadas
+
+# Formato:
+# - message: Mensagem do nudge
+#   type: Tipo (encouragement, challenge, etc.)
+#   timing: Momento ideal (morning_start, when_struggling, etc.)
+#   personality_traits: Lista de traits que combinam
+#   emotional_states: Lista de estados emocionais
+#   energy_levels: Lista de níveis de energia
+#   priority: 1-5 (maior = mais prioritário)
+#   cooldown_hours: Tempo mínimo entre nudges similares
+
+nudges:
+  # ========================================
+  # ENCOURAGEMENT - Encorajamento
+  # ========================================
+  - message: "Você consegue! 💪 Já fez coisas muito mais difíceis que isso."
+    type: encouragement
+    timing: when_struggling
+    personality_traits: [needs_encouragement]
+    emotional_states: [stressed, overwhelmed]
+    energy_levels: [low, medium]
+    priority: 4
+    cooldown_hours: 24
+
+  - message: "Lembre-se: progresso, não perfeição. Cada pequeno passo conta! 🌱"
+    type: encouragement
+    timing: mid_morning
+    personality_traits: [needs_encouragement]
+    emotional_states: [stressed]
+    energy_levels: [medium]
+    priority: 3
+    cooldown_hours: 24
+
+  - message: "Acredite em você! Sua dedicação está fazendo diferença. ✨"
+    type: encouragement
+    timing: afternoon_slump
+    personality_traits: [needs_encouragement]
+    emotional_states: [balanced]
+    energy_levels: [medium]
+    priority: 2
+    cooldown_hours: 24
+
+  - message: "Você não está sozinho nisso. O time está aqui pra ajudar! 🤝"
+    type: encouragement
+    timing: when_struggling
+    personality_traits: [needs_encouragement, collaborative]
+    emotional_states: [overwhelmed, stressed]
+    energy_levels: [low]
+    priority: 4
+    cooldown_hours: 24
+
+  - message: "Olha o quanto você já cresceu! Compare com 3 meses atrás. 📈"
+    type: encouragement
+    timing: end_of_day
+    personality_traits: [needs_encouragement]
+    emotional_states: [stressed, balanced]
+    energy_levels: [medium]
+    priority: 3
+    cooldown_hours: 48
+
+  # ========================================
+  # CHALLENGE - Desafio
+  # ========================================
+  - message: "Meta de hoje: 5 tasks concluídas. Seu recorde é 7. Vai tentar quebrar? 👀"
+    type: challenge
+    timing: morning_start
+    personality_traits: [self_motivated, responds_to_challenges]
+    emotional_states: [motivated, balanced]
+    energy_levels: [high, very_high]
+    priority: 4
+    cooldown_hours: 24
+
+  - message: "Você já está indo bem! Mas... será que consegue fazer mais uma? 🎯"
+    type: challenge
+    timing: mid_morning
+    personality_traits: [responds_to_challenges]
+    emotional_states: [motivated]
+    energy_levels: [high]
+    priority: 3
+    cooldown_hours: 24
+
+  - message: "Desafio aceito? Complete 3 tasks antes do almoço e ganha badge! 🏆"
+    type: challenge
+    timing: morning_start
+    personality_traits: [self_motivated, responds_to_challenges]
+    emotional_states: [motivated, balanced]
+    energy_levels: [high]
+    priority: 4
+    cooldown_hours: 24
+
+  - message: "Level up: Que tal pegar uma task difícil hoje? Você tá preparado. 💎"
+    type: challenge
+    timing: mid_morning
+    personality_traits: [responds_to_challenges, prefers_big_challenges]
+    emotional_states: [motivated]
+    energy_levels: [very_high, high]
+    priority: 3
+    cooldown_hours: 48
+
+  # ========================================
+  # BREAK_SUGGESTION - Sugestão de pausa
+  # ========================================
+  - message: "Você tá firme há 3 horas! ⏰ Que tal 10 minutos de pausa? Seu cérebro agradece! ☕"
+    type: break_suggestion
+    timing: when_struggling
+    personality_traits: []
+    emotional_states: [stressed, overwhelmed]
+    energy_levels: [low, very_low]
+    priority: 5
+    cooldown_hours: 12
+
+  - message: "Respira fundo por 2 minutos. Sério, funciona! 🧘‍♀️"
+    type: break_suggestion
+    timing: afternoon_slump
+    personality_traits: []
+    emotional_states: [stressed]
+    energy_levels: [low]
+    priority: 4
+    cooldown_hours: 12
+
+  - message: "Hora do café! ☕ 5 minutos longe da tela fazem maravilhas."
+    type: break_suggestion
+    timing: mid_morning
+    personality_traits: []
+    emotional_states: [balanced, stressed]
+    energy_levels: [medium, low]
+    priority: 3
+    cooldown_hours: 12
+
+  - message: "Walk break? 🚶 10 minutos caminhando = mente fresca."
+    type: break_suggestion
+    timing: afternoon_slump
+    personality_traits: []
+    emotional_states: [stressed, overwhelmed]
+    energy_levels: [low, very_low]
+    priority: 4
+    cooldown_hours: 12
+
+  - message: "Seus olhos precisam de uma pausa. Regra 20-20-20: olhe para 20m de distância por 20s. 👁️"
+    type: break_suggestion
+    timing: afternoon_slump
+    personality_traits: []
+    emotional_states: [balanced]
+    energy_levels: [medium]
+    priority: 2
+    cooldown_hours: 24
+
+  # ========================================
+  # CELEBRATION - Comemoração
+  # ========================================
+  - message: "BOAAA! 🎉 Mais uma concluída! Você tá voando hoje!"
+    type: celebration
+    timing: after_win
+    personality_traits: []
+    emotional_states: [motivated, balanced]
+    energy_levels: [high, very_high]
+    priority: 3
+    cooldown_hours: 6
+
+  - message: "🏆 Arrasou! Olha só o que você já fez hoje. Continue assim!"
+    type: celebration
+    timing: after_win
+    personality_traits: [needs_encouragement]
+    emotional_states: [balanced]
+    energy_levels: [medium, high]
+    priority: 4
+    cooldown_hours: 6
+
+  - message: "Parabéns! 🎊 Você tá quebrando recordes!"
+    type: celebration
+    timing: after_win
+    personality_traits: [responds_to_challenges]
+    emotional_states: [motivated]
+    energy_levels: [high]
+    priority: 3
+    cooldown_hours: 6
+
+  - message: "Isso aí! 💪 Sua consistência está impressionante!"
+    type: celebration
+    timing: after_win
+    personality_traits: [self_motivated]
+    emotional_states: [motivated, balanced]
+    energy_levels: [high]
+    priority: 3
+    cooldown_hours: 6
+
+  - message: "Wow! 🌟 Olha você dominando! Keep going!"
+    type: celebration
+    timing: after_win
+    personality_traits: []
+    emotional_states: [motivated]
+    energy_levels: [very_high]
+    priority: 4
+    cooldown_hours: 6
+
+  # ========================================
+  # SOCIAL - Colaboração
+  # ========================================
+  - message: "3 pessoas do time precisam de ajuda. Quer dar uma força? 🤝"
+    type: social
+    timing: mid_morning
+    personality_traits: [collaborative]
+    emotional_states: [motivated, balanced]
+    energy_levels: [high, medium]
+    priority: 3
+    cooldown_hours: 24
+
+  - message: "Você tem expertise nisso! Que tal compartilhar com o time? 💡"
+    type: social
+    timing: afternoon_slump
+    personality_traits: [collaborative]
+    emotional_states: [balanced]
+    energy_levels: [medium]
+    priority: 2
+    cooldown_hours: 24
+
+  - message: "Knowledge sharing time! Alguma coisa legal que você aprendeu hoje? 📚"
+    type: social
+    timing: end_of_day
+    personality_traits: [collaborative]
+    emotional_states: [motivated, balanced]
+    energy_levels: [medium, high]
+    priority: 3
+    cooldown_hours: 48
+
+  - message: "Pair programming? Trabalhar junto pode desbloquear ideias! 👥"
+    type: social
+    timing: mid_morning
+    personality_traits: [collaborative]
+    emotional_states: [stressed]
+    energy_levels: [medium]
+    priority: 4
+    cooldown_hours: 24
+
+  # ========================================
+  # FOCUS_PROMPT - Prompt de foco
+  # ========================================
+  - message: "Uma task de cada vez. Qual é a MAIS importante agora? 🎯"
+    type: focus_prompt
+    timing: when_struggling
+    personality_traits: []
+    emotional_states: [overwhelmed, stressed]
+    energy_levels: [low, medium]
+    priority: 5
+    cooldown_hours: 12
+
+  - message: "Deep work mode: 25 minutos focado, sem distrações. Topa? ⏱️"
+    type: focus_prompt
+    timing: morning_start
+    personality_traits: [self_motivated]
+    emotional_states: [balanced]
+    energy_levels: [high]
+    priority: 3
+    cooldown_hours: 24
+
+  - message: "Prioridade 1: Qual task te deixa mais perto do objetivo? Foca nela. 🎯"
+    type: focus_prompt
+    timing: mid_morning
+    personality_traits: []
+    emotional_states: [balanced, overwhelmed]
+    energy_levels: [medium]
+    priority: 4
+    cooldown_hours: 12
+
+  - message: "Distrações off: celular no silencioso, notificações pausadas. Let's go! 📵"
+    type: focus_prompt
+    timing: morning_start
+    personality_traits: [self_motivated]
+    emotional_states: [motivated, balanced]
+    energy_levels: [high]
+    priority: 3
+    cooldown_hours: 24
+
+  # ========================================
+  # REFLECTION - Reflexão
+  # ========================================
+  - message: "O que você aprendeu hoje? 🤔 Pequenas reflexões fazem grande diferença."
+    type: reflection
+    timing: end_of_day
+    personality_traits: []
+    emotional_states: [balanced, motivated]
+    energy_levels: [medium]
+    priority: 2
+    cooldown_hours: 24
+
+  - message: "Qual foi a vitória do dia? Mesmo pequena, vale comemorar! 🎉"
+    type: reflection
+    timing: evening
+    personality_traits: [needs_encouragement]
+    emotional_states: [stressed, balanced]
+    energy_levels: [low, medium]
+    priority: 3
+    cooldown_hours: 24
+
+  - message: "Se pudesse fazer hoje de novo, mudaria algo? 🔄"
+    type: reflection
+    timing: evening
+    personality_traits: [self_motivated]
+    emotional_states: [balanced]
+    energy_levels: [medium]
+    priority: 2
+    cooldown_hours: 48
+
+  - message: "O que te deixou mais orgulhoso hoje? 💙"
+    type: reflection
+    timing: end_of_day
+    personality_traits: []
+    emotional_states: [motivated, balanced]
+    energy_levels: [medium, high]
+    priority: 3
+    cooldown_hours: 24
+
+  # ========================================
+  # GRATITUDE - Gratidão
+  # ========================================
+  - message: "Pelo que você é grato hoje? 💙 Lembrar coisas boas muda tudo."
+    type: gratitude
+    timing: evening
+    personality_traits: []
+    emotional_states: [stressed, overwhelmed]
+    energy_levels: [low]
+    priority: 3
+    cooldown_hours: 24
+
+  - message: "3 coisas boas de hoje: 1... 2... 3... ✨"
+    type: gratitude
+    timing: evening
+    personality_traits: []
+    emotional_states: [stressed, balanced]
+    energy_levels: [low, medium]
+    priority: 3
+    cooldown_hours: 24
+
+  - message: "Gratidão moment: Quem te ajudou hoje? Que tal agradecer? 🙏"
+    type: gratitude
+    timing: end_of_day
+    personality_traits: [collaborative]
+    emotional_states: [balanced, motivated]
+    energy_levels: [medium]
+    priority: 2
+    cooldown_hours: 48
+
+  # ========================================
+  # RESET - Reset após falha
+  # ========================================
+  - message: "Tudo bem ter dias difíceis. Amanhã é um novo começo! 🌅"
+    type: reset
+    timing: evening
+    personality_traits: [needs_encouragement]
+    emotional_states: [overwhelmed, stressed]
+    energy_levels: [very_low, low]
+    priority: 5
+    cooldown_hours: 24
+
+  - message: "Falhar faz parte. O importante é não desistir. Tomorrow we try again! 💪"
+    type: reset
+    timing: evening
+    personality_traits: []
+    emotional_states: [stressed, overwhelmed]
+    energy_levels: [low]
+    priority: 4
+    cooldown_hours: 24
+
+  - message: "Reset: Feche os olhos, respire fundo 3x, e recomece. Você pode. 🔄"
+    type: reset
+    timing: afternoon_slump
+    personality_traits: []
+    emotional_states: [overwhelmed, stressed]
+    energy_levels: [very_low]
+    priority: 5
+    cooldown_hours: 12
+
+  - message: "Bad day? Tá tudo bem. Até os melhores têm. Descansa e volta amanhã. 🌙"
+    type: reset
+    timing: evening
+    personality_traits: [needs_encouragement]
+    emotional_states: [overwhelmed]
+    energy_levels: [very_low]
+    priority: 5
+    cooldown_hours: 24
+
+  # ========================================
+  # REMINDER - Lembretes
+  # ========================================
+  - message: "Lembre-se: sua saúde mental vem antes de qualquer tarefa. 🧠💙"
+    type: reminder
+    timing: afternoon_slump
+    personality_traits: []
+    emotional_states: [overwhelmed, stressed]
+    energy_levels: [low, very_low]
+    priority: 5
+    cooldown_hours: 48
+
+  - message: "Hidratação check! Bebeu água hoje? 💧"
+    type: reminder
+    timing: mid_morning
+    personality_traits: []
+    emotional_states: [balanced]
+    energy_levels: [medium]
+    priority: 2
+    cooldown_hours: 24
+
+  - message: "Postura check: Costas retas, ombros relaxados. Seu corpo agradece! 🧘"
+    type: reminder
+    timing: afternoon_slump
+    personality_traits: []
+    emotional_states: [balanced]
+    energy_levels: [medium]
+    priority: 2
+    cooldown_hours: 24
+
+  - message: "Deadline approaching! Mas lembre-se: done is better than perfect. ✅"
+    type: reminder
+    timing: end_of_day
+    personality_traits: []
+    emotional_states: [stressed]
+    energy_levels: [low, medium]
+    priority: 4
+    cooldown_hours: 12

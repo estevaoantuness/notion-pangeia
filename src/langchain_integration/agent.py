@@ -18,7 +18,7 @@ from langchain_community.chat_message_histories import RedisChatMessageHistory
 from config.openai_config import OPENAI_API_KEY, GPT_MODEL, TEMPERATURE
 from config.settings import settings
 
-from .tools import NotionTaskTool, PsychologyTool
+from .tools import NotionTaskTool, PsychologyTool, CoordinationTool
 from .prompts import AGENT_PROMPT
 
 logger = logging.getLogger(__name__)
@@ -58,6 +58,7 @@ class PangeiaAgent:
         self.tools = [
             NotionTaskTool(),
             PsychologyTool(),
+            CoordinationTool(),
         ]
 
         # Inicializa Memory (Redis)

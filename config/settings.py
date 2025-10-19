@@ -34,6 +34,10 @@ class Settings:
     WEBHOOK_PATH: str = os.getenv("WEBHOOK_PATH", "/whatsapp/incoming")
     PORT: int = int(os.getenv("PORT", "5000"))
 
+    # Redis Configuration (for conversation memory across workers)
+    REDIS_URL: Optional[str] = os.getenv("REDIS_URL")
+    REDIS_TTL_HOURS: int = int(os.getenv("REDIS_TTL_HOURS", "24"))
+
     # Scheduler Configuration
     DAILY_SEND_TIME: str = os.getenv("DAILY_SEND_TIME", "08:00")
     CHECKIN_1_TIME: str = os.getenv("CHECKIN_1_TIME", "13:30")

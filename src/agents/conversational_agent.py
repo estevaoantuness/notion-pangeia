@@ -9,7 +9,6 @@ import logging
 import json
 from typing import Optional, Tuple, Dict, List
 from datetime import datetime, timedelta
-from collections import deque
 
 from config.openai_config import (
     client, GPT_MODEL, OPENAI_API_KEY, MAX_CONTEXT_TOKENS, MAX_RESPONSE_TOKENS,
@@ -22,6 +21,9 @@ from src.people.analytics import PeopleAnalytics
 from src.notion.tasks import TasksManager
 from src.interventions.nudge_engine import NudgeEngine
 from src.interventions.personalization import PersonalizationEngine
+from src.memory.redis_manager import get_memory_manager
+from src.memory.conversation_state import get_conversation_state
+from src.agents.task_manager_agent import TaskManagerAgent
 
 logger = logging.getLogger(__name__)
 
@@ -44,9 +46,13 @@ class ConversationalAgent:
         self.tasks_manager = TasksManager()
         self.nudge_engine = NudgeEngine()
         self.personalization_engine = PersonalizationEngine()
+        self.task_manager_agent = TaskManagerAgent()
 
-        # Memory por usuário: {user_id: deque de mensagens}
-        self.conversation_memory: Dict[str, deque] = {}
+        # Memory compartilhada entre workers via Redis
+        self.memory_manager = get_memory_manager()
+
+        # Conversation state para tracking de contexto
+        self.conversation_state = get_conversation_state()
 
         # Tracking de custos
         self.cost_tracking: Dict[str, float] = {}
@@ -54,25 +60,21 @@ class ConversationalAgent:
         # Últimas respostas (para evitar repetição)
         self.response_cache: Dict[str, Tuple[str, datetime]] = {}
 
-        logger.info("ConversationalAgent inicializado com GPT-4o-mini + Nudge Engine")
+        storage_type = "Redis" if self.memory_manager.is_redis_available() else "Local (warning: não persiste entre workers)"
+        logger.info(f"ConversationalAgent inicializado com GPT-4o-mini + Task Manager + Nudge Engine + Memory ({storage_type})")
 
     def get_conversation_history(self, user_id: str) -> List[Dict]:
         """Obtém histórico da conversa do usuário."""
-        if user_id not in self.conversation_memory:
-            self.conversation_memory[user_id] = deque(maxlen=MAX_CONVERSATION_HISTORY)
-
-        return list(self.conversation_memory[user_id])
+        return self.memory_manager.get_history(user_id, limit=MAX_CONVERSATION_HISTORY)
 
     def add_to_memory(self, user_id: str, role: str, content: str) -> None:
         """Adiciona mensagem ao histórico."""
-        if user_id not in self.conversation_memory:
-            self.conversation_memory[user_id] = deque(maxlen=MAX_CONVERSATION_HISTORY)
-
-        self.conversation_memory[user_id].append({
-            "role": role,
-            "content": content,
-            "timestamp": datetime.now().isoformat()
-        })
+        self.memory_manager.add_message(
+            user_id=user_id,
+            role=role,
+            content=content,
+            max_messages=MAX_CONVERSATION_HISTORY
+        )
 
     def _safe_analyze_user(self, person_name: str) -> Dict:
         """
@@ -151,7 +153,7 @@ class ConversationalAgent:
                 "progress": "em progresso"
             }
 
-    def build_system_prompt(self, person_name: str) -> str:
+    def build_system_prompt(self, person_name: str, user_id: str, history: List[Dict]) -> str:
         """Constrói system prompt personalizado com contexto."""
         try:
             # Análise psicológica segura (sempre retorna dados)
@@ -165,6 +167,23 @@ class ConversationalAgent:
                 active_tasks=metrics.get("active_tasks", "algumas tarefas"),
                 progress=metrics.get("progress", "em progresso")
             )
+
+            # Adicionar contexto de conversa
+            context_summary = self.conversation_state.build_context_summary(user_id)
+            if context_summary:
+                prompt += f"\n\n{context_summary}"
+
+            # Extrair contexto do histórico e atualizar estado
+            context = self.conversation_state.extract_context_from_history(user_id, history)
+
+            # Adicionar nota sobre evitar repetições
+            if context.get("questions_asked_count", 0) > 1:
+                prompt += "\n\n**IMPORTANTE**: Já houve conversa anterior. Evite repetir perguntas. Use o contexto!"
+
+            # Adicionar referência ao último sentimento mencionado
+            if context.get("user_mentioned_feeling"):
+                feeling = context["user_mentioned_feeling"]
+                prompt += f"\n\n**CONTEXTO**: Usuário mencionou que está {feeling}. Faça referência a isso!"
 
             return prompt
 
@@ -192,6 +211,19 @@ class ConversationalAgent:
             Tuple (sucesso, resposta)
         """
         try:
+            # PRIMEIRO: Verificar se é comando de task (prioridade!)
+            task_result = self.task_manager_agent.process_message(person_name, message)
+
+            if task_result:
+                success, response_text = task_result
+
+                # Adiciona mensagens ao histórico
+                self.add_to_memory(user_id, "user", message)
+                self.add_to_memory(user_id, "assistant", response_text)
+
+                logger.info(f"Comando de task processado para {person_name}")
+                return success, response_text
+
             # Verificar se cliente está disponível
             if not client:
                 logger.warning("⚠️ Cliente OpenAI não inicializado - usando fallback")
@@ -203,8 +235,8 @@ class ConversationalAgent:
             # Obtém histórico
             history = self.get_conversation_history(user_id)
 
-            # Constrói system prompt personalizado
-            system_prompt = self.build_system_prompt(person_name)
+            # Constrói system prompt personalizado com contexto
+            system_prompt = self.build_system_prompt(person_name, user_id, history)
 
             # Verifica cache para evitar resposta duplicada
             cache_key = f"{user_id}:{message}"
@@ -416,22 +448,9 @@ class ConversationalAgent:
     def clear_old_memories(self, max_age_hours: int = 24) -> None:
         """Remove históricos antigos para liberar memória."""
         try:
-            cutoff_time = datetime.now() - timedelta(hours=max_age_hours)
-
-            for user_id, memory in list(self.conversation_memory.items()):
-                # Filtra mensagens antigas
-                filtered = deque(
-                    [msg for msg in memory
-                     if datetime.fromisoformat(msg["timestamp"]) > cutoff_time],
-                    maxlen=MAX_CONVERSATION_HISTORY
-                )
-
-                if len(filtered) == 0:
-                    del self.conversation_memory[user_id]
-                    logger.info(f"Histórico de {user_id} removido")
-                else:
-                    self.conversation_memory[user_id] = filtered
-
+            removed = self.memory_manager.cleanup_old_conversations(max_age_hours)
+            if removed > 0:
+                logger.info(f"{removed} conversas antigas removidas")
         except Exception as e:
             logger.error(f"Erro ao limpar históricos antigos: {e}")
 

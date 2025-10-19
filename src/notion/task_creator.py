@@ -40,7 +40,8 @@ class TaskCreator:
         description: Optional[str] = None,
         due_date: Optional[date] = None,
         priority: str = "Medium",
-        category: str = "Work"
+        category: str = "Work",
+        project: Optional[str] = None
     ) -> Dict:
         """
         Cria uma nova task no Notion.
@@ -48,20 +49,22 @@ class TaskCreator:
         Args:
             title: Título da task
             assignee: Nome do responsável
-            description: Descrição detalhada (opcional)
-            due_date: Data de vencimento (opcional)
-            priority: Prioridade (Low, Medium, High, Urgent)
-            category: Categoria (Work, Personal, Learning, Health)
+            description: Descrição detalhada (opcional) - vai para Notes
+            due_date: Data de vencimento (opcional) - NÃO SUPORTADO pela database atual
+            priority: Prioridade (Low, Medium, High, Urgent) - NÃO SUPORTADO pela database atual
+            category: Categoria (Work, Personal, Learning, Health) - NÃO SUPORTADO pela database atual
+            project: Nome do projeto (opcional)
 
         Returns:
-            Dict com dados da task criada
+            Dict com dados da task criada (inclui ID)
         """
         try:
             logger.info(f"Criando task: '{title}' para {assignee}")
 
             # Preparar propriedades
+            # Schema real da database: Task (title), Status, Assignees (multi_select), Project (multi_select), Notes (rich_text), Source (url)
             properties = {
-                "Name": {
+                "Task": {
                     "title": [
                         {
                             "text": {
@@ -79,50 +82,33 @@ class TaskCreator:
                     "multi_select": [
                         {"name": assignee}
                     ]
-                },
-                "Priority": {
-                    "select": {
-                        "name": priority
-                    }
-                },
-                "Category": {
-                    "select": {
-                        "name": category
-                    }
                 }
             }
 
-            # Adicionar data de vencimento se fornecida
-            if due_date:
-                properties["Due Date"] = {
-                    "date": {
-                        "start": due_date.isoformat()
-                    }
+            # Adicionar projeto se fornecido
+            if project:
+                properties["Project"] = {
+                    "multi_select": [
+                        {"name": project}
+                    ]
                 }
 
-            # Adicionar descrição se fornecida
-            children = []
+            # Adicionar descrição em Notes se fornecida
             if description:
-                children.append({
-                    "object": "block",
-                    "type": "paragraph",
-                    "paragraph": {
-                        "rich_text": [
-                            {
-                                "type": "text",
-                                "text": {
-                                    "content": description
-                                }
+                properties["Notes"] = {
+                    "rich_text": [
+                        {
+                            "text": {
+                                "content": description
                             }
-                        ]
-                    }
-                })
+                        }
+                    ]
+                }
 
             # Criar página no Notion
             new_page = self.notion_client.create_page(
-                database_id=self.database_id,
-                properties=properties,
-                children=children if children else None
+                parent_database_id=self.database_id,
+                properties=properties
             )
 
             logger.info(f"✅ Task criada com sucesso: {title}")
@@ -165,15 +151,8 @@ class TaskCreator:
                 }
             }
 
-            # Se marcando como concluída, adicionar data de conclusão
-            if new_status == "Concluída":
-                tz = pytz.timezone(settings.TIMEZONE)
-                now = datetime.now(tz)
-                properties["Completed At"] = {
-                    "date": {
-                        "start": now.isoformat()
-                    }
-                }
+            # Nota: Database atual não tem campo "Completed At"
+            # Se precisar adicionar, criar a propriedade primeiro na database
 
             updated = self.notion_client.update_page(
                 page_id=page_id,
@@ -201,7 +180,7 @@ class TaskCreator:
         Returns:
             Dict com resultado
         """
-        return self.update_task_status(page_id, "Concluída")
+        return self.update_task_status(page_id, "Concluído")
 
     def start_task(self, page_id: str) -> Dict:
         """
@@ -279,24 +258,189 @@ class TaskCreator:
             logger.error(f"Erro ao buscar task: {e}", exc_info=True)
             return None
 
+    def update_task(
+        self,
+        page_id: str,
+        updates: Dict
+    ) -> Dict:
+        """
+        Atualiza propriedades genéricas de uma task.
+
+        Args:
+            page_id: ID da página no Notion
+            updates: Dict com propriedades a atualizar
+                Exemplo: {"Priority": {"select": {"name": "High"}}}
+
+        Returns:
+            Dict com resultado da atualização
+        """
+        try:
+            logger.info(f"Atualizando task {page_id}")
+
+            updated = self.notion_client.update_page(
+                page_id=page_id,
+                properties=updates
+            )
+
+            logger.info(f"✅ Task atualizada com sucesso")
+
+            return {
+                "updated": True,
+                "page_id": page_id
+            }
+
+        except Exception as e:
+            logger.error(f"Erro ao atualizar task: {e}", exc_info=True)
+            raise
+
+    def reassign_task(
+        self,
+        page_id: str,
+        new_assignee: str
+    ) -> Dict:
+        """
+        Reatribui task para outro responsável.
+
+        Args:
+            page_id: ID da página no Notion
+            new_assignee: Nome do novo responsável
+
+        Returns:
+            Dict com resultado
+        """
+        try:
+            logger.info(f"Reatribuindo task {page_id} para: {new_assignee}")
+
+            updates = {
+                "Assignees": {
+                    "multi_select": [
+                        {"name": new_assignee}
+                    ]
+                }
+            }
+
+            result = self.update_task(page_id, updates)
+
+            logger.info(f"✅ Task reatribuída para: {new_assignee}")
+
+            return {
+                "updated": True,
+                "new_assignee": new_assignee
+            }
+
+        except Exception as e:
+            logger.error(f"Erro ao reatribuir task: {e}", exc_info=True)
+            raise
+
+    def update_project(
+        self,
+        page_id: str,
+        project_name: str
+    ) -> Dict:
+        """
+        Atualiza projeto de uma task.
+
+        Args:
+            page_id: ID da página no Notion
+            project_name: Nome do projeto
+
+        Returns:
+            Dict com resultado
+        """
+        try:
+            logger.info(f"Atualizando projeto da task {page_id} para: {project_name}")
+
+            updates = {
+                "Project": {
+                    "multi_select": [
+                        {"name": project_name}
+                    ]
+                }
+            }
+
+            result = self.update_task(page_id, updates)
+
+            logger.info(f"✅ Projeto atualizado para: {project_name}")
+
+            return {
+                "updated": True,
+                "project": project_name
+            }
+
+        except Exception as e:
+            logger.error(f"Erro ao atualizar projeto: {e}", exc_info=True)
+            raise
+
+    def update_notes(
+        self,
+        page_id: str,
+        notes: str
+    ) -> Dict:
+        """
+        Atualiza notas/descrição de uma task.
+
+        Args:
+            page_id: ID da página no Notion
+            notes: Notas/descrição
+
+        Returns:
+            Dict com resultado
+        """
+        try:
+            logger.info(f"Atualizando notas da task {page_id}")
+
+            updates = {
+                "Notes": {
+                    "rich_text": [
+                        {
+                            "text": {
+                                "content": notes
+                            }
+                        }
+                    ]
+                }
+            }
+
+            result = self.update_task(page_id, updates)
+
+            logger.info(f"✅ Notas atualizadas")
+
+            return {
+                "updated": True,
+                "notes": notes
+            }
+
+        except Exception as e:
+            logger.error(f"Erro ao atualizar notas: {e}", exc_info=True)
+            raise
+
     def create_subtasks(
         self,
-        parent_title: str,
+        parent_task_id: str,
         subtasks: List[str],
         assignee: str
-    ) -> List[Dict]:
+    ) -> List[str]:
         """
         Cria múltiplas subtasks de uma vez.
 
         Args:
-            parent_title: Título da task principal
+            parent_task_id: ID da task principal
             subtasks: Lista de títulos de subtasks
             assignee: Responsável
 
         Returns:
-            Lista de tasks criadas
+            Lista de IDs das tasks criadas
         """
-        created_tasks = []
+        created_ids = []
+
+        # Busca título da task principal
+        try:
+            parent_page = self.notion_client.client.pages.retrieve(page_id=parent_task_id)
+            parent_title_prop = parent_page.get("properties", {}).get("Name", {})
+            parent_title_content = parent_title_prop.get("title", [])
+            parent_title = parent_title_content[0].get("text", {}).get("content", "") if parent_title_content else "Task Principal"
+        except Exception:
+            parent_title = "Task Principal"
 
         for subtask_title in subtasks:
             try:
@@ -309,11 +453,11 @@ class TaskCreator:
                     description=f"Subtask de: {parent_title}"
                 )
 
-                created_tasks.append(task)
+                created_ids.append(task.get("id"))
 
             except Exception as e:
                 logger.error(f"Erro ao criar subtask '{subtask_title}': {e}")
                 continue
 
-        logger.info(f"✅ {len(created_tasks)} subtasks criadas para '{parent_title}'")
-        return created_tasks
+        logger.info(f"✅ {len(created_ids)} subtasks criadas para '{parent_title}'")
+        return created_ids

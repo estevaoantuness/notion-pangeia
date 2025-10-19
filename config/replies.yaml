@@ -168,18 +168,21 @@ help:
       Precisa de ajuda? Digite 'ajuda' 😊
 
 checkins:
-  planning: # 13:30
-    - "🌤️ Check-in da tarde!\n\nRápida pausa para alinhar:\n\n**1.** Como está o andamento das tarefas?\n**2.** Algum bloqueio até agora?\n**3.** Vai conseguir cumprir o planejado hoje?\n\nResponda em texto livre. Estou ouvindo! 👂"
-    - "☕ Hora do check-in!\n\n3 perguntas rápidas:\n\n• Como estão as tarefas? (bem/médio/travado)\n• Tem algum bloqueio?\n• Precisa de ajuda em algo?\n\nPode responder de forma livre! 💬"
-  status: # 15:30
-    - "⏰ Check-in das 15:30!\n\nComo você está se sentindo agora?\n\n• 🟢 Produtivo e focado\n• 🟡 Cansado, mas seguindo\n• 🔴 Travado ou sobrecarregado\n\nResponda com emoji ou texto. Vamos ajustar o ritmo! 💪"
-    - "🌤️ Como está o ritmo?\n\nMeio do dia, hora de checar:\n\n• Você está produtivo?\n• Precisa de uma pausa?\n• Alguma task travou?\n\nMe conta! 💬"
-  closing: # 18:00
-    - "🌆 Finalizando o dia!\n\nAntes de encerrar:\n\n**1.** Conseguiu concluir o que planejou?\n**2.** O que ficou pendente para amanhã?\n**3.** Como foi o dia? (1-10)\n\nSuas respostas ajudam a melhorar! 📊"
-    - "🌅 Fechamento do dia!\n\n• O que você conseguiu fazer hoje?\n• O que ficou para amanhã?\n• Como se sente? (1-10)\n\nObrigado pelo feedback! 🙏"
-  reflection: # 22:00
-    - "🌙 Última reflexão do dia.\n\nPensando no dia de hoje:\n\n• O que funcionou bem?\n• O que poderia melhorar amanhã?\n• Algum aprendizado?\n\nResponda quando puder. Descanse bem! 😴"
-    - "✨ Refletindo sobre o dia...\n\n• Qual foi o ponto alto?\n• O que você aprendeu?\n• O que quer melhorar amanhã?\n\nBoa noite! 🌙"
+  morning: # 08:00 - Pilar CUIDAR primeiro
+    - "Bom dia. 🌅\n\n**Antes de falar de tasks: como você REALMENTE tá?** [1-10]\n\nSe <7: Vamos REDUZIR tua carga hoje. Pangeia hierarquia = CUIDAR vem primeiro.\n\nSe ≥7: Show. Aí sim faz sentido falar de tasks.\n\nVocê tem [X] tasks. Quantas você tem energia pra fazer DE VERDADE?"
+    - "Dia novo.\n\n**CUIDAR** - Pilar 1 do Pangeia.\n\nAntes das tasks: Como você TÁ?\n\n[X] tasks esperando.\n\nMas a pergunta é: você tá com energia pra isso ou vamos simplificar AGORA?\n\nBora ser honesto desde cedo."
+  planning: # 13:30 - Pilar ORGANIZAR
+    - "Checkpoint! ⏰\n\n**Pilar ORGANIZAR do Pangeia.**\n\nProgresso até agora: [checar dados]\n\nPergunta direta: O que te IMPEDIU de fazer mais?\n\nÉ questão de foco ou preciso reorganizar algo?\n\nPróximas 2h, qual a PRIORIDADE?"
+    - "Meio-dia. Hora da verdade.\n\n**ORGANIZAR** - Pangeia\n\nDas tasks que você planejou, quantas realmente saíram?\n\nO que tá travando? Preciso cortar alguma coisa?\n\nBora ser honesto: o que REALMENTE vai sair até o fim do dia?"
+  status: # 15:30 - Pilar CUIDAR + ORGANIZAR
+    - "Reta final do dia! 🏃\n\n**Pilar CUIDAR:** Como tá sua energia? [1-10]\n\nSe tá alta → vamos fechar forte\nSe tá baixa → vamos ser estratégicos\n\nTasks abertas: [X]\nRealistas pra hoje: ?\n\nO que REALMENTE precisa sair hoje?"
+    - "15:30 - Check de energia.\n\n**CUIDAR** vem primeiro.\n\nVocê tá bem ou tá forçando?\n\nTasks abertas: [X]\n\nPergunta: Você VAI fazer todas ou tá se enganando?\n\nVamos cortar e focar no essencial?"
+  closing: # 18:00 - Pilar CUIDAR
+    - "Fim do expediente! 🌙\n\n**Pilar CUIDAR do Pangeia.**\n\nHoje você fechou [X]% das tasks.\n\nPergunta de verdade: Tá satisfeito com o que fez ou tem algo te incomodando?\n\nAmanhã retomamos. DESCANSA de verdade."
+    - "18h. Acabou.\n\n**CUIDAR** - Hierarquia Pangeia.\n\nFez [X]% do planejado.\n\nMas esquece número. O que você FEZ hoje te aproximou do que você QUER?\n\nAgora PARA de trabalhar. Sério."
+  reflection: # 22:00 - Pilar CRIAR
+    - "Hora da reflexão. 🌙\n\n**Pilar CRIAR:** Vamos transformar hoje em aprendizado.\n\nO que FUNCIONOU?\nO que TRAVOU?\n\nAmanhã a gente vai:\n1. [Insight baseado em padrões]\n2. [Ação concreta]\n\nDorme bem. Pangeia tá aqui."
+    - "22h. Última do dia.\n\n**CRIAR** - Pangeia\n\nVocê não precisa ter feito TUDO hoje.\nVocê precisa ter feito o que IMPORTA.\n\nFez? Ótimo.\nNão fez? Vamos descobrir por quê e ajustar.\n\nAmanhã simplificamos ainda mais."
 
 ctas:
   see_tasks:

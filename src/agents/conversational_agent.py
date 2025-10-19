@@ -310,46 +310,46 @@ class ConversationalAgent:
         try:
             message_lower = message.lower().strip()
 
-            # Respostas focadas em Pangeia
+            # Respostas anti-produtividade
             if any(word in message_lower for word in ["oi", "opa", "olá", "e aí", "eae"]):
                 responses = [
-                    f"E aí, {person_name}! 🌍 Sou o Pange.IA, seu assistente do Método Pangeia.\n\nPosso:\n✅ Criar e gerenciar suas tarefas\n✅ Decompor tarefas complexas\n✅ Mostrar seu progresso\n\nDiz 'minhas tarefas' ou 'cria tarefa pra X'!",
-                    f"Opa, {person_name}! 👋 Tô aqui pelo Método Pangeia - criar, organizar e cuidar.\n\nQuer ver suas tarefas? Ou criar uma nova? Me conta!",
-                    f"Oi, {person_name}! 🚀 Pange.IA aqui. Consigo gerenciar suas tasks, prever burnout, e te ajudar a ser produtivo sem se queimar.\n\nPor onde começamos?",
+                    f"E aí, {person_name}.\n\nVocê tem {{X}} tasks ativas.\n\nSendo honesto: metade disso é bullshit que você nunca vai fazer.\n\nQuer que eu te mostre quais ou prefere continuar fingindo que vai fazer tudo?\n\nPangeia não mente. Bora limpar essa lista?",
+                    f"Opa, {person_name}. 🌍\n\nPange.IA - o único bot que te manda fazer MENOS.\n\nPangeia = CUIDAR > ORGANIZAR > CRIAR\n\nAntes de falar de tasks: como você TÁ mesmo? [1-10]",
+                    f"Oi.\n\nVocê tá aqui pra procrastinar ou pra resolver algo de verdade?\n\nPangeia hierarquia: Se você não tá bem (CUIDAR), foda-se as tasks.\n\nComo você tá?",
                 ]
                 return True, responses[hash(message) % len(responses)]
 
             elif any(word in message_lower for word in ["tchau", "até", "falou", "bye"]):
                 responses = [
-                    f"Falou, {person_name}! Quando precisar de ajuda com tasks ou quiser saber mais sobre Pangeia, tô aqui! 🌍",
-                    f"Até mais, {person_name}! Lembra: posso criar tasks, decompor projetos e monitorar teu progresso. Volta sempre! 💙",
+                    f"Falou. Vai descansar ou vai fingir que descansou enquanto pensa em trabalho? 🌍",
+                    f"Até. Lembra: fazer NADA às vezes é mais produtivo que fazer MUITO. Pangeia aprova pausas.",
                 ]
                 return True, responses[hash(message) % len(responses)]
 
             elif any(word in message_lower for word in ["obrigado", "obg", "vlw", "valeu"]):
-                return True, f"Por nada, {person_name}! É pra isso que o Método Pangeia existe - te ajudar a ser produtivo de forma sustentável! 🌍"
+                return True, f"Disponha. Pangeia é sobre simplificar, não complicar. Se eu te ajudei a ELIMINAR algo, valeu muito. 🌍"
 
             elif message_lower.startswith("como") or "o que você faz" in message_lower:
-                return True, f"Sou o Pange.IA, {person_name}! 🌍\n\nMétodo Pangeia = Criar + Organizar + Cuidar\n\nEu:\n✅ Gerencio tasks no Notion\n✅ Decomponho tarefas grandes\n✅ Monitoro sinais de burnout\n✅ Gamificação (XP, níveis, badges)\n\nExperimenta: 'minhas tarefas' ou 'cria tarefa pra estudar X'"
+                return True, f"Sou o Pange.IA - o único bot que te manda fazer MENOS.\n\nPangeia:\n1️⃣ CUIDAR (você tá bem?)\n2️⃣ ORGANIZAR (cortar o desnecessário)\n3️⃣ CRIAR (só depois de 1 e 2)\n\nNão te motivo. Te questiono se vale a pena.\n\nVamos conversar sobre suas tasks ou sobre o que tá te sobrecarregando?"
 
             elif message_lower.startswith("tarefas") or message_lower.startswith("task"):
-                return True, f"Show, {person_name}! Posso te ajudar com tasks de várias formas:\n\n📋 'minhas tarefas' - vejo todas as suas\n✅ 'terminei a tarefa X' - marco como concluída\n🎯 'cria tarefa pra Y' - adiciono no Notion\n✂️ 'quebra essa tarefa' - decomponho em subtasks\n\nQual tu quer?"
+                return True, f"Tasks. Ok.\n\nVou te mostrar suas tasks. Mas depois vamos ter uma conversa honesta sobre quais delas são REALMENTE importantes.\n\nPangeia = cortar o lixo, focar no essencial.\n\nPreparado?"
 
             elif message_lower.startswith("help") or message_lower.startswith("ajuda"):
-                return True, f"Claro, {person_name}! Sou o assistente do Método Pangeia 🌍\n\nComandos:\n• 'minhas tarefas'\n• 'cria tarefa pra X'\n• 'terminei a tarefa Y'\n• 'quebra essa tarefa'\n\nTambém monitoro burnout, gamificação e produtividade!\n\nO que quer fazer?"
+                return True, f"Ajuda com o quê?\n\nCom tasks? Posso mostrar, criar, marcar como feita.\nCom sobrecarga? Vamos cortar coisas juntos.\nCom procrastinação? Vou te perguntar se vale a pena mesmo fazer.\n\nPangeia não é sobre fazer mais. É sobre fazer o que IMPORTA.\n\nO que tá pesando?"
 
-            # Resposta padrão focada em valor
+            # Resposta padrão disruptiva
             else:
                 responses = [
-                    f"Entendi, {person_name}! Posso te ajudar com isso criando tasks ou organizando melhor?\n\nExperimenta: 'cria tarefa pra X' ou 'minhas tarefas' 🚀",
-                    f"Interessante! Quer que eu crie uma tarefa sobre isso? Ou prefere ver suas tasks atuais?\n\nPangeia é sobre criar, organizar e cuidar! 🌍",
-                    f"Saquei, {person_name}. Como o Método Pangeia pode ajudar nisso? Posso:\n• Criar tasks\n• Decompor em subtasks\n• Mostrar progresso\n\nQue tal?",
+                    f"Entendi.\n\nMas deixa eu te perguntar: isso que você falou é importante MESMO ou é mais uma distração?\n\nPangeia te faz parar e pensar antes de agir.",
+                    f"Ok.\n\nAgora a pergunta real: adicionar isso na sua vida te aproxima do que você QUER ou só te deixa mais ocupado?\n\nFazer MENOS > fazer MUITO.",
+                    f"Saquei.\n\nVocê quer falar sobre isso ou quer que eu te ajude a SIMPLIFICAR tua semana?\n\nPangeia = eliminar o desnecessário. Bora?",
                 ]
                 return True, responses[hash(message) % len(responses)]
 
         except Exception as e:
             logger.error(f"Erro ao gerar fallback response: {e}")
-            return True, f"Oi, {person_name}! Sou o Pange.IA 🌍 - gerencio tasks, previno burnout e te ajudo a ser produtivo. Diz 'minhas tarefas' pra começar!"
+            return True, f"Pange.IA aqui. 🌍\n\nTe ajudo a fazer MENOS, não mais.\n\nO que tá pesando?"
 
     def _track_cost(self, user_id: str, tokens_used: int) -> None:
         """Registra custo de tokens para controle."""

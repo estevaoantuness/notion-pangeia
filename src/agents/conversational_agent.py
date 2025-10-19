@@ -25,6 +25,12 @@ from src.memory.redis_manager import get_memory_manager
 from src.memory.conversation_state import get_conversation_state
 from src.agents.task_manager_agent import TaskManagerAgent
 
+# Intelligence Module - Terapeuta Produtivo
+from src.intelligence import (
+    ToneDetector, PatternDetector, ProactiveEngine,
+    EmotionalCorrelation, get_conversation_memory
+)
+
 logger = logging.getLogger(__name__)
 
 
@@ -54,6 +60,15 @@ class ConversationalAgent:
         # Conversation state para tracking de contexto
         self.conversation_state = get_conversation_state()
 
+        # Intelligence Module - Terapeuta Produtivo
+        self.tone_detector = ToneDetector()
+        self.pattern_detector = PatternDetector()
+        self.proactive_engine = ProactiveEngine()
+        self.emotional_correlation = EmotionalCorrelation()
+        self.long_term_memory = get_conversation_memory(
+            storage_backend=self.memory_manager.redis if self.memory_manager.is_redis_available() else None
+        )
+
         # Tracking de custos
         self.cost_tracking: Dict[str, float] = {}
 
@@ -61,7 +76,7 @@ class ConversationalAgent:
         self.response_cache: Dict[str, Tuple[str, datetime]] = {}
 
         storage_type = "Redis" if self.memory_manager.is_redis_available() else "Local (warning: não persiste entre workers)"
-        logger.info(f"ConversationalAgent inicializado com GPT-4o-mini + Task Manager + Nudge Engine + Memory ({storage_type})")
+        logger.info(f"ConversationalAgent inicializado - Terapeuta Produtivo com Intelligence Module ({storage_type})")
 
     def get_conversation_history(self, user_id: str) -> List[Dict]:
         """Obtém histórico da conversa do usuário."""
@@ -153,11 +168,61 @@ class ConversationalAgent:
                 "progress": "em progresso"
             }
 
-    def build_system_prompt(self, person_name: str, user_id: str, history: List[Dict]) -> str:
-        """Constrói system prompt personalizado com contexto."""
+    def build_system_prompt(self, person_name: str, user_id: str, history: List[Dict], message: str = "") -> str:
+        """Constrói system prompt personalizado com contexto inteligente."""
         try:
             # Análise psicológica segura (sempre retorna dados)
             metrics = self._safe_analyze_user(person_name)
+
+            # Detecta tom emocional da última mensagem (se houver)
+            detected_tone = "Neutro"
+            if message:
+                tone_analysis = self.tone_detector.detect_tone(message)
+                detected_tone = f"{tone_analysis.primary_tone.value.title()} ({int(tone_analysis.confidence*100)}% confiança)"
+
+                # Aprende preferências de comunicação se alta confiança
+                if tone_analysis.confidence >= 0.7:
+                    self.long_term_memory.learn_preference(
+                        user_id=user_id,
+                        key="recent_tone",
+                        value=tone_analysis.primary_tone.value,
+                        confidence=tone_analysis.confidence
+                    )
+
+            # Pega resumo de memória de longo prazo
+            memory_summary = self.long_term_memory.get_conversation_summary(user_id)
+
+            # Formata contexto de conversa
+            conversation_context = ""
+            if memory_summary.get("top_topics"):
+                topics = ", ".join([t["topic"] for t in memory_summary["top_topics"][:3]])
+                conversation_context = f"**Tópicos já discutidos:** {topics}\n"
+
+            # Detecta padrões comportamentais (se houver histórico suficiente)
+            detected_patterns = ""
+            try:
+                # TODO: Implementar get_metrics_history e get_tasks_history
+                # Por enquanto, retorna vazio para não quebrar
+                metrics_history = []  # self.analytics.get_metrics_history(person_name, days=30)
+                tasks_history = []  # self.tasks_manager.get_tasks_history(person_name, days=30)
+
+                if len(metrics_history) >= 7:  # Mínimo de dados
+                    patterns = self.pattern_detector.detect_all_patterns(
+                        person_name=person_name,
+                        tasks_history=tasks_history,
+                        metrics_history=metrics_history
+                    )
+
+                    if patterns:
+                        # Pega o padrão de maior confiança
+                        top_pattern = max(patterns, key=lambda p: p.confidence)
+                        detected_patterns = (
+                            f"**⚠️ Padrão Detectado ({int(top_pattern.confidence*100)}%):**\n"
+                            f"{top_pattern.pattern_type.value.replace('_', ' ').title()}\n"
+                            f"Use esse insight proativamente se relevante para a conversa.\n"
+                        )
+            except Exception as e:
+                logger.debug(f"Não foi possível detectar padrões: {e}")
 
             # Preenche template com dados seguros
             prompt = SYSTEM_PROMPT_TEMPLATE.format(
@@ -165,7 +230,10 @@ class ConversationalAgent:
                 emotional_state=metrics.get("emotional_state", "Tranquilo"),
                 energy_level=metrics.get("energy_level", "boa"),
                 active_tasks=metrics.get("active_tasks", "algumas tarefas"),
-                progress=metrics.get("progress", "em progresso")
+                progress=metrics.get("progress", "em progresso"),
+                detected_tone=detected_tone,
+                conversation_context=conversation_context,
+                detected_patterns=detected_patterns
             )
 
             # Adicionar contexto de conversa
@@ -195,7 +263,10 @@ class ConversationalAgent:
                 emotional_state="Tranquilo",
                 energy_level="boa",
                 active_tasks="algumas tarefas",
-                progress="em progresso"
+                progress="em progresso",
+                detected_tone="Neutro",
+                conversation_context="",
+                detected_patterns=""
             )
 
     def generate_response(self, user_id: str, message: str, person_name: str) -> Tuple[bool, str]:
@@ -235,8 +306,8 @@ class ConversationalAgent:
             # Obtém histórico
             history = self.get_conversation_history(user_id)
 
-            # Constrói system prompt personalizado com contexto
-            system_prompt = self.build_system_prompt(person_name, user_id, history)
+            # Constrói system prompt personalizado com contexto (passando mensagem para análise de tom)
+            system_prompt = self.build_system_prompt(person_name, user_id, history, message)
 
             # Verifica cache para evitar resposta duplicada
             cache_key = f"{user_id}:{message}"

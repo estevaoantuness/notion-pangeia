@@ -97,10 +97,15 @@ class TaskManagerAgent:
 
         # Intent: Listar tarefas
         list_patterns = [
+            r"^mostra(?:\s+tudo)?$",  # ✅ NEW: "mostra" ou "mostra tudo"
+            r"^tudo$",  # ✅ NEW: apenas "tudo"
+            r"^lista$",  # ✅ NEW: apenas "lista"
             r"(?:minhas|me mostra)\s+tarefas",
             r"quais\s+(?:s[ãa]o\s+)?(?:as\s+)?minhas\s+tarefas",
             r"o\s+que\s+(?:eu\s+)?tenho\s+(?:que\s+)?fazer",
-            r"lista(?:r)?\s+(?:as\s+)?tarefas"
+            r"lista(?:r)?\s+(?:as\s+)?tarefas",
+            r"ver\s+(?:as\s+)?tarefas",  # ✅ NEW: "ver tarefas"
+            r"mostra\s+(?:minhas\s+)?tarefas",  # ✅ NEW: "mostra tarefas" / "mostra minhas tarefas"
         ]
 
         for pattern in list_patterns:
@@ -289,7 +294,7 @@ class TaskManagerAgent:
             if em_andamento > 0:
                 lines.append(f"**Em Andamento** ({em_andamento}):")
                 for task in tasks.get("em_andamento", [])[:3]:
-                    title = task.get("title", "Sem título")
+                    title = task.get("nome", "Sem título")  # ✅ FIX: usa 'nome' não 'title'
                     lines.append(f"  🔄 {title}")
 
                 if em_andamento > 3:
@@ -301,7 +306,7 @@ class TaskManagerAgent:
             if a_fazer > 0:
                 lines.append(f"**A Fazer** ({a_fazer}):")
                 for task in tasks.get("a_fazer", [])[:3]:
-                    title = task.get("title", "Sem título")
+                    title = task.get("nome", "Sem título")  # ✅ FIX: usa 'nome' não 'title'
                     lines.append(f"  ⬜ {title}")
 
                 if a_fazer > 3:

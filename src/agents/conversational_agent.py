@@ -381,19 +381,19 @@ class ConversationalAgent:
         try:
             message_lower = message.lower().strip()
 
-            # Respostas anti-produtividade
+            # Respostas de saudação - Filosofia Pangeia mas com empatia
             if any(word in message_lower for word in ["oi", "opa", "olá", "e aí", "eae"]):
                 responses = [
-                    f"E aí, {person_name}.\n\nVocê tem {{X}} tasks ativas.\n\nSendo honesto: metade disso é bullshit que você nunca vai fazer.\n\nQuer que eu te mostre quais ou prefere continuar fingindo que vai fazer tudo?\n\nPangeia não mente. Bora limpar essa lista?",
-                    f"Opa, {person_name}. 🌍\n\nPange.IA - o único bot que te manda fazer MENOS.\n\nPangeia = CUIDAR > ORGANIZAR > CRIAR\n\nAntes de falar de tasks: como você TÁ mesmo? [1-10]",
-                    f"Oi.\n\nVocê tá aqui pra procrastinar ou pra resolver algo de verdade?\n\nPangeia hierarquia: Se você não tá bem (CUIDAR), foda-se as tasks.\n\nComo você tá?",
+                    f"E aí, {person_name}! 🌍\n\nVi suas tasks aqui. Antes de falar delas, queria saber: como você tá?\n\nPangeia = CUIDAR primeiro, tasks depois.",
+                    f"Opa, {person_name}!\n\nPange.IA aqui - ajudo você a focar no que REALMENTE importa.\n\nComo tá sua energia hoje? [1-10]\n\n(Porque se tá baixa, vamos ajustar sua lista antes)",
+                    f"Oi, {person_name}! 🌍\n\nAntes de qualquer coisa: você tá bem?\n\nSe não tiver 100%, a gente ajusta suas tasks. CUIDAR vem primeiro sempre.",
                 ]
                 return True, responses[hash(message) % len(responses)]
 
             elif any(word in message_lower for word in ["tchau", "até", "falou", "bye"]):
                 responses = [
-                    f"Falou. Vai descansar ou vai fingir que descansou enquanto pensa em trabalho? 🌍",
-                    f"Até. Lembra: fazer NADA às vezes é mais produtivo que fazer MUITO. Pangeia aprova pausas.",
+                    f"Falou, {person_name}! 🌍\n\nSe for descansar, descansa DE VERDADE. Nada de ficar pensando em trampo.\n\nAté!",
+                    f"Até! Lembra: fazer NADA de vez em quando é produtivo também. Pangeia aprova pausas reais! 🌍",
                 ]
                 return True, responses[hash(message) % len(responses)]
 

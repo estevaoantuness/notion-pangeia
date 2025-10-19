@@ -305,51 +305,51 @@ class ConversationalAgent:
     def _generate_fallback_response(self, message: str, person_name: str) -> Tuple[bool, str]:
         """
         Gera resposta de fallback quando GPT-4o-mini não está disponível.
-        Mantém conversa natural mesmo sem IA.
+        Foca no Método Pangeia e capacidades do sistema.
         """
         try:
             message_lower = message.lower().strip()
 
-            # Respostas conversacionais simples
+            # Respostas focadas em Pangeia
             if any(word in message_lower for word in ["oi", "opa", "olá", "e aí", "eae"]):
                 responses = [
-                    f"Oi, {person_name}! 👋 Tudo bem com você?",
-                    f"E aí, {person_name}? Quero ouvir como você está! 😊",
-                    f"Opa, {person_name}! Bora conversar? 💙",
+                    f"E aí, {person_name}! 🌍 Sou o Pange.IA, seu assistente do Método Pangeia.\n\nPosso:\n✅ Criar e gerenciar suas tarefas\n✅ Decompor tarefas complexas\n✅ Mostrar seu progresso\n\nDiz 'minhas tarefas' ou 'cria tarefa pra X'!",
+                    f"Opa, {person_name}! 👋 Tô aqui pelo Método Pangeia - criar, organizar e cuidar.\n\nQuer ver suas tarefas? Ou criar uma nova? Me conta!",
+                    f"Oi, {person_name}! 🚀 Pange.IA aqui. Consigo gerenciar suas tasks, prever burnout, e te ajudar a ser produtivo sem se queimar.\n\nPor onde começamos?",
                 ]
                 return True, responses[hash(message) % len(responses)]
 
             elif any(word in message_lower for word in ["tchau", "até", "falou", "bye"]):
                 responses = [
-                    f"Falou, {person_name}! Fico por aqui, mas volta quando quiser! 👋",
-                    f"Até mais, {person_name}! Cuida de você! 💙",
+                    f"Falou, {person_name}! Quando precisar de ajuda com tasks ou quiser saber mais sobre Pangeia, tô aqui! 🌍",
+                    f"Até mais, {person_name}! Lembra: posso criar tasks, decompor projetos e monitorar teu progresso. Volta sempre! 💙",
                 ]
                 return True, responses[hash(message) % len(responses)]
 
             elif any(word in message_lower for word in ["obrigado", "obg", "vlw", "valeu"]):
-                return True, f"De nada, {person_name}! Fico feliz em ajudar! 😊"
+                return True, f"Por nada, {person_name}! É pra isso que o Método Pangeia existe - te ajudar a ser produtivo de forma sustentável! 🌍"
 
-            elif message_lower.startswith("como"):
-                return True, f"{person_name}, fico feliz que me perguntou! Mas me conta primeiro como VOCÊ está? 🤔"
+            elif message_lower.startswith("como") or "o que você faz" in message_lower:
+                return True, f"Sou o Pange.IA, {person_name}! 🌍\n\nMétodo Pangeia = Criar + Organizar + Cuidar\n\nEu:\n✅ Gerencio tasks no Notion\n✅ Decomponho tarefas grandes\n✅ Monitoro sinais de burnout\n✅ Gamificação (XP, níveis, badges)\n\nExperimenta: 'minhas tarefas' ou 'cria tarefa pra estudar X'"
 
             elif message_lower.startswith("tarefas") or message_lower.startswith("task"):
-                return True, f"Vamos conversar sobre suas tarefas? Qual é a que mais está te preocupando agora? 💭"
+                return True, f"Show, {person_name}! Posso te ajudar com tasks de várias formas:\n\n📋 'minhas tarefas' - vejo todas as suas\n✅ 'terminei a tarefa X' - marco como concluída\n🎯 'cria tarefa pra Y' - adiciono no Notion\n✂️ 'quebra essa tarefa' - decomponho em subtasks\n\nQual tu quer?"
 
             elif message_lower.startswith("help") or message_lower.startswith("ajuda"):
-                return True, f"Claro, {person_name}! Estou aqui para ajudar com suas tarefas e também pra ouvir como você está. Qual é? 👂"
+                return True, f"Claro, {person_name}! Sou o assistente do Método Pangeia 🌍\n\nComandos:\n• 'minhas tarefas'\n• 'cria tarefa pra X'\n• 'terminei a tarefa Y'\n• 'quebra essa tarefa'\n\nTambém monitoro burnout, gamificação e produtividade!\n\nO que quer fazer?"
 
-            # Resposta padrão conversacional
+            # Resposta padrão focada em valor
             else:
                 responses = [
-                    f"Entendi! Me conta mais sobre isso, {person_name}... 👂",
-                    f"Que interessante, {person_name}! Conta pra mim com mais detalhes 🤔",
-                    f"Ah, {person_name}... isso soa importante. O que você acha? 💭",
+                    f"Entendi, {person_name}! Posso te ajudar com isso criando tasks ou organizando melhor?\n\nExperimenta: 'cria tarefa pra X' ou 'minhas tarefas' 🚀",
+                    f"Interessante! Quer que eu crie uma tarefa sobre isso? Ou prefere ver suas tasks atuais?\n\nPangeia é sobre criar, organizar e cuidar! 🌍",
+                    f"Saquei, {person_name}. Como o Método Pangeia pode ajudar nisso? Posso:\n• Criar tasks\n• Decompor em subtasks\n• Mostrar progresso\n\nQue tal?",
                 ]
                 return True, responses[hash(message) % len(responses)]
 
         except Exception as e:
             logger.error(f"Erro ao gerar fallback response: {e}")
-            return True, f"Oi, {person_name}! Tô aqui pra você, pode contar comigo 💙"
+            return True, f"Oi, {person_name}! Sou o Pange.IA 🌍 - gerencio tasks, previno burnout e te ajudo a ser produtivo. Diz 'minhas tarefas' pra começar!"
 
     def _track_cost(self, user_id: str, tokens_used: int) -> None:
         """Registra custo de tokens para controle."""

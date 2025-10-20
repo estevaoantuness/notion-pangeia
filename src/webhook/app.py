@@ -13,6 +13,7 @@ from pathlib import Path
 from flask import Flask, request, Response, jsonify
 
 from src.commands.processor import CommandProcessor
+from src.agents.smart_task_agent import get_smart_task_agent
 from src.scheduler import get_scheduler
 from src.audio import get_processor as get_audio_processor
 from config.settings import settings
@@ -29,6 +30,9 @@ app = Flask(__name__)
 
 # Inicializa processador de comandos
 command_processor = CommandProcessor()
+
+# Inicializa agente inteligente (GPT com contexto)
+smart_agent = get_smart_task_agent()
 
 # Inicializa processador de áudio
 audio_processor = get_audio_processor()
@@ -267,38 +271,50 @@ def whatsapp_webhook():
             logger.warning("Mensagem sem dados necessários")
             return jsonify({"status": "error", "message": "Invalid message"}), 400
 
-        # **PROCESSAMENTO: Prioriza comandos de tasks (90%), depois social (10%)**
+        # **PROCESSAMENTO: NLP robusto (70%) → GPT inteligente (20%) → Social (10%)**
         try:
-            # PRIORIDADE 1: Comandos de gestão de tasks (NLP robusto)
-            logger.info(f"📋 Processando comando de task: {push_name}")
+            # PRIORIDADE 1: Comandos de gestão de tasks (NLP robusto - regex/pattern matching)
+            logger.info(f"📋 [1/3] Tentando CommandProcessor (NLP robusto)...")
             success, response_text = command_processor.process(
                 from_number=from_number,
                 message=message_body
             )
 
             if success:
-                logger.info(f"✅ Comando de task processado: {response_text[:80]}...")
+                logger.info(f"✅ Comando processado via NLP: {response_text[:80]}...")
             else:
-                # PRIORIDADE 2: Resposta social básica (apenas se não for comando)
-                logger.info(f"💬 Não é comando de task, usando resposta social simples")
+                # PRIORIDADE 2: Agente inteligente com GPT + contexto de 10 mensagens
+                logger.info(f"🤖 [2/3] NLP falhou, tentando SmartTaskAgent (GPT + contexto)...")
 
-                # Respostas sociais básicas (sem filosofia)
-                message_lower = message_body.lower().strip()
+                smart_result = smart_agent.process_message(
+                    person_name=push_name,
+                    message=message_body
+                )
 
-                # Saudações simples
-                if message_lower in ['oi', 'olá', 'ola', 'hey', 'opa', 'e aí', 'eai']:
-                    response_text = f"Oi! 👋 Como posso ajudar?\n\n• minhas tarefas\n• progresso\n• ajuda"
-                    success = True
-
-                # Agradecimentos
-                elif message_lower in ['obrigado', 'obrigada', 'valeu', 'thanks', 'obg']:
-                    response_text = "De nada! 😊\n\nPrecisa de mais alguma coisa?"
-                    success = True
-
-                # Mensagem de erro padrão
+                if smart_result:
+                    success, response_text = smart_result
+                    logger.info(f"✅ Comando processado via GPT: {response_text[:80]}...")
                 else:
-                    response_text = "Desculpe, não entendi. 🤔\n\nComandos disponíveis:\n• minhas tarefas\n• progresso\n• feito N\n• ajuda"
-                    success = True
+                    # PRIORIDADE 3: Resposta social básica (último recurso)
+                    logger.info(f"💬 [3/3] GPT falhou, usando respostas sociais simples...")
+
+                    # Respostas sociais básicas (sem filosofia)
+                    message_lower = message_body.lower().strip()
+
+                    # Saudações simples
+                    if message_lower in ['oi', 'olá', 'ola', 'hey', 'opa', 'e aí', 'eai']:
+                        response_text = f"Oi! 👋 Como posso ajudar?\n\n• minhas tarefas\n• progresso\n• ajuda"
+                        success = True
+
+                    # Agradecimentos
+                    elif message_lower in ['obrigado', 'obrigada', 'valeu', 'thanks', 'obg']:
+                        response_text = "De nada! 😊\n\nPrecisa de mais alguma coisa?"
+                        success = True
+
+                    # Mensagem de erro padrão
+                    else:
+                        response_text = "Não entendi. 🤔\n\nTente:\n• minhas tarefas\n• feito 2\n• progresso\n• ajuda"
+                        success = True
 
         except Exception as e:
             logger.error(f"❌ Erro crítico: {e}")

@@ -59,7 +59,7 @@ JSON:
   "response": "Resposta natural e curta (geralmente 1 linha)"
 }
 
-IMPORTANTE: Seja natural, não robótico. Incentive a completar tasks!
+IMPORTANTE: Seja natural, não robótico. Incentive a completar tasks!"""
 
     def __init__(self):
         """Inicializa o agente inteligente."""

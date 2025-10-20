@@ -82,7 +82,14 @@ IMPORTANTE: Seja natural, não robótico. Incentive a completar tasks!"""
         Returns:
             Tuple (sucesso, resposta) ou None se for saudação simples
         """
+        logger.info(f"🤖 SmartTaskAgent.process_message() - user: '{person_name}', msg: '{message[:50]}'")
+
         try:
+            import os
+            if not os.getenv('OPENAI_API_KEY'):
+                logger.error("❌ FATAL: OPENAI_API_KEY não configurada!")
+                return None
+
             # Adicionar mensagem do usuário ao histórico
             self.conversation_history.add_message(
                 user_id=person_name,
@@ -102,9 +109,10 @@ IMPORTANTE: Seja natural, não robótico. Incentive a completar tasks!"""
                 "content": message
             })
 
-            logger.info(f"Processando mensagem com {len(context)} msgs de contexto")
+            logger.info(f"📝 Processando mensagem com {len(context)} msgs de contexto")
 
             # Chamar GPT-4o-mini
+            logger.info("🔄 Chamando OpenAI API (gpt-4o-mini)...")
             response = client.chat.completions.create(
                 model="gpt-4o-mini",
                 messages=[
@@ -113,11 +121,13 @@ IMPORTANTE: Seja natural, não robótico. Incentive a completar tasks!"""
                 ],
                 temperature=0.3,  # Baixa para ser consistente
                 max_tokens=500,
-                response_format={"type": "json_object"}
+                response_format={"type": "json_object"},
+                timeout=20.0  # Timeout de 20 segundos
             )
 
             # Parsear resposta
             result_text = response.choices[0].message.content.strip()
+            logger.info(f"✅ GPT Response (raw, primeiros 150 chars): {result_text[:150]}")
             result = json.loads(result_text)
 
             intent = result.get("intent", "unknown")

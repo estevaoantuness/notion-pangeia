@@ -1,12 +1,11 @@
 """
-Agentes Inteligentes - Intelligent Agents Module.
+Agentes - Agents Module.
 
-Módulo que contém agentes baseados em LLM para processamento conversacional.
+Módulo contendo agentes especializados para o bot.
 """
 
-from .conversational_agent import ConversationalAgent, get_conversational_agent
+from .task_manager_agent import TaskManagerAgent
 
 __all__ = [
-    "ConversationalAgent",
-    "get_conversational_agent",
+    "TaskManagerAgent",
 ]

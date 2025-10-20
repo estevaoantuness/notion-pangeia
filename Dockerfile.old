@@ -1,0 +1,8 @@
+# Força plataforma x86-64 para Heroku
+FROM --platform=linux/amd64 atendai/evolution-api:v2.1.1
+
+# Heroku dynamically assigns PORT, but Evolution API uses 8080
+ENV PORT=8080
+
+# Start command
+CMD ["npm", "run", "start:prod"]

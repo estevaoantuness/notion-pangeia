@@ -14,9 +14,6 @@ from flask import Flask, request, Response, jsonify
 
 from src.commands.processor import CommandProcessor
 from src.scheduler import get_scheduler
-from src.whatsapp.psychological_sender import PsychologicalSender
-from src.psychology.engine import PsychologicalEngine
-from src.agents.conversational_agent import get_conversational_agent
 from src.audio import get_processor as get_audio_processor
 from config.settings import settings
 
@@ -29,13 +26,6 @@ logger = logging.getLogger(__name__)
 
 # Inicializa Flask
 app = Flask(__name__)
-
-# Inicializa componentes psicológicos
-psych_engine = PsychologicalEngine()
-psychological_sender = PsychologicalSender()
-
-# Inicializa agente conversacional com GPT-4o-mini
-conversational_agent = get_conversational_agent()
 
 # Inicializa processador de comandos
 command_processor = CommandProcessor()

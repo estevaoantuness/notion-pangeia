@@ -14,9 +14,6 @@ import logging
 from typing import Optional, Tuple
 from datetime import datetime
 
-from src.psychology.communicator import EmpatheticCommunicator
-from src.people.analytics import PeopleAnalytics
-
 logger = logging.getLogger(__name__)
 
 # Estado de onboarding em memória (apenas para sessão atual)
@@ -27,17 +24,10 @@ _onboarding_complete = set()  # Deprecated - mantido por compatibilidade
 
 class OnboardingManager:
     """
-    Gerencia o processo de onboarding de novos usuários com inteligência psicológica.
+    Gerencia o processo de onboarding de novos usuários.
 
-    Usa EmpatheticCommunicator para gerar mensagens personalizadas baseadas
-    no estado emocional e preferências de cada pessoa.
+    Controla o fluxo de tutorial inicial para novos usuários.
     """
-
-    def __init__(self):
-        """Inicializa o gestor de onboarding com componentes psicológicos."""
-        self.empathetic_communicator = EmpatheticCommunicator()
-        self.people_analytics = PeopleAnalytics()
-        logger.info("OnboardingManager inicializado com inteligência psicológica")
 
     # Sinônimos de SIM (EXPANDIDO - aceita 's', números, emojis)
     YES_SYNONYMS = [

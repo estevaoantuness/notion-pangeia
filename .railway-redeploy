@@ -1,0 +1,3 @@
+This file forces Railway to redeploy
+Timestamp: 2025-10-20 17:32
+Reason: Update environment variables (EVOLUTION_API_URL, OPENAI_API_KEY, GROQ_API_KEY)

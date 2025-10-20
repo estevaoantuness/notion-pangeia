@@ -52,8 +52,8 @@ class Settings:
     MAX_RETRIES: int = int(os.getenv("MAX_RETRIES", "3"))
     ENVIRONMENT: str = os.getenv("ENVIRONMENT", "development")
 
-    # Psychological Engine
-    ENABLE_PSYCHOLOGY: bool = os.getenv("ENABLE_PSYCHOLOGY", "true").lower() == "true"
+    # Psychological Engine (DESABILITADO - Bot focado em gestão de tasks)
+    ENABLE_PSYCHOLOGY: bool = os.getenv("ENABLE_PSYCHOLOGY", "false").lower() == "true"
     ENABLE_MESSAGE_CHUNKING: bool = os.getenv("ENABLE_MESSAGE_CHUNKING", "true").lower() == "true"
     ENABLE_DEDUPLICATION: bool = os.getenv("ENABLE_DEDUPLICATION", "true").lower() == "true"
 

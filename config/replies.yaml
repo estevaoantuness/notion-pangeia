@@ -168,21 +168,18 @@ help:
       Precisa de ajuda? Digite 'ajuda' 😊
 
 checkins:
-  morning: # 08:00 - Pilar CUIDAR primeiro
-    - "Bom dia. 🌅\n\n**Antes de falar de tasks: como você REALMENTE tá?** [1-10]\n\nSe <7: Vamos REDUZIR tua carga hoje. Pangeia hierarquia = CUIDAR vem primeiro.\n\nSe ≥7: Show. Aí sim faz sentido falar de tasks.\n\nVocê tem [X] tasks. Quantas você tem energia pra fazer DE VERDADE?"
-    - "Dia novo.\n\n**CUIDAR** - Pilar 1 do Pangeia.\n\nAntes das tasks: Como você TÁ?\n\n[X] tasks esperando.\n\nMas a pergunta é: você tá com energia pra isso ou vamos simplificar AGORA?\n\nBora ser honesto desde cedo."
-  planning: # 13:30 - Pilar ORGANIZAR
-    - "Checkpoint! ⏰\n\n**Pilar ORGANIZAR do Pangeia.**\n\nProgresso até agora: [checar dados]\n\nPergunta direta: O que te IMPEDIU de fazer mais?\n\nÉ questão de foco ou preciso reorganizar algo?\n\nPróximas 2h, qual a PRIORIDADE?"
-    - "Meio-dia. Hora da verdade.\n\n**ORGANIZAR** - Pangeia\n\nDas tasks que você planejou, quantas realmente saíram?\n\nO que tá travando? Preciso cortar alguma coisa?\n\nBora ser honesto: o que REALMENTE vai sair até o fim do dia?"
-  status: # 15:30 - Pilar CUIDAR + ORGANIZAR
-    - "Reta final do dia! 🏃\n\n**Pilar CUIDAR:** Como tá sua energia? [1-10]\n\nSe tá alta → vamos fechar forte\nSe tá baixa → vamos ser estratégicos\n\nTasks abertas: [X]\nRealistas pra hoje: ?\n\nO que REALMENTE precisa sair hoje?"
-    - "15:30 - Check de energia.\n\n**CUIDAR** vem primeiro.\n\nVocê tá bem ou tá forçando?\n\nTasks abertas: [X]\n\nPergunta: Você VAI fazer todas ou tá se enganando?\n\nVamos cortar e focar no essencial?"
-  closing: # 18:00 - Pilar CUIDAR
-    - "Fim do expediente! 🌙\n\n**Pilar CUIDAR do Pangeia.**\n\nHoje você fechou [X]% das tasks.\n\nPergunta de verdade: Tá satisfeito com o que fez ou tem algo te incomodando?\n\nAmanhã retomamos. DESCANSA de verdade."
-    - "18h. Acabou.\n\n**CUIDAR** - Hierarquia Pangeia.\n\nFez [X]% do planejado.\n\nMas esquece número. O que você FEZ hoje te aproximou do que você QUER?\n\nAgora PARA de trabalhar. Sério."
-  reflection: # 22:00 - Pilar CRIAR
-    - "Hora da reflexão. 🌙\n\n**Pilar CRIAR:** Vamos transformar hoje em aprendizado.\n\nO que FUNCIONOU?\nO que TRAVOU?\n\nAmanhã a gente vai:\n1. [Insight baseado em padrões]\n2. [Ação concreta]\n\nDorme bem. Pangeia tá aqui."
-    - "22h. Última do dia.\n\n**CRIAR** - Pangeia\n\nVocê não precisa ter feito TUDO hoje.\nVocê precisa ter feito o que IMPORTA.\n\nFez? Ótimo.\nNão fez? Vamos descobrir por quê e ajustar.\n\nAmanhã simplificamos ainda mais."
+  planning: # 13:30
+    - "☕ Check-in rápido!\n\nComo estão as tarefas? Algum bloqueio?"
+    - "🌤️ Hora do check-in!\n\nTudo OK com as tasks? Conseguindo avançar?"
+  status: # 15:30
+    - "⏰ Status das 15:30!\n\nProgresso do dia OK? Conseguindo avançar?"
+    - "💬 Como vai o andamento?\n\nAlgum bloqueio ou está fluindo bem?"
+  closing: # 18:00
+    - "🌆 Finalizando o dia!\n\nO que você conseguiu fazer hoje? O que ficou para amanhã?"
+    - "🌅 Fechamento do dia!\n\nConseguiu concluir o planejado? O que ficou pendente?"
+  reflection: # 22:00
+    - "RESUMO_AUTOMATICO"  # Será substituído por resumo calculado no scheduler
+    - "RESUMO_AUTOMATICO"
 
 ctas:
   see_tasks:

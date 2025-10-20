@@ -407,20 +407,20 @@ class ConversationalAgent:
                 return True, f"Tasks. Ok.\n\nVou te mostrar suas tasks. Mas depois vamos ter uma conversa honesta sobre quais delas são REALMENTE importantes.\n\nPangeia = cortar o lixo, focar no essencial.\n\nPreparado?"
 
             elif message_lower.startswith("help") or message_lower.startswith("ajuda"):
-                return True, f"Ajuda com o quê?\n\nCom tasks? Posso mostrar, criar, marcar como feita.\nCom sobrecarga? Vamos cortar coisas juntos.\nCom procrastinação? Vou te perguntar se vale a pena mesmo fazer.\n\nPangeia não é sobre fazer mais. É sobre fazer o que IMPORTA.\n\nO que tá pesando?"
+                return True, "📋 Comandos disponíveis:\n\n• minhas tarefas - Ver suas tasks\n• progresso - Ver percentual do dia\n• feito N - Marcar tarefa N como concluída\n• andamento N - Iniciar tarefa N\n• bloqueada N - motivo - Reportar bloqueio\n\nPrecisa de mais ajuda?"
 
-            # Resposta padrão disruptiva
+            # Resposta padrão simples e educada (sem filosofia)
             else:
                 responses = [
-                    f"Entendi.\n\nMas deixa eu te perguntar: isso que você falou é importante MESMO ou é mais uma distração?\n\nPangeia te faz parar e pensar antes de agir.",
-                    f"Ok.\n\nAgora a pergunta real: adicionar isso na sua vida te aproxima do que você QUER ou só te deixa mais ocupado?\n\nFazer MENOS > fazer MUITO.",
-                    f"Saquei.\n\nVocê quer falar sobre isso ou quer que eu te ajude a SIMPLIFICAR tua semana?\n\nPangeia = eliminar o desnecessário. Bora?",
+                    "Oi! 👋 Como posso ajudar?\n\n• minhas tarefas\n• progresso\n• ajuda",
+                    "Olá! Posso te ajudar com:\n• Ver tarefas\n• Marcar concluídas\n• Ver progresso",
+                    "Não entendi. Comandos disponíveis:\n• minhas tarefas\n• progresso\n• feito N\n• ajuda"
                 ]
                 return True, responses[hash(message) % len(responses)]
 
         except Exception as e:
             logger.error(f"Erro ao gerar fallback response: {e}")
-            return True, f"Pange.IA aqui. 🌍\n\nTe ajudo a fazer MENOS, não mais.\n\nO que tá pesando?"
+            return True, "Desculpe, ocorreu um erro. Digite 'ajuda' para ver os comandos disponíveis."
 
     def _track_cost(self, user_id: str, tokens_used: int) -> None:
         """Registra custo de tokens para controle."""

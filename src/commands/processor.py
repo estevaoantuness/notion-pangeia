@@ -239,10 +239,11 @@ Comandos disponíveis:
             processed, response = self.onboarding.handle_help_response(person_name, message)
             return True, response
 
-        # 3. Verificar se é primeira interação (onboarding) - DEPOIS dos checks de estado
-        if is_first:
-            logger.info(f"Primeira interação de {person_name} - iniciando onboarding")
-            return True, self.onboarding.start_onboarding(person_name)
+        # 3. DESABILITADO: Onboarding automático (apenas via comando "ajuda")
+        # Durante MVP, não forçar onboarding em usuários conhecidos
+        if is_first and False:  # Temporariamente desabilitado
+            logger.info(f"Primeira interação de {person_name} - onboarding desabilitado no MVP")
+            # return True, self.onboarding.start_onboarding(person_name)
 
         # 4. Verificar repetição
         if self._check_repeated_message(user_id, message):

@@ -277,32 +277,43 @@ def whatsapp_webhook():
             logger.warning("Mensagem sem dados necessários")
             return jsonify({"status": "error", "message": "Invalid message"}), 400
 
-        # **PROCESSAMENTO: Tenta GPT-4o-mini, se falhar usa NLP robusto**
+        # **PROCESSAMENTO: Prioriza comandos de tasks (90%), depois social (10%)**
         try:
-            logger.info(f"🤖 Tentando Agente Conversacional (GPT-4o-mini): {push_name}")
-            success, response_text = conversational_agent.generate_response(
-                user_id=from_number,
-                message=message_body,
-                person_name=push_name
-            )
-
-            # Se agente retornar False, tenta fallback com command_processor
-            if not success:
-                logger.info(f"⚠️  Agente falhou ({response_text}), usando NLP robusto como fallback")
-                success, response_text = command_processor.process(
-                    from_number=from_number,
-                    message=message_body
-                )
-                logger.info(f"✅ NLP Fallback respondeu: {response_text[:80]}...")
-            else:
-                logger.info(f"✅ Agente respondeu com sucesso: {response_text[:80]}...")
-
-        except Exception as e:
-            logger.error(f"❌ Erro crítico: {e} - usando fallback NLP")
+            # PRIORIDADE 1: Comandos de gestão de tasks (NLP robusto)
+            logger.info(f"📋 Processando comando de task: {push_name}")
             success, response_text = command_processor.process(
                 from_number=from_number,
                 message=message_body
             )
+
+            if success:
+                logger.info(f"✅ Comando de task processado: {response_text[:80]}...")
+            else:
+                # PRIORIDADE 2: Resposta social básica (apenas se não for comando)
+                logger.info(f"💬 Não é comando de task, usando resposta social simples")
+
+                # Respostas sociais básicas (sem filosofia)
+                message_lower = message_body.lower().strip()
+
+                # Saudações simples
+                if message_lower in ['oi', 'olá', 'ola', 'hey', 'opa', 'e aí', 'eai']:
+                    response_text = f"Oi! 👋 Como posso ajudar?\n\n• minhas tarefas\n• progresso\n• ajuda"
+                    success = True
+
+                # Agradecimentos
+                elif message_lower in ['obrigado', 'obrigada', 'valeu', 'thanks', 'obg']:
+                    response_text = "De nada! 😊\n\nPrecisa de mais alguma coisa?"
+                    success = True
+
+                # Mensagem de erro padrão
+                else:
+                    response_text = "Desculpe, não entendi. 🤔\n\nComandos disponíveis:\n• minhas tarefas\n• progresso\n• feito N\n• ajuda"
+                    success = True
+
+        except Exception as e:
+            logger.error(f"❌ Erro crítico: {e}")
+            success = True
+            response_text = "Desculpe, ocorreu um erro. Digite 'ajuda' para ver os comandos."
 
         # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
         # ENVIO DE RESPOSTA

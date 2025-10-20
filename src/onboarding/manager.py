@@ -14,9 +14,6 @@ import logging
 from typing import Optional, Tuple
 from datetime import datetime
 
-from src.psychology.communicator import EmpatheticCommunicator
-from src.people.analytics import PeopleAnalytics
-
 logger = logging.getLogger(__name__)
 
 # Estado de onboarding em memória (apenas para sessão atual)
@@ -27,17 +24,10 @@ _onboarding_complete = set()  # Deprecated - mantido por compatibilidade
 
 class OnboardingManager:
     """
-    Gerencia o processo de onboarding de novos usuários com inteligência psicológica.
+    Gerencia o processo de onboarding de novos usuários.
 
-    Usa EmpatheticCommunicator para gerar mensagens personalizadas baseadas
-    no estado emocional e preferências de cada pessoa.
+    Controla o fluxo de tutorial inicial para novos usuários.
     """
-
-    def __init__(self):
-        """Inicializa o gestor de onboarding com componentes psicológicos."""
-        self.empathetic_communicator = EmpatheticCommunicator()
-        self.people_analytics = PeopleAnalytics()
-        logger.info("OnboardingManager inicializado com inteligência psicológica")
 
     # Sinônimos de SIM (EXPANDIDO - aceita 's', números, emojis)
     YES_SYNONYMS = [
@@ -199,9 +189,9 @@ class OnboardingManager:
         logger.info(f"[DEBUG] Estado setado para {person_name}: {_onboarding_state.get(person_name)}")
         logger.info(f"[DEBUG] Estado global: {_onboarding_state}")
 
-        message = f"👋 Olá, {person_name}! Sou o Pangeia Bot.\n\n"
-        message += "Gerencio suas tarefas do Notion pelo WhatsApp.\n\n"
-        message += "Quer um tutorial rápido? (sim / não)"
+        message = f"👋 Olá! Sou o Pangeia Bot.\n\n"
+        message += "Gerencio suas tarefas pelo WhatsApp.\n\n"
+        message += "Tutorial rápido? (sim/não)"
 
         return message
 
@@ -241,9 +231,8 @@ class OnboardingManager:
         else:
             logger.info(f"Resposta não reconhecida de {person_name}: '{message}'")
             return False, (
-                "Não entendi. 🤔\n\n"
-                "Você quer um tutorial rápido?\n\n"
-                "Responda: *sim* ou *não*"
+                "Não entendi.\n\n"
+                "Tutorial? *sim* ou *não*"
             )
 
     def handle_help_response(
@@ -282,9 +271,8 @@ class OnboardingManager:
         else:
             logger.info(f"Resposta de ajuda não reconhecida de {person_name}: '{message}'")
             return False, (
-                "Não entendi. 🤔\n\n"
-                "Você quer tutorial *completo* ou *básico*?\n\n"
-                "Responda: completo ou básico"
+                "Não entendi.\n\n"
+                "Tutorial: *completo* ou *básico*?"
             )
 
     def start_help_flow(self, person_name: str) -> str:
@@ -302,11 +290,9 @@ class OnboardingManager:
         # Marcar que está aguardando resposta
         _onboarding_state[person_name] = 'waiting_help_answer'
 
-        message = "📖 Posso te ajudar!\n\n"
-        message += "Quer um tutorial completo ou só o básico?\n\n"
-        message += "Responda:\n"
-        message += "• *completo* → tutorial detalhado\n"
-        message += "• *básico* → comandos principais"
+        message = "📖 Tutorial:\n\n"
+        message += "*completo* - tudo explicado\n"
+        message += "*básico* - só o essencial"
 
         return message
 
@@ -362,46 +348,17 @@ class OnboardingManager:
         Returns:
             Mensagem com tutorial detalhado
         """
-        message = "👋 *Pangeia Bot - Tutorial Completo*\n\n"
-        message += "Eu gerencio suas tarefas do Notion pelo WhatsApp.\n\n"
-        message += "━━━━━━━━━━━━━━━━━━━━━━\n"
-        message += "*🎯 COMO FUNCIONA*\n\n"
-        message += "*1️⃣ Digite:* tarefas\n"
-        message += "   Você verá sua lista numerada:\n"
-        message += "   1️⃣ Reunião com cliente\n"
-        message += "   2️⃣ Revisar documento\n"
-        message += "   3️⃣ Ligar fornecedor\n\n"
-        message += "*2️⃣ Para marcar como feita:*\n"
-        message += "   Digite: feito 2\n"
-        message += "   (marca a tarefa número 2)\n\n"
-        message += "*3️⃣ Para marcar várias:*\n"
-        message += "   Digite: feito 1 3 5\n"
-        message += "   (marca tarefas 1, 3 e 5 de uma vez)\n\n"
-        message += "━━━━━━━━━━━━━━━━━━━━━━\n"
-        message += "*📋 COMANDOS DISPONÍVEIS*\n\n"
-        message += "*📌 VER TAREFAS*\n"
-        message += "• tarefas → lista resumida\n"
-        message += "• ver mais → lista completa\n"
-        message += "• progresso → relatório detalhado\n\n"
-        message += "*✅ MARCAR COMO CONCLUÍDA*\n"
-        message += "• feito 2 → marca tarefa 2\n"
-        message += "• feito 1 3 5 → marca múltiplas\n"
-        message += "• pronto 2 / concluí 2 → sinônimos\n\n"
-        message += "*🔵 MARCAR EM ANDAMENTO*\n"
-        message += "• andamento 3 → marca tarefa 3\n"
-        message += "• fazendo 2 / comecei 2 → sinônimos\n\n"
-        message += "━━━━━━━━━━━━━━━━━━━━━━\n"
-        message += "*⏰ NOTIFICAÇÕES AUTOMÁTICAS*\n\n"
-        message += "Você receberá mensagens:\n"
-        message += "• 08:00 → Lista de tarefas do dia\n"
-        message += "• 13:30, 15:30, 17:00, 21:00 → Check-ins\n\n"
-        message += "━━━━━━━━━━━━━━━━━━━━━━\n"
-        message += "*💡 DICAS*\n\n"
-        message += "• Os números mudam conforme você conclui tarefas\n"
-        message += "• Sempre veja 'tarefas' antes de marcar\n"
-        message += "• Tarefas concluídas somem da lista\n\n"
-        message += "━━━━━━━━━━━━━━━━━━━━━━\n"
-        message += "*🚀 Pronto!*\n\n"
+        message = "📋 *Como Funciona*\n\n"
+        message += "*1.* tarefas → ver lista\n"
+        message += "*2.* feito 2 → marcar tarefa 2\n"
+        message += "*3.* feito 1 3 5 → marcar várias\n\n"
+        message += "*Comandos:*\n"
+        message += "• tarefas, ver mais\n"
+        message += "• feito N, pronto N\n"
+        message += "• andamento N, fazendo N\n"
+        message += "• progresso\n\n"
+        message += "*Check-ins:*\n"
+        message += "8h, 13:30h, 15:30h, 18h, 22h\n\n"
         message += "Digite: *tarefas*"
 
         return message
@@ -413,13 +370,11 @@ class OnboardingManager:
         Returns:
             Mensagem com comandos básicos
         """
-        message = "✅ *Sem problemas!*\n\n"
-        message += "*Comandos básicos:*\n"
-        message += "• tarefas → ver lista\n"
-        message += "• feito 2 → marcar tarefa 2\n"
-        message += "• progresso → resumo do dia\n\n"
-        message += "Quando precisar: *ajuda*\n\n"
-        message += "Vamos começar? Digite: *tarefas*"
+        message = "✅ *Comandos:*\n\n"
+        message += "• tarefas\n"
+        message += "• feito 2\n"
+        message += "• progresso\n\n"
+        message += "Digite: *tarefas*"
 
         return message
 

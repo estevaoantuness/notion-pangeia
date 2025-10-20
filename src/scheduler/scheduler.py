@@ -222,8 +222,67 @@ class TaskScheduler:
         self._send_checkin("18h00", "Fechamento")
 
     def _send_checkin_reflection(self):
-        """Wrapper para check-in de reflexão."""
-        self._send_checkin("22h00", "Reflexão")
+        """
+        Envia resumo automático do dia às 22h (sem perguntas reflexivas).
+
+        Calcula progresso do dia e envia mensagem simples.
+        """
+        logger.info("=" * 60)
+        logger.info("🌙 INICIANDO RESUMO NOTURNO (22H)")
+        logger.info("=" * 60)
+
+        colaboradores = get_colaboradores_ativos()
+        total_enviados = 0
+        total_erros = 0
+
+        from src.notion.tasks import TasksManager
+        tasks_manager = TasksManager()
+
+        for nome, info in colaboradores.items():
+            try:
+                # Calcula progresso do dia
+                progress = tasks_manager.calculate_progress(nome)
+                done = progress.get("concluidas", 0)
+                total = progress.get("total", 0)
+                percent = progress.get("percentual", 0)
+
+                # Monta mensagem de resumo simples
+                if total == 0:
+                    message = f"🌙 Boa noite, {nome.split()[0]}!\n\nNenhuma tarefa pendente hoje. Descanse bem! 😴"
+                elif done == total:
+                    message = (
+                        f"🌙 Boa noite, {nome.split()[0]}!\n\n"
+                        f"📊 Resumo do dia: {done}/{total} tarefas concluídas (100%)! 🎉\n\n"
+                        "Excelente trabalho! Descanse bem! 😴"
+                    )
+                else:
+                    message = (
+                        f"🌙 Boa noite, {nome.split()[0]}!\n\n"
+                        f"📊 Resumo do dia: {done}/{total} tarefas concluídas ({percent:.0f}%).\n\n"
+                        "Descanse bem! 😴"
+                    )
+
+                logger.info(f"Enviando resumo noturno para {nome}...")
+
+                success, sid, error = self.whatsapp_sender.send_message(
+                    person_name=nome,
+                    message=message
+                )
+
+                if success:
+                    logger.info(f"✅ Resumo enviado para {nome}. SID: {sid}")
+                    total_enviados += 1
+                else:
+                    logger.error(f"❌ Falha ao enviar para {nome}: {error}")
+                    total_erros += 1
+
+            except Exception as e:
+                logger.error(f"❌ Erro ao processar {nome}: {e}")
+                total_erros += 1
+
+        logger.info("=" * 60)
+        logger.info(f"📊 RESUMO: {total_enviados} enviados, {total_erros} erros")
+        logger.info("=" * 60)
 
     def send_consolidated_midday(self):
         """

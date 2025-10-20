@@ -23,9 +23,6 @@ from src.commands.handlers import CommandHandlers
 from config.colaboradores import get_colaborador_by_phone
 from src.messaging.humanizer import get_humanizer
 from src.onboarding.manager import get_onboarding_manager
-from src.psychology.engine import PsychologicalEngine
-from src.psychology.communicator import EmpatheticCommunicator
-from src.people.analytics import PeopleAnalytics
 
 logger = logging.getLogger(__name__)
 
@@ -62,18 +59,13 @@ class CommandProcessor:
         self.humanizer = get_humanizer()
         self.onboarding = get_onboarding_manager()
 
-        # Componentes psicológicos
-        self.psych_engine = PsychologicalEngine()
-        self.empathetic_communicator = EmpatheticCommunicator()
-        self.people_analytics = PeopleAnalytics()
-
         # Estado de slot-filling por usuário
         self.user_states: Dict[str, Dict[str, Any]] = {}
 
         # Cache de mensagens recentes (para detectar repetições)
         self.recent_messages: Dict[str, Tuple[str, datetime]] = {}
 
-        logger.info("CommandProcessor inicializado com NLP robusto + inteligência psicológica")
+        logger.info("CommandProcessor inicializado com NLP robusto (modo simples - gestão de tasks)")
 
     def _check_repeated_message(self, user_id: str, message: str) -> bool:
         """
@@ -190,13 +182,7 @@ Comandos disponíveis:
             logger.info(f"Usuário novo detected: {from_number}")
             person_name = from_number  # Usa o número como nome temporário
 
-            # Tenta criar perfil automaticamente
-            try:
-                self.people_analytics.get_or_create_profile(person_name)
-                logger.info(f"✅ Perfil criado automaticamente para {from_number}")
-            except Exception as e:
-                logger.debug(f"Não foi possível criar perfil em Notion: {e}")
-                # Continua mesmo se não conseguir criar em Notion
+            # Perfil será criado quando necessário pelo CommandHandlers
 
         logger.info(f"Mensagem de: {person_name}")
 
@@ -239,10 +225,11 @@ Comandos disponíveis:
             processed, response = self.onboarding.handle_help_response(person_name, message)
             return True, response
 
-        # 3. Verificar se é primeira interação (onboarding) - DEPOIS dos checks de estado
-        if is_first:
-            logger.info(f"Primeira interação de {person_name} - iniciando onboarding")
-            return True, self.onboarding.start_onboarding(person_name)
+        # 3. DESABILITADO: Onboarding automático (apenas via comando "ajuda")
+        # Durante MVP, não forçar onboarding em usuários conhecidos
+        if is_first and False:  # Temporariamente desabilitado
+            logger.info(f"Primeira interação de {person_name} - onboarding desabilitado no MVP")
+            # return True, self.onboarding.start_onboarding(person_name)
 
         # 4. Verificar repetição
         if self._check_repeated_message(user_id, message):
@@ -273,8 +260,8 @@ Comandos disponíveis:
 
         # 4. Verificar confiança
         if not result.is_confident(self.CONFIDENCE_THRESHOLD):
-            logger.info(f"Baixa confiança ({result.confidence:.2f}) para: '{message}'")
-            return True, self._get_disambiguation_message()
+            logger.info(f"Baixa confiança ({result.confidence:.2f}) para: '{message}' - delegando para SmartTaskAgent")
+            return False, None  # Delegar para SmartTaskAgent (GPT-4o-mini)
 
         # 5. Processar intent
         try:

@@ -1,10 +1,10 @@
 services:
   - type: web
-    name: pangeia-bot-novo
+    name: pangeia-bot
     runtime: python
     plan: free
     buildCommand: pip install -r requirements.txt
-    startCommand: gunicorn app:app --bind 0.0.0.0:$PORT --workers 2 --timeout 120
+    startCommand: gunicorn src.webhook.app:app --bind 0.0.0.0:$PORT --workers 1 --timeout 120
     envVars:
       # Evolution API
       - key: EVOLUTION_API_URL
@@ -20,8 +20,16 @@ services:
       - key: NOTION_TASKS_DB_ID
         sync: false
 
-      # OpenAI GPT (SmartTaskAgent)
+      # OpenAI GPT
       - key: OPENAI_API_KEY
+        sync: false
+      - key: GPT_MODEL
+        value: gpt-4o-mini
+      - key: TEMPERATURE
+        value: 0.7
+
+      # Groq (Audio)
+      - key: GROQ_API_KEY
         sync: false
 
       # Flask
@@ -29,6 +37,8 @@ services:
         generateValue: true
       - key: WEBHOOK_PATH
         value: /webhook/whatsapp
+      - key: PORT
+        value: 10000
 
       # Application Settings
       - key: LOG_LEVEL
@@ -37,9 +47,3 @@ services:
         value: production
       - key: TIMEZONE
         value: America/Sao_Paulo
-
-      # Databases (Opcional - se Saraiva tiver configurado)
-      # - key: REDIS_URL
-      #   sync: false
-      # - key: DATABASE_URL
-      #   sync: false

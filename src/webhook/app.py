@@ -12,8 +12,9 @@ import tempfile
 from pathlib import Path
 from flask import Flask, request, Response, jsonify
 
-from src.commands.processor import CommandProcessor
-from src.agents.smart_task_agent import get_smart_task_agent
+from src.commands.processor import CommandProcessor  # DEPRECADO - manter para rollback
+from src.agents.smart_task_agent import get_smart_task_agent  # DEPRECADO
+from src.agents.conversational_agent import get_conversational_agent  # NOVO SISTEMA
 from src.scheduler import get_scheduler
 from src.audio import get_processor as get_audio_processor
 from config.settings import settings
@@ -28,11 +29,14 @@ logger = logging.getLogger(__name__)
 # Inicializa Flask
 app = Flask(__name__)
 
-# Inicializa processador de comandos
-command_processor = CommandProcessor()
+# ═══════════════════════════════════════════════════════════════════
+# NOVO SISTEMA: Conversational Agent (100% GPT - sem comandos fixos)
+# ═══════════════════════════════════════════════════════════════════
+conversational_agent = get_conversational_agent()
 
-# Inicializa agente inteligente (GPT com contexto)
-smart_agent = get_smart_task_agent()
+# DEPRECADO: Mantidos para rollback de emergência
+# command_processor = CommandProcessor()  # Desabilitado
+# smart_agent = get_smart_task_agent()  # Desabilitado
 
 # Inicializa processador de áudio
 audio_processor = get_audio_processor()
@@ -251,60 +255,31 @@ def whatsapp_webhook():
             logger.warning("Mensagem sem dados necessários")
             return jsonify({"status": "error", "message": "Invalid message"}), 400
 
-        # **PROCESSAMENTO: NLP robusto (70%) → GPT inteligente (20%) → Social (10%)**
+        # ═══════════════════════════════════════════════════════════════════
+        # NOVO SISTEMA: Processamento 100% Conversacional via GPT-4o-mini
+        # ═══════════════════════════════════════════════════════════════════
+        # Substitui sistema de 3 camadas (CommandProcessor → SmartTaskAgent → Fallback)
+        # por uma única chamada ao ConversationalAgent que entende variações ilimitadas
         try:
-            # PRIORIDADE 1: Comandos de gestão de tasks (NLP robusto - regex/pattern matching)
-            logger.info(f"📋 [1/3] Tentando CommandProcessor (NLP robusto)...")
-            success, response_text = command_processor.process(
-                from_number=from_number,
+            logger.info(f"🤖 [CONVERSATIONAL] Processando via GPT-4o-mini (linguagem natural)...")
+
+            success, response_text = conversational_agent.process(
+                user_name=push_name,
                 message=message_body
             )
 
             if success:
-                logger.info(f"✅ Comando processado via NLP: {response_text[:80]}...")
+                logger.info(f"✅ Resposta gerada pelo Conversational Agent: {response_text[:100]}...")
             else:
-                # PRIORIDADE 2: Agente inteligente com GPT + contexto de 10 mensagens
-                logger.info(f"🤖 [2/3] NLP falhou, tentando SmartTaskAgent (GPT + contexto)...")
-
-                smart_result = smart_agent.process_message(
-                    person_name=push_name,
-                    message=message_body
-                )
-
-                if smart_result:
-                    success, response_text = smart_result
-                    logger.info(f"✅ Comando processado via GPT: {response_text[:80]}...")
-                else:
-                    # PRIORIDADE 3: Resposta social básica (último recurso)
-                    logger.info(f"💬 [3/3] GPT falhou, usando respostas sociais simples...")
-
-                    # Respostas sociais básicas (sem filosofia)
-                    message_lower = message_body.lower().strip()
-
-                    # Saudações simples
-                    if message_lower in ['oi', 'olá', 'ola', 'hey', 'opa', 'e aí', 'eai']:
-                        response_text = "E aí! Bora ver suas tasks?"
-                        success = True
-
-                    # Agradecimentos
-                    elif message_lower in ['obrigado', 'obrigada', 'valeu', 'thanks', 'obg']:
-                        response_text = "Tranquilo! 😊"
-                        success = True
-
-                    # Tudo bem / como vai
-                    elif message_lower in ['tudo bem', 'tudo bem?', 'como vai', 'como vai?', 'beleza']:
-                        response_text = "Tudo ótimo! E você, bora fazer umas tasks?"
-                        success = True
-
-                    # Mensagem de erro padrão
-                    else:
-                        response_text = "Não entendi. Tenta 'minhas tarefas' 😊"
-                        success = True
+                # Fallback se GPT falhar completamente
+                logger.warning(f"⚠️ ConversationalAgent retornou erro - usando fallback")
+                response_text = "Ops, tive um problema. Tenta de novo?"
+                success = True
 
         except Exception as e:
-            logger.error(f"❌ Erro crítico: {e}")
+            logger.error(f"❌ Erro crítico no ConversationalAgent: {e}", exc_info=True)
             success = True
-            response_text = "Desculpe, ocorreu um erro. Digite 'ajuda' para ver os comandos."
+            response_text = "Ops, tive um problema técnico. Pode tentar de novo?"
 
         # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
         # ENVIO DE RESPOSTA

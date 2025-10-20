@@ -1,0 +1,44 @@
+# 🔐 Variáveis de Ambiente para Render
+# Copie e cole TODAS essas variáveis no Render Dashboard
+
+# ============================================
+# EVOLUTION API (Obrigatório)
+# ============================================
+EVOLUTION_API_URL=https://pange-evolution-api.u5qiqp.easypanel.host
+EVOLUTION_API_KEY=429683C4C977415CAAFCCE10F7D57E11
+EVOLUTION_INSTANCE_NAME=Pange.IA Bot
+
+# ============================================
+# NOTION API (Obrigatório)
+# ============================================
+NOTION_TOKEN=<PEGAR DO .env LOCAL>
+NOTION_TASKS_DB_ID=<PEGAR DO .env LOCAL>
+
+# ============================================
+# OPENAI GPT (Obrigatório - SmartTaskAgent)
+# ============================================
+OPENAI_API_KEY=<PEGAR DO .env LOCAL>
+
+# ============================================
+# FLASK & APP SETTINGS
+# ============================================
+FLASK_SECRET_KEY=<DEIXAR RENDER GERAR AUTOMATICAMENTE>
+WEBHOOK_PATH=/webhook/whatsapp
+LOG_LEVEL=INFO
+ENVIRONMENT=production
+TIMEZONE=America/Sao_Paulo
+
+# ============================================
+# DATABASES (OPCIONAL - se Saraiva configurou)
+# ============================================
+# REDIS_URL=redis://default:senha@host:porta
+# DATABASE_URL=postgres://user:senha@host:porta/db
+
+# ============================================
+# INSTRUÇÕES:
+# ============================================
+# 1. No Render Dashboard, vá em: Environment Variables
+# 2. Clique em "Add Environment Variable"
+# 3. Cole CADA linha acima (formato: KEY=value)
+# 4. Para OPENAI_API_KEY: pegue do seu .env local
+# 5. Para FLASK_SECRET_KEY: deixe em branco que Render gera

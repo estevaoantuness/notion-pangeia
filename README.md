@@ -11,17 +11,20 @@
 
 ## 📊 Status do Projeto
 
-**Versão:** 2.0 - Produção
+**Versão:** 2.1 - Produção (Focado em Gestão de Tarefas)
 **Última Atualização:** Outubro 2025
 **Cobertura NLP:** 90.2% (101/112 testes)
-**Linhas de Código:** ~7.120 linhas
+**Foco:** Gestão de Tarefas (Task Management)
 **Status:** ✅ **Totalmente Funcional e em Produção**
 
 ---
 
 ## 🎯 O que o Pangeia Faz
 
-O **Notion Pangeia** é um assistente WhatsApp inteligente que gerencia tarefas de equipes diretamente no Notion:
+O **Notion Pangeia** é um **sistema de gestão de tarefas via WhatsApp** que conecta sua equipe ao Notion de forma inteligente:
+
+### 🎯 **Foco Principal: Gestão de Tarefas**
+Gerencie suas tarefas do Notion diretamente pelo WhatsApp com comandos naturais e intuitivos.
 
 ### ✨ Funcionalidades Principais
 
@@ -395,32 +398,32 @@ curl -X POST http://localhost:5001/webhook/whatsapp \
 
 ## 📈 Roadmap e Melhorias Futuras
 
-### ✅ Concluído (v2.0)
-- [x] Migração Twilio → Evolution API
+### ✅ Concluído (v2.1) - **Foco em Gestão de Tarefas**
+- [x] Migração Twilio → Evolution API (WhatsApp gratuito)
 - [x] Sistema NLP robusto (90.2% accuracy)
-- [x] Slot-filling inteligente
-- [x] Humanização de mensagens
-- [x] 5 check-ins automáticos
+- [x] Comandos naturais para gestão de tarefas
+- [x] Listar, iniciar, concluir e bloquear tarefas
+- [x] 5 check-ins automáticos diários
 - [x] Sistema de onboarding
-- [x] Cache de tasks
-- [x] Detecção de repetição
-- [x] Webhooks Flask
+- [x] Cache de tasks para performance
+- [x] Slot-filling inteligente
+- [x] Webhooks Flask otimizados
 
-### 🔄 Em Desenvolvimento (v2.1)
-- [ ] Dashboard web de analytics
-- [ ] Relatórios semanais automáticos
-- [ ] Integração com GPT-4 (respostas avançadas)
-- [ ] Sistema de priorização de tarefas
-- [ ] Notificações de deadlines
-- [ ] Comandos de voz (transcrição)
+### 🔄 Próximas Melhorias (v2.2) - **Gestão de Tarefas Avançada**
+- [ ] Criar tarefas via WhatsApp ("criar tarefa: nome da tarefa")
+- [ ] Definir prazos ("prazo tarefa 3: amanhã")
+- [ ] Atribuir tarefas a colaboradores
+- [ ] Filtrar tarefas por status/prioridade
+- [ ] Relatórios de produtividade semanal
+- [ ] Notificações de deadlines próximos
 
-### 🎯 Planejado (v3.0)
-- [ ] Multi-idioma (EN, ES)
-- [ ] Integração com Jira/Linear
+### 🎯 Planejado (v3.0) - **Expansão do Sistema**
+- [ ] Integração com Jira/Linear/Asana
 - [ ] Time tracking automático
 - [ ] Análise de produtividade (BI)
-- [ ] Bot proativo (sugestões)
-- [ ] Gamificação (badges, streaks)
+- [ ] Dashboard web de analytics
+- [ ] Multi-idioma (EN, ES)
+- [ ] Comandos de voz (transcrição)
 
 ---
 
@@ -572,9 +575,8 @@ Desenvolvido com ❤️ pela equipe **Pange.iA**
 ## 📊 Estatísticas do Projeto
 
 - **Iniciado em:** Janeiro 2025
-- **Versão Atual:** 2.0 (Produção)
-- **Linhas de Código:** ~7.120
-- **Commits:** 150+
+- **Versão Atual:** 2.1 (Produção - Foco em Gestão de Tarefas)
+- **Foco Principal:** Task Management via WhatsApp
 - **Colaboradores:** 10 pessoas
 - **Uptime:** 99.5% (Render free tier)
 - **Mensagens Processadas:** ~10.000/mês
@@ -582,8 +584,8 @@ Desenvolvido com ❤️ pela equipe **Pange.iA**
 
 ---
 
-**Status:** ✅ **Sistema em Produção**
+**Status:** ✅ **Sistema em Produção - Focado em Gestão de Tarefas**
 **Última Atualização:** Outubro 2025
-**Próxima Release:** v2.1 - Dashboard Web (Novembro 2025)
+**Próxima Release:** v2.2 - Criação de Tarefas via WhatsApp (Novembro 2025)
 
 🚀 **Deploy agora:** Execute `python3 render_deploy_pangeia.py`

@@ -64,6 +64,36 @@ def health_check():
     }, 200
 
 
+@app.route('/debug', methods=['GET'])
+def debug_info():
+    """
+    Endpoint de debug para verificar qual sistema está ativo.
+
+    Returns:
+        JSON com informações de debug
+    """
+    import sys
+    import os
+
+    try:
+        # Testar se ConversationalAgent foi carregado
+        conversational_test = conversational_agent.process("DebugUser", "test")
+        conversational_status = "OK" if conversational_test else "FAILED"
+    except Exception as e:
+        conversational_status = f"ERROR: {str(e)}"
+
+    return jsonify({
+        "python_version": sys.version,
+        "openai_key_present": bool(os.getenv('OPENAI_API_KEY')),
+        "conversational_agent": {
+            "loaded": conversational_agent is not None,
+            "test_result": conversational_status
+        },
+        "git_commit": "27814ab",
+        "deployment_time": "2025-10-20 16:40"
+    }), 200
+
+
 @app.route('/scheduler/jobs', methods=['GET'])
 def scheduler_jobs():
     """

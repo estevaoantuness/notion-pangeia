@@ -37,10 +37,11 @@ smart_agent = get_smart_task_agent()
 # Inicializa processador de áudio
 audio_processor = get_audio_processor()
 
-# Inicializa e configura scheduler
-scheduler = get_scheduler()
-scheduler.setup_jobs()
-scheduler.start()
+# Inicializa scheduler (DESABILITADO - sem disparos automáticos)
+# scheduler = get_scheduler()
+# scheduler.setup_jobs()
+# scheduler.start()
+logger.info("⚠️ Scheduler DESABILITADO - sem mensagens automáticas")
 
 
 @app.route('/health', methods=['GET'])
@@ -55,7 +56,7 @@ def health_check():
         "status": "healthy",
         "service": "notion-pangeia-webhook",
         "version": "1.0.0",
-        "scheduler": "running" if scheduler.scheduler.running else "stopped"
+        "scheduler": "disabled"
     }, 200
 
 
@@ -67,31 +68,10 @@ def scheduler_jobs():
     Returns:
         JSON com lista de jobs
     """
-    try:
-        jobs = scheduler.scheduler.get_jobs()
-        jobs_data = []
-
-        for job in jobs:
-            next_run = job.next_run_time
-            jobs_data.append({
-                "id": job.id,
-                "name": job.name,
-                "next_run": next_run.isoformat() if next_run else None,
-                "trigger": str(job.trigger)
-            })
-
-        return {
-            "status": "success",
-            "total_jobs": len(jobs_data),
-            "jobs": jobs_data
-        }, 200
-
-    except Exception as e:
-        logger.error(f"Erro ao listar jobs: {e}")
-        return {
-            "status": "error",
-            "message": str(e)
-        }, 500
+    return {
+        "status": "disabled",
+        "message": "Scheduler desabilitado - sem mensagens automáticas"
+    }, 200
 
 
 @app.route('/scheduler/run/<job_id>', methods=['POST'])
@@ -303,17 +283,22 @@ def whatsapp_webhook():
 
                     # Saudações simples
                     if message_lower in ['oi', 'olá', 'ola', 'hey', 'opa', 'e aí', 'eai']:
-                        response_text = f"Oi! 👋 Como posso ajudar?\n\n• minhas tarefas\n• progresso\n• ajuda"
+                        response_text = "E aí! Bora ver suas tasks?"
                         success = True
 
                     # Agradecimentos
                     elif message_lower in ['obrigado', 'obrigada', 'valeu', 'thanks', 'obg']:
-                        response_text = "De nada! 😊\n\nPrecisa de mais alguma coisa?"
+                        response_text = "Tranquilo! 😊"
+                        success = True
+
+                    # Tudo bem / como vai
+                    elif message_lower in ['tudo bem', 'tudo bem?', 'como vai', 'como vai?', 'beleza']:
+                        response_text = "Tudo ótimo! E você, bora fazer umas tasks?"
                         success = True
 
                     # Mensagem de erro padrão
                     else:
-                        response_text = "Não entendi. 🤔\n\nTente:\n• minhas tarefas\n• feito 2\n• progresso\n• ajuda"
+                        response_text = "Não entendi. Tenta 'minhas tarefas' 😊"
                         success = True
 
         except Exception as e:

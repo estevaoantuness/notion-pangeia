@@ -355,13 +355,26 @@ LEMBRE-SE: Seu objetivo é ajudar o usuário a completar tasks de forma rápida 
             return success, final_response
 
         except json.JSONDecodeError as e:
-            logger.error(f"❌ Erro ao parsear JSON do GPT: {e}")
-            logger.error(f"Resposta recebida: {result_text}")
+            logger.error(f"❌ JSON DECODE ERROR: {e}")
+            logger.error(f"Resposta do GPT (não é JSON válido): {result_text}")
             return False, "Não entendi direito. Pode reformular?"
 
+        except NameError as e:
+            logger.error(f"❌ NAME ERROR (variável não definida): {e}", exc_info=True)
+            return False, "Ops, erro de configuração. Tenta de novo?"
+
+        except AttributeError as e:
+            logger.error(f"❌ ATTRIBUTE ERROR (método/atributo não existe): {e}", exc_info=True)
+            return False, "Ops, erro interno. Tenta de novo?"
+
         except Exception as e:
-            logger.error(f"❌ Erro no ConversationalAgent: {e}", exc_info=True)
-            return False, "Ops, tive um problema. Tenta de novo?"
+            logger.error(f"❌ ERRO GENÉRICO NO CONVERSATIONAL AGENT")
+            logger.error(f"Tipo do erro: {type(e).__name__}")
+            logger.error(f"Mensagem: {str(e)}")
+            logger.error(f"User: {user_name}, Message: {message[:100]}")
+            import traceback
+            traceback.print_exc()
+            return False, "Ops, tive um problema técnico. Tenta de novo?"
 
     def _execute_action(
         self,

@@ -260,8 +260,8 @@ Comandos disponíveis:
 
         # 4. Verificar confiança
         if not result.is_confident(self.CONFIDENCE_THRESHOLD):
-            logger.info(f"Baixa confiança ({result.confidence:.2f}) para: '{message}'")
-            return True, self._get_disambiguation_message()
+            logger.info(f"Baixa confiança ({result.confidence:.2f}) para: '{message}' - delegando para SmartTaskAgent")
+            return False, None  # Delegar para SmartTaskAgent (GPT-4o-mini)
 
         # 5. Processar intent
         try:

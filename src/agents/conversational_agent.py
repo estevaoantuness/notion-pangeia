@@ -400,12 +400,18 @@ LEMBRE-SE: Seu objetivo é ajudar o usuário a completar tasks de forma rápida 
         try:
             # LIST TASKS
             if action == "list_tasks":
-                tasks = self.tasks_manager.get_active_tasks(user_name)
-                if not tasks:
+                tasks_by_status = self.tasks_manager.get_person_tasks(user_name, include_completed=False)
+
+                # Pega apenas as tasks ativas (não concluídas)
+                active_tasks = []
+                active_tasks.extend(tasks_by_status.get("em_andamento", []))
+                active_tasks.extend(tasks_by_status.get("a_fazer", []))
+
+                if not active_tasks:
                     return True, "Você não tem tasks pendentes! 🎉"
 
                 # Formatar lista de tasks
-                task_list = self._format_task_list(tasks)
+                task_list = self._format_task_list(active_tasks)
                 return True, f"Suas tasks:\n\n{task_list}"
 
             # COMPLETE TASK

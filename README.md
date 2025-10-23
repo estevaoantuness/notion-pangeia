@@ -64,19 +64,13 @@ O **Notion Pangeia** é um **assistente de produtividade** que ajuda equipes a g
 | **Ver progresso** | "progresso", "status", "percentual" | \`progresso\` |
 | **Ajuda** | "ajuda", "help", "comandos" | \`ajuda\` |
 
-### ⏰ **Check-ins Automáticos (Simplificados)**
+### ⏰ **Check-ins Automáticos**
 
-Check-ins diretos e objetivos ao longo do dia:
+**Status:** ⚠️ **Atualmente DESABILITADO**
 
-| Horário | Tipo | Mensagem |
-|---------|------|----------|
-| **08:00** | Metas Diárias | "☀️ Bom dia! Suas tarefas de hoje: [lista]" |
-| **13:30** | Check-in Rápido | "☕ Como estão as tarefas? Algum bloqueio?" |
-| **15:30** | Status | "⏰ Progresso do dia OK? Conseguindo avançar?" |
-| **18:00** | Fechamento | "🌆 O que você conseguiu fazer hoje?" |
-| **22:00** | Resumo Automático | "🌙 Boa noite! 📊 Resumo: 3/5 tarefas concluídas. Descanse bem! 😴" |
+O sistema possui capacidade de enviar check-ins automáticos ao longo do dia, mas está desativado para evitar mensagens não solicitadas. O bot funciona de forma **100% reativa** - só responde quando você envia mensagem.
 
-**Nota:** O check-in das 22h **calcula automaticamente** o progresso do dia e envia um resumo simples. Sem perguntas reflexivas.
+Para ativar check-ins (opcional), configure os horários no `.env` e habilite o scheduler.
 
 ### 🧠 **Slot-Filling Inteligente**
 
@@ -180,8 +174,8 @@ python -m src.webhook.app
 NOTION_TOKEN=secret_xxxxx
 NOTION_TASKS_DB_ID=xxxxx
 
-# Evolution API (WhatsApp)
-EVOLUTION_API_URL=https://sua-evolution-api.com
+# Evolution API (WhatsApp) - Hosted no EasyPanel
+EVOLUTION_API_URL=https://pange-evolution-api.u5qiqp.easypanel.host
 EVOLUTION_API_KEY=sua_chave_aqui
 EVOLUTION_INSTANCE_NAME=Pange.IA Bot
 
@@ -202,6 +196,28 @@ ENABLE_PSYCHOLOGY=false
 ENABLE_MESSAGE_CHUNKING=true
 ENABLE_DEDUPLICATION=true
 \`\`\`
+
+---
+
+## 🏗️ Arquitetura de Deploy
+
+**Stack Atual em Produção:**
+
+```
+EasyPanel (Evolution API + WhatsApp)
+         ↓
+Railway (Flask Bot - Free Tier)
+         ↓
+Notion API (Tasks Database)
+```
+
+**Componentes:**
+- **EasyPanel**: Evolution API + PostgreSQL + Redis (WhatsApp connection)
+- **Railway**: Flask webhook + Business logic + NLP (Grátis - $5 crédito/mês)
+- **Notion**: Database de tarefas e usuários
+- **OpenAI**: GPT-4o-mini para processamento conversacional
+
+**URL Production:** `https://botpangeia-production.up.railway.app`
 
 ---
 

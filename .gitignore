@@ -30,3 +30,16 @@ logs/
 *.log
 .env.production
 .env.render.secret
+
+# Railway env files
+railway-env.txt
+RAILWAY_ENV_VARS.txt
+RAILWAY_FIX_NOW.txt
+
+# Helper scripts
+RENDER_QUICK_START.txt
+TEST_WEBHOOK_NOW.sh
+cleanup_railway_projects.md
+delete_projects.sh
+fix_vars_railway.sh
+remove_volumes_railway.md

@@ -9,7 +9,7 @@ import logging
 import time
 from typing import Dict, List, Optional, Any
 from notion_client import Client
-from notion_client.errors import APIResponseError
+from notion_client.errors import APIResponseError, HTTPResponseError
 
 from config.settings import settings
 
@@ -66,7 +66,8 @@ class NotionClient:
             token: Token de autenticação (usa settings se não fornecido)
         """
         self.token = token or settings.NOTION_TOKEN
-        self.client = Client(auth=self.token)
+        # Usar versão mais recente que suporta databases com múltiplas fontes
+        self.client = Client(auth=self.token, notion_version="2025-09-03")
         self.rate_limiter = RateLimiter(max_calls=3, period=1.0)
         logger.info("Cliente Notion inicializado")
 
@@ -98,9 +99,10 @@ class NotionClient:
             result = method(*args, **kwargs)
             return result
 
-        except APIResponseError as e:
+        except (APIResponseError, HTTPResponseError) as e:
             # Se for erro 429 (rate limit) ou 5xx, tenta novamente
-            if e.status in [429, 500, 502, 503, 504] and retry_count < settings.MAX_RETRIES:
+            status = getattr(e, "status", None)
+            if status in [429, 500, 502, 503, 504] and retry_count < settings.MAX_RETRIES:
                 wait_time = (2 ** retry_count) * 1  # Backoff exponencial
                 logger.warning(
                     f"Erro {e.status} na API Notion. "
@@ -109,7 +111,18 @@ class NotionClient:
                 time.sleep(wait_time)
                 return self._make_request(method, *args, retry_count=retry_count + 1, **kwargs)
 
-            logger.error(f"Erro na API Notion: {e}")
+            error_body = getattr(e, "body", None)
+            if not error_body and hasattr(e, "response"):
+                try:
+                    error_body = e.response.text
+                except Exception:  # pragma: no cover - apenas log
+                    error_body = None
+
+            logger.error(
+                "Erro na API Notion: %s | Detalhes: %s",
+                e,
+                error_body or "sem corpo"
+            )
             raise
 
     def get_database(self, database_id: str) -> Dict:

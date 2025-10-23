@@ -339,6 +339,19 @@ class TasksManager:
 
         return all_tasks
 
+    def get_active_tasks(self, person_name: str) -> List[Dict]:
+        """
+        Compatibilidade: retorna lista simples de tasks ativas.
+
+        Alguns fluxos legados (e deploys antigos) ainda chamam este método,
+        então mantemos o helper para evitar AttributeError.
+        """
+        grouped = self.get_person_tasks(person_name, include_completed=False)
+        active_tasks: List[Dict] = []
+        active_tasks.extend(grouped.get("em_andamento", []))
+        active_tasks.extend(grouped.get("a_fazer", []))
+        return active_tasks
+
     def calculate_progress(self, person_name: str) -> Dict:
         """
         Calcula progresso do colaborador INCLUINDO tasks concluídas.

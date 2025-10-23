@@ -12,9 +12,7 @@ import tempfile
 from pathlib import Path
 from flask import Flask, request, Response, jsonify
 
-from src.commands.processor import CommandProcessor  # DEPRECADO - manter para rollback
-from src.agents.smart_task_agent import get_smart_task_agent  # DEPRECADO
-from src.agents.conversational_agent import get_conversational_agent  # NOVO SISTEMA
+from src.agents.conversational_agent import get_conversational_agent
 from src.scheduler import get_scheduler
 from src.audio import get_processor as get_audio_processor
 from config.settings import settings
@@ -29,14 +27,8 @@ logger = logging.getLogger(__name__)
 # Inicializa Flask
 app = Flask(__name__)
 
-# ═══════════════════════════════════════════════════════════════════
-# NOVO SISTEMA: Conversational Agent (100% GPT - sem comandos fixos)
-# ═══════════════════════════════════════════════════════════════════
+# Inicializa agente conversacional
 conversational_agent = get_conversational_agent()
-
-# DEPRECADO: Mantidos para rollback de emergência
-# command_processor = CommandProcessor()  # Desabilitado
-# smart_agent = get_smart_task_agent()  # Desabilitado
 
 # Inicializa processador de áudio
 audio_processor = get_audio_processor()
@@ -159,10 +151,28 @@ def whatsapp_webhook():
 
         # Validação de API Key (temporariamente desabilitada para debugging)
         api_key = request.headers.get('apikey', '')
+        # Extrai API key de diferentes fontes (header, bearer, query)
+        api_key = request.headers.get('apikey', '') or request.headers.get('x-api-key', '')
+
+        if not api_key:
+            auth_header = request.headers.get('Authorization', '')
+            if auth_header and auth_header.lower().startswith('bearer '):
+                api_key = auth_header.split(' ', 1)[1].strip()
+
+        if not api_key:
+            api_key = request.args.get('apikey', '')
+
         logger.info(f"API Key recebida: {api_key[:10]}... (esperada: {settings.EVOLUTION_API_KEY[:10]}...)")
-        # if api_key != settings.EVOLUTION_API_KEY:
-        #     logger.warning("⚠️ API Key inválida")
-        #     return jsonify({"status": "error", "message": "Unauthorized"}), 401
+
+        if settings.EVOLUTION_WEBHOOK_AUTH_REQUIRED:
+            if not api_key or api_key != settings.EVOLUTION_API_KEY:
+                logger.warning("⚠️ API Key inválida ou ausente (modo estrito)")
+                return jsonify({"status": "error", "message": "Unauthorized"}), 401
+        else:
+            if not api_key:
+                logger.warning("⚠️ API Key ausente no webhook (modo permissivo)")
+            elif api_key != settings.EVOLUTION_API_KEY:
+                logger.warning("⚠️ API Key incorreta no webhook (modo permissivo)")
 
         # Extrai dados do payload JSON
         payload = request.json

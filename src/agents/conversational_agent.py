@@ -485,16 +485,26 @@ LEMBRE-SE: Seu objetivo é ajudar o usuário a completar tasks de forma rápida 
 
             # SHOW PROGRESS
             elif action == "show_progress":
-                tasks = self.tasks_manager.get_active_tasks(user_name)
-                total = len(tasks)
-                done = sum(1 for t in tasks if t.get("status") == "Done")
-                in_progress = sum(1 for t in tasks if t.get("status") == "In Progress")
+                try:
+                    progress = self.tasks_manager.calculate_progress(user_name)
+                except Exception as e:
+                    logger.error(f"Erro ao calcular progresso: {e}")
+                    return False, "Deu erro ao pegar o progresso agora. Tenta de novo já já?"
+
+                total = progress.get("total", 0)
+                concluidas = progress.get("concluidas", 0)
+                em_andamento = progress.get("em_andamento", 0)
+                pendentes = progress.get("pendentes", 0)
+                percentual = progress.get("percentual", 0)
 
                 if total == 0:
                     return True, "Sem tasks no momento! 🎉"
 
-                percentage = int((done / total) * 100)
-                return True, f"{percentage}% completo! {done}/{total} tasks feitas ({in_progress} em andamento) 🚀"
+                return True, (
+                    f"{percentual}% completo! "
+                    f"{concluidas}/{total} tasks feitas "
+                    f"({em_andamento} em andamento, {pendentes} pendentes) 🚀"
+                )
 
             # SHOW HELP
             elif action == "show_help":

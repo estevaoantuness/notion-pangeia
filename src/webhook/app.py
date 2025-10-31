@@ -66,6 +66,32 @@ def debug_info():
     """
     import sys
     import os
+    from config.openai_config import client as openai_client
+
+    # Verificar variáveis de ambiente críticas
+    env_vars = {}
+    critical_vars = [
+        "OPENAI_API_KEY",
+        "NOTION_TOKEN",
+        "NOTION_TASKS_DB_ID",
+        "EVOLUTION_API_URL",
+        "EVOLUTION_API_KEY",
+    ]
+
+    for var in critical_vars:
+        value = os.getenv(var, "")
+        if value:
+            # Mascara valores sensíveis mostrando apenas comprimento
+            env_vars[var] = {
+                "present": True,
+                "length": len(value),
+                "prefix": value[:10] if len(value) > 10 else value[:3]
+            }
+        else:
+            env_vars[var] = {
+                "present": False,
+                "length": 0
+            }
 
     try:
         # Testar se ConversationalAgent foi carregado
@@ -76,13 +102,17 @@ def debug_info():
 
     return jsonify({
         "python_version": sys.version,
-        "openai_key_present": bool(os.getenv('OPENAI_API_KEY')),
+        "environment_variables": env_vars,
+        "openai_client": {
+            "is_none": openai_client is None,
+            "type": str(type(openai_client)) if openai_client else "None"
+        },
         "conversational_agent": {
             "loaded": conversational_agent is not None,
             "test_result": conversational_status
         },
-        "git_commit": "27814ab",
-        "deployment_time": "2025-10-20 16:40"
+        "git_commit": "LATEST",
+        "deployment_time": "2025-10-31"
     }), 200
 
 

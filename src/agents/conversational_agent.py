@@ -290,6 +290,12 @@ LEMBRE-SE: Seu objetivo é ajudar o usuário a completar tasks de forma rápida 
                 logger.error("❌ FATAL: OPENAI_API_KEY não configurada!")
                 return False, "Erro de configuração. Contate o suporte."
 
+            # Verificar se o client foi inicializado
+            if client is None:
+                logger.error("❌ FATAL: OpenAI client é None!")
+                logger.error("   OPENAI_API_KEY pode estar vazia ou inválida")
+                return False, "Erro de configuração. Contate o suporte."
+
             # Adicionar mensagem do usuário ao histórico
             self.conversation_history.add_message(
                 user_id=user_name,

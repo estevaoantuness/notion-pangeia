@@ -13,13 +13,22 @@ GPT_MODEL = os.getenv("GPT_MODEL", "gpt-4o-mini")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
 
 # Initialize OpenAI Client (v1.0+)
+import logging
+logger = logging.getLogger(__name__)
+
 try:
     if OPENAI_API_KEY:
+        logger.info(f"✅ OPENAI_API_KEY encontrada ({len(OPENAI_API_KEY)} chars)")
         client = OpenAI(api_key=OPENAI_API_KEY)
+        logger.info(f"✅ OpenAI client inicializado com sucesso")
     else:
+        logger.error("❌ OPENAI_API_KEY NÃO CONFIGURADA! Client será None.")
+        logger.error("   Configure a variável de ambiente OPENAI_API_KEY no Railway")
         client = None
 except Exception as e:
-    print(f"⚠️ Erro ao inicializar OpenAI client: {e}")
+    logger.error(f"❌ ERRO ao inicializar OpenAI client: {e}")
+    import traceback
+    traceback.print_exc()
     client = None
 
 # Context Windows

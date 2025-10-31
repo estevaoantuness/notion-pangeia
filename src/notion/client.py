@@ -66,8 +66,8 @@ class NotionClient:
             token: Token de autenticação (usa settings se não fornecido)
         """
         self.token = token or settings.NOTION_TOKEN
-        # Usar versão mais recente que suporta databases com múltiplas fontes
-        self.client = Client(auth=self.token, notion_version="2025-09-03")
+        # Usar versão oficial da API Notion
+        self.client = Client(auth=self.token)
         self.rate_limiter = RateLimiter(max_calls=3, period=1.0)
         logger.info("Cliente Notion inicializado")
 
@@ -178,6 +178,7 @@ class NotionClient:
             if start_cursor:
                 query_params["start_cursor"] = start_cursor
 
+            logger.info(f"DEBUG: Calling query with params: {query_params}")
             response = self._make_request(
                 self.client.databases.query,
                 **query_params

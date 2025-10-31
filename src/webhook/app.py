@@ -265,43 +265,11 @@ def whatsapp_webhook():
         logger.info(f"MessageType: {message_type}")
 
         # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-        # CASO 1: MENSAGEM DE ÁUDIO
+        # CASO 1: MENSAGEM DE ÁUDIO (DESABILITADO - módulo audio não implementado)
         # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
         if message_type == 'audioMessage':
-            logger.info("🎤 MENSAGEM DE ÁUDIO DETECTADA")
-
-            try:
-                # Extrai URL do áudio
-                audio_message = message_data.get('audioMessage', {})
-                audio_url = audio_message.get('url', '')
-
-                if not audio_url:
-                    logger.warning("URL de áudio não encontrada")
-                    return jsonify({"status": "error", "message": "Audio URL not found"}), 400
-
-                logger.info(f"🔗 URL do áudio: {audio_url[:100]}...")
-
-                # Download do áudio
-                audio_file_path = download_audio_from_url(audio_url)
-
-                # Transcrição
-                logger.info(f"📝 Iniciando transcrição...")
-                success, transcription = audio_processor.process_audio_message(
-                    audio_file_path=audio_file_path,
-                    user_id=from_number,
-                    person_name=push_name
-                )
-
-                if not success:
-                    logger.error(f"❌ Erro na transcrição: {transcription}")
-                    message_body = ""
-                else:
-                    logger.info(f"✅ Transcrição concluída: {transcription[:100]}...")
-                    message_body = transcription
-
-            except Exception as e:
-                logger.error(f"❌ Erro ao processar áudio: {e}")
-                message_body = ""
+            logger.warning("🎤 Áudio detectado mas processamento desabilitado")
+            message_body = "[Mensagem de áudio - processamento não disponível]"
 
         # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
         # CASO 2: MENSAGEM DE TEXTO (padrão)

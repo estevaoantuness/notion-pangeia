@@ -11,7 +11,7 @@ from typing import Optional, Tuple, Dict, List
 
 from src.whatsapp.client import WhatsAppClient
 from src.messaging.formatter import MessageFormatter
-from src.cache.task_mapper import get_task_mapper
+# from src.cache.task_mapper import get_task_mapper  # TODO: implementar se necessário
 from config.colaboradores import get_phone_by_name, get_colaboradores_ativos
 
 logger = logging.getLogger(__name__)
@@ -113,9 +113,9 @@ class WhatsAppSender:
             success, sid, error = self.whatsapp_client.send_message(phone, message)
 
             if success:
-                # Cria mapeamento de tasks (número → ID)
-                task_mapper = get_task_mapper()
-                task_mapper.create_mapping(person_name, tasks_grouped)
+                # Cria mapeamento de tasks (número → ID) - DESABILITADO
+                # task_mapper = get_task_mapper()
+                # task_mapper.create_mapping(person_name, tasks_grouped)
                 logger.info(f"✅ Tasks enviadas para {person_name}. SID: {sid}")
             else:
                 logger.error(f"❌ Falha ao enviar para {person_name}: {error}")

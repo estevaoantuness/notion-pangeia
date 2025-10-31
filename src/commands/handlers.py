@@ -9,7 +9,7 @@ import logging
 from typing import Optional, Tuple
 
 from src.notion.updater import TaskUpdater
-from src.cache.task_mapper import get_task_mapper
+# from src.cache.task_mapper import get_task_mapper  # TODO: implementar se necessário
 from src.whatsapp.sender import WhatsAppSender
 from src.messaging.humanizer import get_humanizer
 

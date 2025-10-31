@@ -93,17 +93,23 @@ class Settings:
         # Configuração do formato de log
         log_format = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 
-        # Criar diretório de logs se não existir
-        os.makedirs('logs', exist_ok=True)
+        # Configurar handlers baseado no ambiente
+        handlers = [logging.StreamHandler()]
 
-        # Configurar logging para arquivo e console
+        # Em produção, não cria arquivo de log (Render usa stdout)
+        if cls.ENVIRONMENT != "production":
+            try:
+                os.makedirs('logs', exist_ok=True)
+                handlers.append(logging.FileHandler('logs/pangeia_bot.log'))
+            except (PermissionError, OSError):
+                # Se falhar, usa apenas console
+                pass
+
+        # Configurar logging
         logging.basicConfig(
             level=log_level,
             format=log_format,
-            handlers=[
-                logging.FileHandler('logs/pangeia_bot.log'),
-                logging.StreamHandler()
-            ]
+            handlers=handlers
         )
 
         # Reduzir verbosidade de bibliotecas externas

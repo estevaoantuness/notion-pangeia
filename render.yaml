@@ -1,49 +1,40 @@
 services:
   - type: web
-    name: pangeia-bot
+    name: notion-pangeia-bot
     runtime: python
-    plan: free
+    repo: https://github.com/estevaoantuness/notion-pangeia
+    branch: main
     buildCommand: pip install -r requirements.txt
-    startCommand: gunicorn src.webhook.app:app --bind 0.0.0.0:$PORT --workers 1 --timeout 120
+    startCommand: gunicorn -w 4 -b 0.0.0.0:$PORT src.webhook.app:app
     envVars:
-      # Evolution API
+      - key: OPENAI_API_KEY
+        sync: false
       - key: EVOLUTION_API_URL
-        value: https://pange-evolution-api.u5qiqp.easypanel.host
+        value: https://evo.pictorial.cloud
       - key: EVOLUTION_API_KEY
         sync: false
       - key: EVOLUTION_INSTANCE_NAME
-        value: Pange.IA Bot
-
-      # Notion API
+        value: Pangeia Bot
       - key: NOTION_TOKEN
         sync: false
       - key: NOTION_TASKS_DB_ID
         sync: false
-
-      # OpenAI GPT
-      - key: OPENAI_API_KEY
-        sync: false
+      - key: GOOGLE_SHEETS_URL
+        value: https://docs.google.com/spreadsheets/d/1UOo3kKlNCdNJwIVJqMDlnJdtxGLjlGmi9vuctU44324/edit
       - key: GPT_MODEL
         value: gpt-4o-mini
       - key: TEMPERATURE
-        value: 0.7
-
-      # Groq (Audio)
-      - key: GROQ_API_KEY
-        sync: false
-
-      # Flask
-      - key: FLASK_SECRET_KEY
-        generateValue: true
-      - key: WEBHOOK_PATH
-        value: /webhook/whatsapp
-      - key: PORT
-        value: 10000
-
-      # Application Settings
+        value: "0.7"
       - key: LOG_LEVEL
         value: INFO
-      - key: ENVIRONMENT
-        value: production
       - key: TIMEZONE
         value: America/Sao_Paulo
+      - key: ENVIRONMENT
+        value: production
+      - key: FLASK_SECRET_KEY
+        value: pangeia-bot-secret-key-2025
+      - key: WEBHOOK_PATH
+        value: /webhook/whatsapp
+    plan: starter
+    region: oregon
+    healthCheckPath: /health

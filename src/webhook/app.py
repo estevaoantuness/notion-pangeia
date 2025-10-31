@@ -13,8 +13,8 @@ from pathlib import Path
 from flask import Flask, request, Response, jsonify
 
 from src.agents.conversational_agent import get_conversational_agent
-from src.scheduler import get_scheduler
-from src.audio import get_processor as get_audio_processor
+# from src.scheduler import get_scheduler  # TODO: implementar scheduler se necessário
+# from src.audio import get_processor as get_audio_processor  # TODO: implementar áudio se necessário
 from config.settings import settings
 
 # Configuração de logging
@@ -30,14 +30,14 @@ app = Flask(__name__)
 # Inicializa agente conversacional
 conversational_agent = get_conversational_agent()
 
-# Inicializa processador de áudio
-audio_processor = get_audio_processor()
+# Inicializa processador de áudio (DESABILITADO - módulo não existe ainda)
+# audio_processor = get_audio_processor()  # TODO: implementar se necessário
 
 # Inicializa scheduler (DESABILITADO - sem disparos automáticos)
 # scheduler = get_scheduler()
 # scheduler.setup_jobs()
 # scheduler.start()
-logger.info("⚠️ Scheduler DESABILITADO - sem mensagens automáticas")
+logger.info("⚠️ Scheduler e Audio DESABILITADOS - webhook básico ativo")
 
 
 @app.route('/health', methods=['GET'])

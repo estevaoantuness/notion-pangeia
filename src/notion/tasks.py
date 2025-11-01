@@ -75,6 +75,7 @@ class TasksManager:
             }
         """
         logger.info(f"Buscando tasks de: {person_name}")
+        logger.info(f"🔍 DEBUG: Database ID sendo usado: {self.database_id}")
 
         # Busca todas as tasks (sem filtro por enquanto)
         # Vamos filtrar manualmente depois
@@ -82,6 +83,16 @@ class TasksManager:
             results = self.notion_client.query_database(
                 database_id=self.database_id
             )
+
+            # DEBUG: Log da primeira task para ver estrutura
+            if results:
+                logger.info(f"🔍 DEBUG: Total de tasks retornadas: {len(results)}")
+                logger.info(f"🔍 DEBUG: Propriedades da primeira task: {list(results[0].get('properties', {}).keys())}")
+                # Log completo da primeira task (pode ser grande, mas precisamos ver)
+                import json
+                logger.info(f"🔍 DEBUG: Primeira task completa: {json.dumps(results[0], indent=2, default=str)}")
+            else:
+                logger.warning("🔍 DEBUG: Nenhuma task retornada!")
 
             # Filtra manualmente por responsável
             filtered_results = []
@@ -231,11 +242,18 @@ class TasksManager:
         """
         properties = task.get("properties", {})
 
+        # DEBUG: Log das propriedades disponíveis
+        logger.info(f"🔍 DEBUG _parse_task: Propriedades disponíveis: {list(properties.keys())}")
+
         # Nome da task (propriedade "Task")
         nome_prop = properties.get("Task", {})
+        logger.info(f"🔍 DEBUG _parse_task: Conteúdo de 'Task' property: {nome_prop}")
         nome = ""
         if nome_prop.get("title"):
             nome = nome_prop["title"][0].get("plain_text", "")
+            logger.info(f"🔍 DEBUG _parse_task: Nome extraído: '{nome}'")
+        else:
+            logger.warning(f"🔍 DEBUG _parse_task: Propriedade 'Task' não tem 'title'!")
 
         # Status (tipo 'status', não 'select')
         status_prop = properties.get("Status", {})

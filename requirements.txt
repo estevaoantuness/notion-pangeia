@@ -16,7 +16,7 @@ pytz==2024.1
 python-dotenv==1.0.0
 
 # NLP & Text Processing
-rapidfuzz==3.9.7
+# Using Python's built-in difflib instead (no external dependencies)
 
 # Memory & Caching
 redis>=5.0.0

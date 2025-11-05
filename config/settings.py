@@ -39,12 +39,11 @@ class Settings:
     REDIS_URL: Optional[str] = os.getenv("REDIS_URL")
     REDIS_TTL_HOURS: int = int(os.getenv("REDIS_TTL_HOURS", "24"))
 
-    # Scheduler Configuration
+    # Scheduler Configuration (3 checkins diários)
     DAILY_SEND_TIME: str = os.getenv("DAILY_SEND_TIME", "08:00")
     CHECKIN_1_TIME: str = os.getenv("CHECKIN_1_TIME", "13:30")
     CHECKIN_2_TIME: str = os.getenv("CHECKIN_2_TIME", "15:30")
     CHECKIN_3_TIME: str = os.getenv("CHECKIN_3_TIME", "18:00")
-    CHECKIN_4_TIME: str = os.getenv("CHECKIN_4_TIME", "22:00")
     TIMEZONE: str = os.getenv("TIMEZONE", "America/Sao_Paulo")
 
     # Application Settings

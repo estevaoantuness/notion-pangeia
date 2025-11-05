@@ -12,9 +12,9 @@ import tempfile
 from pathlib import Path
 from flask import Flask, request, Response, jsonify
 
-from src.agents.conversational_agent import get_conversational_agent
 from src.scheduler import get_scheduler
 from src.audio import get_processor as get_audio_processor
+from src.commands.processor import CommandProcessor
 from config.settings import settings
 
 # Configuração de logging
@@ -27,8 +27,8 @@ logger = logging.getLogger(__name__)
 # Inicializa Flask
 app = Flask(__name__)
 
-# Inicializa agente conversacional
-conversational_agent = get_conversational_agent()
+# Inicializa command processor (NLP-based, sem OpenAI)
+command_processor = CommandProcessor()
 
 # Inicializa processador de áudio
 audio_processor = get_audio_processor()
@@ -68,18 +68,18 @@ def debug_info():
     import os
 
     try:
-        # Testar se ConversationalAgent foi carregado
-        conversational_test = conversational_agent.process("DebugUser", "test")
-        conversational_status = "OK" if conversational_test else "FAILED"
+        # Testar se CommandProcessor foi carregado
+        processor_test = command_processor.process("+5511999999999", "oi")
+        processor_status = "OK" if processor_test else "FAILED"
     except Exception as e:
-        conversational_status = f"ERROR: {str(e)}"
+        processor_status = f"ERROR: {str(e)}"
 
     return jsonify({
         "python_version": sys.version,
-        "openai_key_present": bool(os.getenv('OPENAI_API_KEY')),
-        "conversational_agent": {
-            "loaded": conversational_agent is not None,
-            "test_result": conversational_status
+        "nlp_system": "CommandProcessor (NLP-based, no OpenAI)",
+        "command_processor": {
+            "loaded": command_processor is not None,
+            "test_result": processor_status
         },
         "git_commit": "27814ab",
         "deployment_time": "2025-10-20 16:40"
@@ -313,28 +313,27 @@ def whatsapp_webhook():
             return jsonify({"status": "error", "message": "Invalid message"}), 400
 
         # ═══════════════════════════════════════════════════════════════════
-        # NOVO SISTEMA: Processamento 100% Conversacional via GPT-4o-mini
+        # SISTEMA NLP: Processamento 100% baseado em keywords + fuzzy matching
         # ═══════════════════════════════════════════════════════════════════
-        # Substitui sistema de 3 camadas (CommandProcessor → SmartTaskAgent → Fallback)
-        # por uma única chamada ao ConversationalAgent que entende variações ilimitadas
+        # Usa CommandProcessor com normalização de linguagem natural (sem OpenAI)
         try:
-            logger.info(f"🤖 [CONVERSATIONAL] Processando via GPT-4o-mini (linguagem natural)...")
+            logger.info(f"🤖 [NLP] Processando via CommandProcessor (keyword extraction + fuzzy matching)...")
 
-            success, response_text = conversational_agent.process(
-                user_name=push_name,
+            success, response_text = command_processor.process(
+                from_number=from_number,
                 message=message_body
             )
 
             if success:
-                logger.info(f"✅ Resposta gerada pelo Conversational Agent: {response_text[:100]}...")
+                logger.info(f"✅ Resposta gerada pelo NLP Processor: {response_text[:100]}...")
             else:
-                # Fallback se GPT falhar completamente
-                logger.warning(f"⚠️ ConversationalAgent retornou erro - usando fallback")
+                # Fallback se processamento falhar completamente
+                logger.warning(f"⚠️ CommandProcessor retornou erro - usando fallback")
                 response_text = "Ops, tive um problema. Tenta de novo?"
                 success = True
 
         except Exception as e:
-            logger.error(f"❌ Erro crítico no ConversationalAgent: {e}", exc_info=True)
+            logger.error(f"❌ Erro crítico no CommandProcessor: {e}", exc_info=True)
             success = True
             response_text = "Ops, tive um problema técnico. Pode tentar de novo?"
 

@@ -1,0 +1,11 @@
+[build]
+builder = "dockerfile"
+
+[build.config]
+dockerfile = "./Dockerfile"
+
+[start]
+cmd = "gunicorn -w 4 -b 0.0.0.0:$PORT src.webhook.app:app"
+
+[env]
+PORT = "5000"

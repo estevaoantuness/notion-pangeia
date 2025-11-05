@@ -56,7 +56,7 @@ NUM_WORDS_PT = {
 # Confirmações positivas
 YES_SET: Set[str] = {
     "sim", "s", "ok", "okay", "okey", "isso", "pode", "manda ver", "beleza", "blz",
-    "confirmo", "confirmar", "isso mesmo", "vamos",
+    "confirmo", "confirmar", "isso mesmo", "vamos", "bora",
     "👍", "✅", "✓"
 }
 
@@ -507,19 +507,19 @@ PATTERNS: List[CommandPattern] = [
     ("show_tips", re.compile(r"^(mostrar_dicas|dicas|dica|truques|macetes|tips|hacks|sugestoes|me da dicas)$"), 0.98),
 
     # Confirmações (incluindo emojis)
-    ("confirm_yes", re.compile(r"^(sim|s|isso|pode|ok|okay|okey|manda ver|beleza|blz|confirmo|vamos|👍|✅)$"), 0.98),
+    ("confirm_yes", re.compile(r"^(sim|s|isso|pode|ok|okay|okey|manda ver|beleza|blz|confirmo|vamos|bora|👍|✅)$"), 0.98),
     ("confirm_no", re.compile(r"^(nao|n|agora nao|deixa|cancelar|cancela|❌)$"), 0.98),
 
     # Saudações e despedidas
-    ("greet", re.compile(r"^(oi|opa|opaaa|salve)$"), 0.95),
+    ("greet", re.compile(r"^(oi|opa|opaaa|salve|tudo bem)$"), 0.95),
     ("goodbye", re.compile(r"^(ate|falou)$"), 0.95),
     ("thanks", re.compile(r"^(thanks|valeu)$"), 0.95),
 
     # Criar tarefa
-    ("create_task", re.compile(r"^(criar tarefa|nova tarefa)$"), 0.95),
+    ("create_task", re.compile(r"^(criar tarefa|nova tarefa|criar task)$"), 0.95),
 
     # Smalltalk (mas não "beleza" sozinho que é confirmação)
-    ("smalltalk_mood", re.compile(r"^(tudo bem|como vai|de boa)$"), 0.90),
+    ("smalltalk_mood", re.compile(r"^(como vai|de boa)$"), 0.90),
 ]
 
 
@@ -588,6 +588,12 @@ def parse(text: str, log_result: bool = False) -> ParseResult:
         ParseResult(intent='blocked_task', confidence=0.99, entities={'index': 4, 'reason': 'sem acesso'})
     """
     original = text
+
+    # Special check for "tudo bem" before canonicalization (to avoid synonym mapping)
+    text_lower = base_normalize(text, remove_emojis=False)
+    if text_lower == "tudo bem":
+        return ParseResult("greet", {}, 0.95, "tudo bem", original)
+
     normalized = canonicalize(text)
 
     # 1) Tentar match com padrões regex (alta confiança)

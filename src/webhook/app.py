@@ -33,11 +33,11 @@ conversational_agent = get_conversational_agent()
 # Inicializa processador de áudio
 audio_processor = get_audio_processor()
 
-# Inicializa scheduler (DESABILITADO - sem disparos automáticos)
-# scheduler = get_scheduler()
-# scheduler.setup_jobs()
-# scheduler.start()
-logger.info("⚠️ Scheduler DESABILITADO - sem mensagens automáticas")
+# Inicializa scheduler
+scheduler = get_scheduler()
+scheduler.setup_jobs()
+scheduler.start()
+logger.info("✅ Scheduler ATIVADO - mensagens automáticas habilitadas")
 
 
 @app.route('/health', methods=['GET'])
@@ -52,7 +52,7 @@ def health_check():
         "status": "healthy",
         "service": "notion-pangeia-webhook",
         "version": "1.0.0",
-        "scheduler": "disabled"
+        "scheduler": "enabled"
     }, 200
 
 
@@ -94,10 +94,27 @@ def scheduler_jobs():
     Returns:
         JSON com lista de jobs
     """
-    return {
-        "status": "disabled",
-        "message": "Scheduler desabilitado - sem mensagens automáticas"
-    }, 200
+    try:
+        jobs = []
+        if scheduler and scheduler.scheduler:
+            for job in scheduler.scheduler.get_jobs():
+                jobs.append({
+                    "id": job.id,
+                    "name": job.name,
+                    "next_run_time": str(job.next_run_time)
+                })
+
+        return {
+            "status": "enabled",
+            "message": "Scheduler ativado",
+            "job_count": len(jobs),
+            "jobs": jobs
+        }, 200
+    except Exception as e:
+        return {
+            "status": "error",
+            "message": str(e)
+        }, 500
 
 
 @app.route('/scheduler/run/<job_id>', methods=['POST'])

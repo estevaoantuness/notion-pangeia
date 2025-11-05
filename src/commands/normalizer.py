@@ -67,6 +67,43 @@ NO_SET: Set[str] = {
     "❌", "🚫", "✗"
 }
 
+# ==============================================================================
+# KEYWORD SETS - Para extração de palavras-chave em frases naturais
+# ==============================================================================
+# Permite reconhecer: "sim, por favor" → sim, "vamos nessa" → vamos, etc
+KEYWORD_SETS: Dict[str, Set[str]] = {
+    "confirm_yes": {
+        "sim", "s", "pode", "pode ser", "ok", "okay", "okey",
+        "beleza", "blz", "bora", "vamos", "isso", "dale", "top",
+        "confirmo", "confirmar", "positivo", "correto", "claro",
+        "👍", "✅", "✓"
+    },
+    "confirm_no": {
+        "nao", "não", "n", "agora nao", "agora não", "deixa",
+        "cancelar", "cancela", "negativo", "para", "nope",
+        "❌", "🚫", "✗"
+    },
+    "list_tasks": {
+        "tarefas", "tasks", "lista", "listar", "mostrar", "ver",
+        "quais", "minhas", "meus"
+    },
+    "progress": {
+        "progresso", "status", "como", "quanto", "andamento",
+        "resumo", "relatório", "avanço"
+    },
+    "done_task": {
+        "feito", "pronto", "finalizei", "completei", "concluí",
+        "terminei", "foi feita"
+    },
+    "in_progress_task": {
+        "fazendo", "comecei", "iniciando", "trabalhando",
+        "andamento", "vou fazer", "comeco", "fazer"
+    },
+    "help": {
+        "ajuda", "help", "comandos", "como", "tutorial"
+    }
+}
+
 # Mapa de sinônimos (palavra -> palavra canônica)
 SYNONYM_MAP = {
     # Saudações
@@ -523,6 +560,67 @@ PATTERNS: List[CommandPattern] = [
 ]
 
 
+# ==============================================================================
+# EXTRAÇÃO DE PALAVRAS-CHAVE PARA FRASES NATURAIS
+# ==============================================================================
+
+def extract_keywords(text: str) -> Optional[Tuple[str, float]]:
+    """
+    Extrai palavras-chave essenciais de frases naturais.
+
+    Permite reconhecer: "sim, por favor" → confirm_yes, "vamos nessa" → confirm_yes
+    Também detecta conflitos e prioriza intents específicos sobre confirmações genéricas.
+
+    Estratégia:
+    1. Negações (confirm_no) têm prioridade máxima
+    2. Intents específicos (list_tasks, progress, done_task, in_progress_task) têm prioridade alta
+    3. Confirmações genéricas (confirm_yes) têm prioridade baixa
+
+    Args:
+        text: Texto normalizado
+
+    Returns:
+        Tuple de (intent, confidence) ou None se nenhum keyword encontrado
+    """
+    tokens = text.lower().split()
+
+    # PRIORIDADE 1: Negações (confirm_no) têm precedência absoluta
+    if any(token in {"nao", "não", "deixa"} for token in tokens):
+        return ("confirm_no", 0.85)
+
+    # PRIORIDADE 2: Intents específicos (mais informativos que confirmações genéricas)
+    # Verificar done_task (tem prioridade alta - mais específico)
+    if any(token in KEYWORD_SETS.get("done_task", set()) for token in tokens):
+        return ("done_task", 0.85)
+
+    # Verificar in_progress_task (tem prioridade alta - mais específico)
+    if any(token in KEYWORD_SETS.get("in_progress_task", set()) for token in tokens):
+        return ("in_progress_task", 0.85)
+
+    # Verificar list_tasks
+    if any(token in KEYWORD_SETS.get("list_tasks", set()) for token in tokens):
+        return ("list_tasks", 0.80)
+
+    # Verificar progress (deixar por último entre os específicos)
+    if any(token in KEYWORD_SETS.get("progress", set()) for token in tokens):
+        return ("progress", 0.80)
+
+    # Verificar help
+    if any(token in KEYWORD_SETS.get("help", set()) for token in tokens):
+        return ("help", 0.80)
+
+    # PRIORIDADE 3: Confirmações genéricas
+    # Confirm_yes: apenas palavras-chave positivas ISOLADAS (sem contexto conflitante)
+    if any(token in {"sim", "s", "bora", "vamos", "dale", "top"} for token in tokens):
+        return ("confirm_yes", 0.85)
+
+    # Se chegou aqui, tentar keywords mais fracas
+    if any(token in {"ok", "okay", "okey", "beleza", "blz", "pode"} for token in tokens):
+        return ("confirm_yes", 0.80)
+
+    return None
+
+
 def extract_task_entities(intent: str, match_groups: tuple) -> Dict[str, Any]:
     """
     Extrai entidades de comandos relacionados a tarefas
@@ -610,7 +708,22 @@ def parse(text: str, log_result: bool = False) -> ParseResult:
 
             return result
 
-    # 2) Heurísticas para intents por palavras-chave (média confiança)
+    # 2) NOVO: Tentar keyword extraction para frases naturais
+    keyword_result = extract_keywords(normalized)
+    if keyword_result:
+        intent, confidence = keyword_result
+        result = ParseResult(
+            intent=intent,
+            entities={},
+            confidence=confidence,
+            normalized_text=normalized,
+            original_text=original
+        )
+        if log_result:
+            logging.info(f"Parsed (keywords): {result}")
+        return result
+
+    # 3) Heurísticas para intents por palavras-chave (média confiança)
     tokens = normalized.split()
     if not tokens:
         return ParseResult("unknown", {}, 0.0, normalized, original)
@@ -635,7 +748,7 @@ def parse(text: str, log_result: bool = False) -> ParseResult:
     # if "bloqueada" in first_tokens:
     #     return ParseResult("blocked_task_no_reason", {}, 0.60, normalized, original)
 
-    # 3) Unknown
+    # 4) Unknown
     return ParseResult(
         intent="unknown",
         entities={"normalized": normalized},

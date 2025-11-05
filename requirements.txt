@@ -16,7 +16,7 @@ pytz==2024.1
 python-dotenv==1.0.0
 
 # NLP & Text Processing
-rapidfuzz==3.6.1
+rapidfuzz>=4.0.0
 
 # Memory & Caching
 redis>=5.0.0

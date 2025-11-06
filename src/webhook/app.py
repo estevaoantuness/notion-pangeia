@@ -2,13 +2,22 @@
 Servidor Flask para webhook da Evolution API.
 
 Este módulo implementa o servidor web que recebe mensagens do WhatsApp
-via webhook da Evolution API e processa comandos dos colaboradores.
+via webhook da Evolution API.
+
+ARQUITETURA:
+- Node 1 (Webhook Receiver): Este arquivo - recebe e enfileira em Redis
+- Node 2 (Executor Worker): src/workers/executor.py - processa e atualiza Notion
+- Node 3 (Respondedor Worker): src/workers/responder.py - envia via WhatsApp
+
+O webhook NÃO processa diretamente. Apenas enfileira mensagens em Redis,
+permitindo que workers assíncronos façam o processamento pesado.
 """
 
 import logging
 import os
 import requests
 import tempfile
+from datetime import datetime
 from pathlib import Path
 from flask import Flask, request, Response, jsonify
 
@@ -16,6 +25,17 @@ from src.scheduler import get_scheduler
 from src.audio import get_processor as get_audio_processor
 from src.commands.processor import CommandProcessor
 from config.settings import settings
+from config.colaboradores import get_colaborador_by_phone
+
+# Tenta importar Redis Queue (fallback síncrono se não disponível)
+try:
+    from src.queue import RedisQueue
+    REDIS_AVAILABLE = True
+except Exception as e:
+    logger_temp = logging.getLogger(__name__)
+    logger_temp.warning(f"⚠️  Redis não disponível: {e}. Usando fallback síncrono.")
+    REDIS_AVAILABLE = False
+    RedisQueue = None
 
 # Configuração de logging
 logging.basicConfig(
@@ -26,6 +46,16 @@ logger = logging.getLogger(__name__)
 
 # Inicializa Flask
 app = Flask(__name__)
+
+# Inicializa Redis Queue (se disponível)
+redis_queue = None
+if REDIS_AVAILABLE:
+    try:
+        redis_queue = RedisQueue()
+        logger.info("✅ Redis Queue conectada - modo assíncrono ATIVADO")
+    except Exception as e:
+        logger.warning(f"⚠️  Erro ao conectar Redis: {e}. Usando fallback síncrono.")
+        REDIS_AVAILABLE = False
 
 # Inicializa command processor (NLP-based, sem OpenAI)
 command_processor = CommandProcessor()
@@ -325,129 +355,88 @@ def whatsapp_webhook():
             return jsonify({"status": "error", "message": "Invalid message"}), 400
 
         # ═══════════════════════════════════════════════════════════════════
-        # SISTEMA NLP: Processamento 100% baseado em keywords + fuzzy matching
+        # ARQUITETURA ASSÍNCRONA: Enfileirar em Redis (Node 1 → Node 2/3)
         # ═══════════════════════════════════════════════════════════════════
-        # Usa CommandProcessor com normalização de linguagem natural (sem OpenAI)
-        try:
-            logger.info(f"🤖 [NLP] Processando via CommandProcessor (keyword extraction + fuzzy matching)...")
 
-            success, response_text = command_processor.process(
-                from_number=from_number,
-                message=message_body
-            )
+        if REDIS_AVAILABLE and redis_queue:
+            # ✅ MODO ASSÍNCRONO: Apenas enfileira e retorna rápido
+            try:
+                # Identifica usuário
+                user_name = get_colaborador_by_phone(from_number)
+                if user_name:
+                    logger.info(f"✅ Usuário identificado: {user_name}")
 
-            if success:
-                logger.info(f"✅ Resposta gerada pelo NLP Processor: {response_text[:100]}...")
-            else:
-                # Fallback se processamento falhar completamente
-                logger.warning(f"⚠️ CommandProcessor retornou erro - usando fallback")
-                response_text = "Ops, tive um problema. Tenta de novo?"
+                # Publica mensagem na fila para Node 2 (Executor) processar
+                message_data = {
+                    "from_number": from_number,
+                    "message": message_body,
+                    "push_name": push_name,
+                    "message_type": message_type,
+                    "timestamp": datetime.now().isoformat(),
+                }
+
+                if redis_queue.publish_incoming(message_data):
+                    logger.info(f"✅ Mensagem enfileirada com sucesso (ASYNC mode)")
+                    return jsonify({
+                        "status": "queued",
+                        "message": "Processando sua mensagem..."
+                    }), 202  # 202 Accepted
+                else:
+                    logger.error("❌ Falha ao enfileirar mensagem")
+                    # Fallback para síncrono
+                    REDIS_AVAILABLE = False
+
+            except Exception as e:
+                logger.error(f"❌ Erro no modo assíncrono: {e}")
+                REDIS_AVAILABLE = False
+
+        # ❌ MODO SÍNCRONO: Fallback se Redis não disponível (compatibilidade)
+        if not REDIS_AVAILABLE:
+            logger.warning("⚠️  Modo síncrono (fallback - Redis não disponível)")
+
+            try:
+                logger.info(f"🤖 [NLP] Processando via CommandProcessor...")
+
+                success, response_text = command_processor.process(
+                    from_number=from_number,
+                    message=message_body
+                )
+
+                if success:
+                    logger.info(f"✅ Resposta gerada: {response_text[:100]}...")
+                else:
+                    logger.warning(f"⚠️ Erro no processamento")
+                    response_text = "Ops, tive um problema. Tenta de novo?"
+                    success = True
+
+            except Exception as e:
+                logger.error(f"❌ Erro crítico: {e}", exc_info=True)
+                response_text = "Ops, tive um problema técnico. Pode tentar de novo?"
                 success = True
 
-        except Exception as e:
-            logger.error(f"❌ Erro crítico no CommandProcessor: {e}", exc_info=True)
-            success = True
-            response_text = "Ops, tive um problema técnico. Pode tentar de novo?"
+            # Envia resposta via WhatsApp
+            try:
+                from src.whatsapp.sender import WhatsAppSender
+                sender = WhatsAppSender()
 
-        # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-        # ENVIO DE RESPOSTA
-        # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-        from src.whatsapp.sender import WhatsAppSender
-        sender = WhatsAppSender()
-
-        # Se a mensagem original foi áudio, responder com áudio
-        should_respond_with_audio = (message_type == 'audioMessage')
-
-        # Log do resultado com contexto
-        if success and response_text:
-            logger.info(
-                f"✅ Comando processado com sucesso",
-                extra={
-                    "from_number": from_number,
-                    "push_name": push_name,
-                    "user_message": message_body[:50] if message_body else "",
-                    "success": success,
-                    "response_length": len(response_text),
-                    "respond_with_audio": should_respond_with_audio
-                }
-            )
-            logger.info(f"Resposta (texto): {response_text[:100]}...")
-
-            # Se foi áudio de entrada, enviar áudio de saída
-            if should_respond_with_audio:
-                logger.info(f"🎵 Gerando resposta em áudio...")
-                try:
-                    audio_success, audio_path = audio_processor.generate_audio_response(
-                        text=response_text,
-                        person_name=push_name
-                    )
-
-                    if audio_success and audio_path:
-                        logger.info(f"✅ Áudio gerado: {audio_path}")
-                        # Enviar áudio
-                        send_audio_response(
-                            phone_number=from_number,
-                            audio_file_path=audio_path,
-                            person_name=push_name
-                        )
-                    else:
-                        logger.warning(f"❌ Falha ao gerar áudio: {audio_path}")
-                        # Fallback para texto
-                        send_success, send_sid, send_error = sender.send_message(
-                            person_name=from_number,
-                            message=response_text
-                        )
-                        if not send_success:
-                            logger.error(f"❌ Erro ao enviar fallback de texto: {send_error}")
-
-                except Exception as e:
-                    logger.error(f"❌ Erro ao gerar resposta em áudio: {e}")
-                    # Fallback para texto
-                    send_success, send_sid, send_error = sender.send_message(
-                        person_name=from_number,
-                        message=response_text
-                    )
-                    if not send_success:
-                        logger.error(f"❌ Erro ao enviar fallback de texto: {send_error}")
-            else:
-                # Resposta de texto normal
                 send_success, send_sid, send_error = sender.send_message(
                     person_name=from_number,
                     message=response_text
                 )
-                if not send_success:
-                    logger.error(f"❌ Erro ao enviar resposta: {send_error}")
+
+                if send_success:
+                    logger.info(f"✅ Resposta enviada. SID: {send_sid}")
                 else:
-                    logger.info(f"✅ Resposta enviada com sucesso. SID: {send_sid}")
+                    logger.error(f"❌ Erro ao enviar: {send_error}")
 
-        else:
-            logger.warning(
-                f"⚠️ Processamento incompleto ou sem resposta",
-                extra={
-                    "from_number": from_number,
-                    "push_name": push_name,
-                    "user_message": message_body[:50] if message_body else "",
-                    "success": success,
-                    "response_text": response_text[:50] if response_text else ""
-                }
-            )
-            # Sempre tenta enviar algo, mesmo se falhou
-            if response_text:
-                send_success, send_sid, send_error = sender.send_message(
-                    person_name=from_number,
-                    message=response_text
-                )
-                if not send_success:
-                    logger.error(f"❌ Erro ao enviar resposta de erro: {send_error}")
+            except Exception as e:
+                logger.error(f"❌ Erro ao enviar resposta: {e}")
 
-        # Retorna sucesso
-        # Com Evolution API, não retornamos mensagens no webhook
-        # As respostas são enviadas via API diretamente
-        return jsonify({
-            "status": "success",
-            "processed": success,
-            "message": "Command processed"
-        }), 200
+            return jsonify({
+                "status": "success",
+                "processed": success,
+                "message": "Processado (modo síncrono)"
+            }), 200
 
     except Exception as e:
         logger.exception(

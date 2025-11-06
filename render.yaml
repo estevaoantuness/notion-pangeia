@@ -1,18 +1,24 @@
 services:
+  # NODE 1: Webhook Receiver (Web Service)
+  # Responsabilidade: Receber e enfileirar em Redis (retorna em < 100ms)
   - type: web
-    name: pangeia-bot
+    name: pangeia-webhook
     runtime: python
     plan: free
     buildCommand: pip install -r requirements.txt
     startCommand: gunicorn src.webhook.app:app --bind 0.0.0.0:$PORT --workers 1 --timeout 120
     envVars:
+      # Redis Message Queue
+      - key: REDIS_URL
+        sync: false
+
       # Evolution API
       - key: EVOLUTION_API_URL
-        value: https://pange-evolution-api.u5qiqp.easypanel.host
+        value: https://evo.pictorial.cloud
       - key: EVOLUTION_API_KEY
         sync: false
       - key: EVOLUTION_INSTANCE_NAME
-        value: Pange.IA Bot
+        value: Pangeia Bot
 
       # Notion API
       - key: NOTION_TOKEN
@@ -51,3 +57,59 @@ services:
         value: production
       - key: TIMEZONE
         value: America/Sao_Paulo
+
+  # NODE 2: Executor Worker (Background Worker)
+  # Responsabilidade: Processar comandos e atualizar Notion
+  - type: worker
+    name: pangeia-executor
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: python src/workers/executor.py
+    envVars:
+      # Redis Message Queue
+      - key: REDIS_URL
+        sync: false
+
+      # Notion API
+      - key: NOTION_TOKEN
+        sync: false
+      - key: NOTION_TASKS_DB_ID
+        sync: false
+
+      # Google Sheets
+      - key: GOOGLE_SHEETS_URL
+        sync: false
+
+      # Application Settings
+      - key: LOG_LEVEL
+        value: INFO
+      - key: ENVIRONMENT
+        value: production
+
+  # NODE 3: Responder Worker (Background Worker)
+  # Responsabilidade: Enviar respostas via WhatsApp
+  - type: worker
+    name: pangeia-responder
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: python src/workers/responder.py
+    envVars:
+      # Redis Message Queue
+      - key: REDIS_URL
+        sync: false
+
+      # Evolution API
+      - key: EVOLUTION_API_URL
+        value: https://evo.pictorial.cloud
+      - key: EVOLUTION_API_KEY
+        sync: false
+      - key: EVOLUTION_INSTANCE_NAME
+        value: Pangeia Bot
+
+      # Application Settings
+      - key: LOG_LEVEL
+        value: INFO
+      - key: ENVIRONMENT
+        value: production

@@ -126,8 +126,8 @@ class GoogleSheetsClient:
         Returns:
             Dicionário com dados do colaborador ou None
         """
-        # Normaliza phone para comparação
-        phone_normalized = phone.replace("+", "").strip()
+        # Normaliza phone para comparação (remove espaços, hífens, +)
+        phone_normalized = phone.replace("+", "").replace(" ", "").replace("-", "").strip()
 
         # Carrega dados
         rows = self._load_sheet_data()
@@ -137,15 +137,35 @@ class GoogleSheetsClient:
 
         # Busca por telefone em diferentes colunas possíveis
         for row in rows:
-            # Tenta diferentes nomes de coluna que podem conter o telefone
-            for phone_col in ['telefone', 'phone', 'whatsapp', 'numero', 'number']:
+            # Tenta diferentes nomes de coluna (em inglês e português)
+            phone_cols = [
+                'telefone', 'phone', 'whatsapp', 'numero', 'number',
+                'Telefone', 'Phone', 'WhatsApp', 'Número', 'Number',
+                'NÃºmero',  # Acento codificado do Google Sheets
+                'tel', 'Tel', 'cel', 'Cel', 'celular', 'Celular'
+            ]
+
+            for phone_col in phone_cols:
                 if phone_col not in row:
                     continue
 
-                row_phone = row[phone_col].replace("+", "").strip()
+                row_phone_raw = row[phone_col]
+                if not row_phone_raw or not row_phone_raw.strip():
+                    continue
+
+                # Normaliza o telefone da linha
+                row_phone = row_phone_raw.replace("+", "").replace(" ", "").replace("-", "").strip()
 
                 if row_phone == phone_normalized:
-                    logger.info(f"✅ Colaborador encontrado no Google Sheets: {row.get('nome', 'Desconhecido')} ({phone})")
+                    # Busca nome em diferentes colunas possíveis
+                    name_cols = ['nome', 'Nome', 'name', 'Name', 'Nombre']
+                    name = 'Desconhecido'
+                    for name_col in name_cols:
+                        if name_col in row and row[name_col].strip():
+                            name = row[name_col].strip().rstrip(':')
+                            break
+
+                    logger.info(f"✅ Colaborador encontrado no Google Sheets: {name} ({phone})")
                     return row
 
         logger.debug(f"❌ Telefone não encontrado no Google Sheets: {phone}")

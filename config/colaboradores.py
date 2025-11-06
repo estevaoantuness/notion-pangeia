@@ -36,13 +36,6 @@ COLABORADORES: Dict[str, Dict[str, any]] = {
         "ativo": True,
         "notion_id": None
     },
-    "Leticia": {
-        "telefone": "+551191095230",
-        "cargo": "Designer",
-        "ativo": True,
-        "notion_id": None,
-        "aliases": ["leebuani", "Leebuani"]
-    },
     "Joaquim": {
         "telefone": "+5511980992410",
         "cargo": "Desenvolvedor",
@@ -62,14 +55,8 @@ COLABORADORES: Dict[str, Dict[str, any]] = {
         "notion_id": None
     },
     "Luna Machado": {
-        "telefone": "+55448428260",
+        "telefone": "+554484282600",
         "cargo": "Desenvolvedora",
-        "ativo": True,
-        "notion_id": None
-    },
-    "Rebeca Figueredo": {
-        "telefone": "+559991244030",
-        "cargo": "Product Manager",
         "ativo": True,
         "notion_id": None
     },
@@ -100,37 +87,18 @@ def get_colaborador_by_phone(phone: str) -> Optional[str]:
     """
     Busca o nome do colaborador pelo número de telefone.
 
-    Procura em:
-    1. COLABORADORES hardcoded
-    2. Google Sheets (fallback) - se GOOGLE_SHEETS_URL configurado
+    Usa normalização flexível com suporte a:
+    - Múltiplos formatos de telefone
+    - Compatibilidade formato antigo (8 dígitos) e novo (9 dígitos)
+    - Fallback para Google Sheets
 
     Args:
-        phone: Número de telefone no formato +XXXXXXXXXXX ou whatsapp:+XXXXXXXXXXX (compatibilidade)
+        phone: Número de telefone em qualquer formato
 
     Returns:
         Nome do colaborador ou None se não encontrado.
     """
-    # Primeiro tenta hardcoded
-    for nome, info in COLABORADORES.items():
-        if info["telefone"] == phone:
-            return nome
-
-    # Fallback: Google Sheets
-    try:
-        sheets_url = os.getenv('GOOGLE_SHEETS_URL')
-        if sheets_url:
-            from src.api.google_sheets import GoogleSheetsClient
-            sheets_client = GoogleSheetsClient(sheets_url, cache_ttl_minutes=5)
-            colaborador = sheets_client.get_colaborador_by_phone(phone)
-            if colaborador:
-                # Retorna o nome ou campo equivalente
-                name = colaborador.get('nome') or colaborador.get('name') or 'Desconhecido'
-                logger.info(f"✅ Colaborador identificado via Google Sheets: {name} ({phone})")
-                return name
-    except Exception as e:
-        logger.debug(f"Não foi possível buscar em Google Sheets: {e}")
-
-    return None
+    return find_colaborador_by_phone_flexible(phone)
 
 
 def get_phone_by_name(name: str) -> Optional[str]:
@@ -181,6 +149,117 @@ def get_all_phone_numbers() -> list[str]:
         info["telefone"]
         for info in get_colaboradores_ativos().values()
     ]
+
+
+def normalize_phone_number(phone: str) -> Optional[str]:
+    """
+    Normaliza número de telefone para formato E.164 (+55XXXXXXXXXXX).
+
+    Aceita múltiplos formatos:
+    - +554191851256 (formato E.164)
+    - 554191851256 (sem +)
+    - +55 41 91851256 (com espaços)
+    - 55 41 9185-1256 (com espaços e hífen)
+    - 4191851256 (DDD + número)
+    - 41 91851256 (DDD com espaço)
+
+    Args:
+        phone: Número de telefone em qualquer formato
+
+    Returns:
+        Número normalizado em formato E.164 ou None se inválido
+    """
+    if not phone:
+        return None
+
+    # Remove espaços, hífens, parênteses, pontos
+    cleaned = phone.strip().replace(" ", "").replace("-", "").replace("(", "").replace(")", "").replace(".", "")
+
+    # Remove + se estiver no início
+    if cleaned.startswith("+"):
+        cleaned = cleaned[1:]
+
+    # Se tem 12-13 dígitos e começa com 55 (código Brasil)
+    if cleaned.startswith("55") and 12 <= len(cleaned) <= 13:
+        return "+" + cleaned
+
+    # Se tem 10 ou 11 dígitos (número local sem código país)
+    if 10 <= len(cleaned) <= 11:
+        # Adiciona código do Brasil (55)
+        return "+" + "55" + cleaned
+
+    # Se tem 8-9 dígitos (apenas número sem DDD)
+    if 8 <= len(cleaned) <= 9:
+        # Não temos DDD, retorna None
+        logger.warning(f"Número de telefone incompleto (sem DDD): {phone}")
+        return None
+
+    logger.warning(f"Formato de telefone não reconhecido: {phone}")
+    return None
+
+
+def find_colaborador_by_phone_flexible(phone: str) -> Optional[str]:
+    """
+    Busca colaborador pelo telefone com normalização flexível.
+
+    Tenta múltiplas variações do número para garantir reconhecimento,
+    incluindo formatos antigo (8 dígitos) e novo (9 dígitos).
+
+    Args:
+        phone: Número de telefone em qualquer formato
+
+    Returns:
+        Nome do colaborador ou None se não encontrado
+    """
+    if not phone:
+        return None
+
+    normalized = normalize_phone_number(phone)
+    if not normalized:
+        return None
+
+    # Tenta correspondência exata primeiro
+    for nome, info in COLABORADORES.items():
+        if info["telefone"] == normalized:
+            return nome
+
+    # Tenta com/sem 9º dígito (compatibilidade formato antigo/novo)
+    # Se o número tem 14 caracteres (+55 DDD 9 XXXXXXXX), tenta remover o 9
+    if len(normalized) == 14:  # +55DDD9XXXXXXXX (13 dígitos)
+        # Tenta remover o 9 após o DDD (formato antigo tem 8 dígitos, novo tem 9)
+        # Posições: 0-2 (+55), 3-4 (DDD), 5 (9?), 6-13 (números)
+        if normalized[5] == "9":  # Se o 6º caractere é 9
+            alt_number = normalized[:5] + normalized[6:]  # Remove o 9 na posição 5
+            for nome, info in COLABORADORES.items():
+                if info["telefone"] == alt_number:
+                    logger.info(f"✅ Colaborador identificado (formato novo, BD antigo): {nome}")
+                    return nome
+
+    # Se o número tem 13 caracteres (+55 DDD XXXXXXXX), tenta adicionar 9
+    elif len(normalized) == 13:  # +55DDDXXXXXXXX (12 dígitos)
+        # Tenta adicionar 9 após o DDD (formato novo tem 9 dígitos, antigo tem 8)
+        # Posições: 0-2 (+55), 3-4 (DDD), 5-12 (números)
+        alt_number = normalized[:5] + "9" + normalized[5:]  # Adiciona 9 na posição 5
+        for nome, info in COLABORADORES.items():
+            if info["telefone"] == alt_number:
+                logger.info(f"✅ Colaborador identificado (formato antigo, BD novo): {nome}")
+                return nome
+
+    # Fallback: Google Sheets
+    try:
+        sheets_url = os.getenv('GOOGLE_SHEETS_URL')
+        if sheets_url:
+            from src.api.google_sheets import GoogleSheetsClient
+            sheets_client = GoogleSheetsClient(sheets_url, cache_ttl_minutes=5)
+            colaborador = sheets_client.get_colaborador_by_phone(phone)
+            if colaborador:
+                name = colaborador.get('Nome') or colaborador.get('nome') or 'Desconhecido'
+                logger.info(f"✅ Colaborador identificado via Google Sheets: {name}")
+                return name
+    except Exception as e:
+        logger.debug(f"Erro ao buscar em Google Sheets: {e}")
+
+    return None
 
 
 def get_colaborador_info(name: str) -> Optional[Dict[str, any]]:

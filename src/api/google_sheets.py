@@ -118,18 +118,24 @@ class GoogleSheetsClient:
 
     def get_colaborador_by_phone(self, phone: str) -> Optional[Dict[str, str]]:
         """
-        Busca colaborador pelo número de telefone.
+        Busca colaborador pelo número de telefone no Google Sheets.
+
+        Suporta múltiplos formatos de telefone e compatibilidade com
+        formatos antigo (8 dígitos) e novo (9 dígitos).
 
         Args:
-            phone: Telefone no formato +XXXXXXXXXXX ou sem +
+            phone: Telefone em qualquer formato
 
         Returns:
             Dicionário com dados do colaborador ou None
         """
-        # Normaliza phone para comparação (remove espaços, hífens, +)
+        if not phone:
+            return None
+
+        # Normaliza o número de entrada
         phone_normalized = phone.replace("+", "").replace(" ", "").replace("-", "").strip()
 
-        # Carrega dados
+        # Carrega dados da planilha
         rows = self._load_sheet_data()
         if not rows:
             logger.warning(f"❌ Não foi possível carregar dados do Google Sheets")
@@ -153,9 +159,10 @@ class GoogleSheetsClient:
                 if not row_phone_raw or not row_phone_raw.strip():
                     continue
 
-                # Normaliza o telefone da linha
+                # Normaliza o telefone da linha (remove espaços, hífens, +)
                 row_phone = row_phone_raw.replace("+", "").replace(" ", "").replace("-", "").strip()
 
+                # Comparação exata
                 if row_phone == phone_normalized:
                     # Busca nome em diferentes colunas possíveis
                     name_cols = ['nome', 'Nome', 'name', 'Name', 'Nombre']
@@ -165,8 +172,37 @@ class GoogleSheetsClient:
                             name = row[name_col].strip().rstrip(':')
                             break
 
-                    logger.info(f"✅ Colaborador encontrado no Google Sheets: {name} ({phone})")
+                    logger.info(f"✅ Colaborador encontrado no Google Sheets: {name}")
                     return row
+
+                # Compatibilidade formato antigo (8 dígitos) vs novo (9 dígitos)
+                # Se o número da planilha tem 10 dígitos e a entrada tem 11, tenta remover 9
+                if len(row_phone) == 10 and len(phone_normalized) == 11:
+                    # Tenta remover o 9º dígito (começa na posição 2)
+                    row_phone_alt = row_phone[:2] + row_phone[3:]  # Remove 9 após DDD
+                    if row_phone_alt == phone_normalized:
+                        name_cols = ['nome', 'Nome', 'name', 'Name', 'Nombre']
+                        name = 'Desconhecido'
+                        for name_col in name_cols:
+                            if name_col in row and row[name_col].strip():
+                                name = row[name_col].strip().rstrip(':')
+                                break
+                        logger.info(f"✅ Colaborador encontrado (formato novo): {name}")
+                        return row
+
+                # Se o número da planilha tem 11 dígitos e a entrada tem 10, tenta adicionar 9
+                elif len(row_phone) == 11 and len(phone_normalized) == 10:
+                    # Tenta adicionar 9 após DDD
+                    phone_alt = phone_normalized[:2] + "9" + phone_normalized[2:]
+                    if row_phone == phone_alt:
+                        name_cols = ['nome', 'Nome', 'name', 'Name', 'Nombre']
+                        name = 'Desconhecido'
+                        for name_col in name_cols:
+                            if name_col in row and row[name_col].strip():
+                                name = row[name_col].strip().rstrip(':')
+                                break
+                        logger.info(f"✅ Colaborador encontrado (formato antigo): {name}")
+                        return row
 
         logger.debug(f"❌ Telefone não encontrado no Google Sheets: {phone}")
         return None

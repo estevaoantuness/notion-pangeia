@@ -3,9 +3,17 @@ Configuração dos colaboradores da Pange.iA.
 
 Este módulo contém o mapeamento de colaboradores para números de WhatsApp
 e outras informações relevantes para o sistema.
+
+Suporta busca em:
+1. Dicionário hardcoded (COLABORADORES) - mais rápido
+2. Google Sheets (fallback) - sincronizado dinamicamente
 """
 
+import logging
+import os
 from typing import Dict, Optional
+
+logger = logging.getLogger(__name__)
 
 
 # Mapeamento de colaboradores: nome completo → informações
@@ -92,15 +100,36 @@ def get_colaborador_by_phone(phone: str) -> Optional[str]:
     """
     Busca o nome do colaborador pelo número de telefone.
 
+    Procura em:
+    1. COLABORADORES hardcoded
+    2. Google Sheets (fallback) - se GOOGLE_SHEETS_URL configurado
+
     Args:
         phone: Número de telefone no formato +XXXXXXXXXXX ou whatsapp:+XXXXXXXXXXX (compatibilidade)
 
     Returns:
         Nome do colaborador ou None se não encontrado.
     """
+    # Primeiro tenta hardcoded
     for nome, info in COLABORADORES.items():
         if info["telefone"] == phone:
             return nome
+
+    # Fallback: Google Sheets
+    try:
+        sheets_url = os.getenv('GOOGLE_SHEETS_URL')
+        if sheets_url:
+            from src.api.google_sheets import GoogleSheetsClient
+            sheets_client = GoogleSheetsClient(sheets_url, cache_ttl_minutes=5)
+            colaborador = sheets_client.get_colaborador_by_phone(phone)
+            if colaborador:
+                # Retorna o nome ou campo equivalente
+                name = colaborador.get('nome') or colaborador.get('name') or 'Desconhecido'
+                logger.info(f"✅ Colaborador identificado via Google Sheets: {name} ({phone})")
+                return name
+    except Exception as e:
+        logger.debug(f"Não foi possível buscar em Google Sheets: {e}")
+
     return None
 
 

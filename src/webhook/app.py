@@ -247,6 +247,18 @@ def whatsapp_webhook():
         logger.info(f"From: {from_number} ({push_name})")
         logger.info(f"Event: {event}")
 
+        # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        # IDENTIFICAÇÃO DO USUÁRIO (hardcoded + Google Sheets fallback)
+        # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        from config.colaboradores import get_colaborador_by_phone
+
+        identified_user = get_colaborador_by_phone(from_number)
+        if identified_user:
+            logger.info(f"✅ Usuário identificado: {identified_user} (WhatsApp: {push_name})")
+            push_name = identified_user  # Usa nome identificado
+        else:
+            logger.debug(f"⚠️ Usuário não identificado no banco de colaboradores: {from_number} (push_name: {push_name})")
+
         # **DETECÇÃO DE TIPO DE MENSAGEM**
         message_type = data.get('messageType', 'conversation')
         logger.info(f"MessageType: {message_type}")

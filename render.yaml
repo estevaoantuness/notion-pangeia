@@ -32,6 +32,10 @@ services:
       - key: GROQ_API_KEY
         sync: false
 
+      # Google Sheets (Colaboradores Database)
+      - key: GOOGLE_SHEETS_URL
+        sync: false
+
       # Flask
       - key: FLASK_SECRET_KEY
         generateValue: true

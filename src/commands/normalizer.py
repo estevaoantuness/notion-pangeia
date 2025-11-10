@@ -241,6 +241,56 @@ SYNONYM_MAP = {
     # Agradecimentos
     "obrigado": "thanks", "obrigada": "thanks", "brigado": "thanks",
     "brigada": "thanks", "vlw": "thanks",
+
+    # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    # SINÔNIMOS TEMPORAIS (PHASE 1 EXPANSION)
+    # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+    # Hoje
+    "agora": "hoje", "neste momento": "hoje", "neste instante": "hoje",
+    "de uma vez": "hoje", "imediatamente": "hoje", "asap": "hoje",
+
+    # Amanhã
+    "amanha": "amanha", "amanhã": "amanha", "no proximo dia": "amanha",
+    "próximo dia": "amanha", "dia que vem": "amanha",
+
+    # Esta semana
+    "semana": "semana", "esta semana": "semana", "essa semana": "semana",
+    "esta semana toda": "semana", "durante a semana": "semana",
+
+    # Próxima semana
+    "proxima semana": "prox_semana", "próxima semana": "prox_semana",
+    "semana que vem": "prox_semana", "na prox": "prox_semana",
+
+    # Este mês
+    "mes": "mes", "mês": "mes", "este mes": "mes",
+    "este mês": "mes", "esse mes": "mes", "esse mês": "mes",
+
+    # Próximo mês
+    "proximo mes": "prox_mes", "próximo mês": "prox_mes",
+    "mes que vem": "prox_mes", "mês que vem": "prox_mes",
+
+    # Urgente/Rápido
+    "urgente": "urgente", "para ontem": "urgente", "asap": "urgente",
+    "rapidamente": "urgente", "rápido": "urgente", "rapido": "urgente",
+    "logo": "urgente", "antes possível": "urgente", "antes possivel": "urgente",
+
+    # Quando possível/Sem pressa
+    "quando possivel": "sem_pressa", "quando possível": "sem_pressa",
+    "sem pressa": "sem_pressa", "quando der": "sem_pressa",
+    "sem haste": "sem_pressa", "com calma": "sem_pressa",
+
+    # Pela manhã
+    "manha": "manha", "manhã": "manha", "pela manha": "manha",
+    "pela manhã": "manha", "de manha": "manha", "de manhã": "manha",
+
+    # À tarde
+    "tarde": "tarde", "à tarde": "tarde", "a tarde": "tarde",
+    "no periodo da tarde": "tarde", "no período da tarde": "tarde",
+
+    # À noite
+    "noite": "noite", "à noite": "noite", "a noite": "noite",
+    "no periodo da noite": "noite", "no período da noite": "noite",
 }
 
 # Padrões regex para remover/normalizar
@@ -514,13 +564,35 @@ PATTERNS: List[CommandPattern] = [
     # ("blocked_task", re.compile(r"^(bloqueada)\s+(\d+)\s*(?:-|—|:|,)+\s*(.+)$"), 0.99),
     # ("blocked_task", re.compile(r"^(\d+)\s+(bloqueada)\s*(?:-|—|:|,)+\s*(.+)$"), 0.99),
 
-    # Tarefas - aceita UM ou VÁRIOS números
-    # Ex: "feito 1", "feito 1 2 3", "1 2 3 feito"
-    ("done_task", re.compile(r"^(feito|pronto|pronta)\s+((?:\d+\s*)+)$"), 0.99),
-    ("done_task", re.compile(r"^((?:\d+\s*)+)\s+(feito|pronto|pronta|concluida)$"), 0.99),
+    # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    # TAREFAS - MÚLTIPLOS FORMATOS (INCLUINDO VÍRGULAS)
+    # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-    ("in_progress_task", re.compile(r"^(andamento|fazendo)\s+((?:\d+\s*)+)$"), 0.99),
-    ("in_progress_task", re.compile(r"^((?:\d+\s*)+)\s+(andamento|fazendo)$"), 0.99),
+    # Done task - formato simples (feito 1, feito 1 2 3, 1 2 3 feito)
+    ("done_task", re.compile(r"^(feito|pronto|pronta)\s+((?:\d+[,\s]*)+)$"), 0.99),
+    ("done_task", re.compile(r"^((?:\d+[,\s]*)+)\s+(feito|pronto|pronta|concluida)$"), 0.99),
+
+    # Done task - com separadores de vírgula e hífen (1, 2, 3 feito | 1-2-3 feito)
+    ("done_task", re.compile(r"^(feito|pronto|pronta)\s+((?:\d+\s*[,\-\s]+)*\d+)$"), 0.98),
+    ("done_task", re.compile(r"^((?:\d+\s*[,\-\s]+)*\d+)\s+(feito|pronto|pronta|concluida)$"), 0.98),
+
+    # Done task - frases compostas
+    # Ex: "quero marcar 1 como feito", "marca 1 2 como pronto"
+    ("done_task", re.compile(r"^(quero|marca|marque|consegues?|podes?)\s+\w*\s*(marcar|feito|pronto)\s+((?:\d+\s*)+)\s+(feito|pronto|pronta|concluido|como feito)$"), 0.85),
+    ("done_task", re.compile(r"^(concluí|conclui|finalizei|terminei)\s+(?:a|o)?\s+((?:\d+\s*)+)$"), 0.85),
+
+    # In progress task - formato simples
+    ("in_progress_task", re.compile(r"^(andamento|fazendo|em andamento)\s+((?:\d+[,\s]*)+)$"), 0.99),
+    ("in_progress_task", re.compile(r"^((?:\d+[,\s]*)+)\s+(andamento|fazendo|em andamento)$"), 0.99),
+
+    # In progress task - com separadores
+    ("in_progress_task", re.compile(r"^(andamento|fazendo|em andamento)\s+((?:\d+\s*[,\-\s]+)*\d+)$"), 0.98),
+    ("in_progress_task", re.compile(r"^((?:\d+\s*[,\-\s]+)*\d+)\s+(andamento|fazendo|em andamento)$"), 0.98),
+
+    # In progress task - frases compostas
+    # Ex: "estou fazendo 1", "começei a fazer 2 3"
+    ("in_progress_task", re.compile(r"^(estou|vou|comecei|comeco|vou fazer|estou fazendo)\s+\w*\s*(fazer|fazendo|andamento)?\s+((?:\d+\s*)+)$"), 0.85),
+    ("in_progress_task", re.compile(r"^(marca|marque|consegues?|podes?)\s+\w*\s*(andamento|fazendo|em andamento)\s+((?:\d+\s*)+)$"), 0.85),
 
     # ("blocked_task_no_reason", re.compile(r"^(bloqueada)\s+(\d+)$"), 0.90),
     # ("blocked_task_no_reason", re.compile(r"^(\d+)\s+(bloqueada)$"), 0.90),
@@ -529,12 +601,38 @@ PATTERNS: List[CommandPattern] = [
     ("show_task", re.compile(r"^(mostre?|mostra|ver|veja|abra?|detalhes?|info)\s+(?:a\s+)?(\d+)$"), 0.99),
     ("show_task", re.compile(r"^(\d+)\s+(detalhes?|info)$"), 0.99),
 
-    # Comandos simples
+    # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    # COMANDOS SIMPLES E FRASES COMPOSTAS (PHASE 1 EXPANSION)
+    # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+    # Listar tarefas - padrões rígidos (alta confiança)
     ("list_tasks", re.compile(r"^(tarefas)$"), 0.98),
     ("list_tasks", re.compile(r"^(lista|minhas tarefas)$"), 0.98),
+
+    # Listar tarefas - frases compostas com verbos auxiliares
+    # Ex: "quero ver minhas tarefas", "pode mostrar as tarefas", "me mostra as tasks"
+    ("list_tasks", re.compile(r"^(quero|vou|pode|quer|podes?|consegues?|me|mostra)\s+\w*\s*(ver|mostrar|listar|visualizar)\s+(?:as|as minhas|meus|as)\s+(tarefas|tasks)$"), 0.85),
+    ("list_tasks", re.compile(r"^(quero|pode|consegue)\s+\w*\s*(ver|mostrar|listar)\s+(minhas tarefas|minhas tasks|as tarefas|as tasks)$"), 0.85),
+
+    # Ver/mostrar mais tarefas - frases compostas
+    # Ex: "me mostra mais", "quero ver todas", "lista completa"
+    ("show_more", re.compile(r"^(quero|pode|consegue|mostra|mostra-me)\s+\w*\s*(ver|mostrar|listar)\s+(mais|todas|todo|tudo|completo|a lista completa)$"), 0.85),
+    ("show_more", re.compile(r"^(ver|mostrar|listar)\s+(mais tarefas|todas as tarefas|o resto|o restante|a lista completa)$"), 0.85),
+
+    # Comandos simples
     ("show_more", re.compile(r"^(ver mais|mais|mostrar mais|todas|completa|lista completa)$"), 0.98),
     ("progress", re.compile(r"^(progresso)$"), 0.98),
+
+    # Progresso/Status - frases compostas
+    # Ex: "como estou indo", "qual é meu progresso", "mostra meu progresso"
+    ("progress", re.compile(r"^(como|qual|mostra|qual\s+e|como\s+esta)\s+\w*\s*(e|esta|está|estou|meu|o meu)\s+(progresso|status|como vai|como estou)$"), 0.85),
+    ("progress", re.compile(r"^(quero|pode|consegue)\s+\w*\s*(ver|mostrar|listar)\s+(progresso|status|meu progresso)$"), 0.85),
+
     ("help", re.compile(r"^(ajuda|\?)$"), 0.95),
+
+    # Ajuda - frases compostas
+    # Ex: "preciso de ajuda", "qual é o comando para", "como uso"
+    ("help", re.compile(r"^(preciso|pode|consegue|me ajuda|qual\s+e|como)\s+\w*\s*(ajuda|comando|usar|funciona)$"), 0.80),
 
     # Tutoriais diretos (alta confiança - respondem imediatamente)
     ("tutorial_complete", re.compile(r"^(tutorial_completo|tutorial|guia|guia completo|como funciona|passo a passo|manual|documentacao|lista de comandos|todos os comandos)$"), 0.98),
@@ -624,6 +722,7 @@ def extract_keywords(text: str) -> Optional[Tuple[str, float]]:
 def extract_task_entities(intent: str, match_groups: tuple) -> Dict[str, Any]:
     """
     Extrai entidades de comandos relacionados a tarefas
+    Suporta: "feito 1", "feito 1 2 3", "feito 1, 2, 3", "feito 1-2-3"
     """
     entities: Dict[str, Any] = {}
 
@@ -631,9 +730,10 @@ def extract_task_entities(intent: str, match_groups: tuple) -> Dict[str, Any]:
     if intent in {"done_task", "in_progress_task"}:
         # Encontra o grupo que contém os números
         for g in match_groups:
-            if g and re.match(r"^\d+", g.strip()):
-                # Extrai todos os números
-                numbers = [int(n) for n in g.split() if n.strip().isdigit()]
+            if g and re.search(r"\d+", g.strip()):
+                # Extrai todos os números (independentemente de separadores)
+                # Suporta: espaços, vírgulas, hífens
+                numbers = [int(n) for n in re.findall(r"\d+", g)]
                 if numbers:
                     # Se for apenas 1 número, usa "index" (mantém compatibilidade)
                     # Se forem vários, usa "indices"

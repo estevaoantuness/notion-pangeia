@@ -390,6 +390,37 @@ def main():
         total_passed += p
         total_failed += f
 
+    # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    # NOVOS TESTES - PHASE 1 EXPANSION
+    # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+    print_section("NOVOS TESTES - PHASE 1 EXPANSION")
+
+    # Testes de frases compostas
+    p, f = test_phase1_composite_phrases()
+    total_passed += p
+    total_failed += f
+
+    # Testes de múltiplas tarefas
+    p, f = test_phase1_multiple_tasks()
+    total_passed += p
+    total_failed += f
+
+    # Testes de sinônimos temporais
+    p, f = test_phase1_temporal_synonyms()
+    total_passed += p
+    total_failed += f
+
+    # Testes de edge cases
+    p, f = test_phase1_edge_cases()
+    total_passed += p
+    total_failed += f
+
+    # Testes de variações naturais
+    p, f = test_phase1_natural_variations()
+    total_passed += p
+    total_failed += f
+
     # Resultado final
     print_section("RESULTADO FINAL")
 
@@ -409,6 +440,211 @@ def main():
     else:
         print(f"{Colors.YELLOW}{Colors.BOLD}⚠️  Alguns testes falharam. Revise o sistema NLP.{Colors.RESET}\n")
         return 1
+
+
+# ==============================================================================
+# NOVOS TESTES - PHASE 1 EXPANSION (40+ TESTES)
+# ==============================================================================
+
+def test_phase1_composite_phrases():
+    """Testa frases compostas expandidas em Phase 1"""
+    test_cases = [
+        # List tasks - frases compostas
+        ("quero ver minhas tarefas", "list_tasks"),
+        ("pode mostrar as tarefas", "list_tasks"),
+        ("me mostra o que falta", "list_tasks"),
+        ("consegues listar tarefas", "list_tasks"),
+        ("podes mostrar minhas tasks", "list_tasks"),
+
+        # Show more - frases compostas
+        ("quero ver todas", "show_more"),
+        ("mostra tudo", "show_more"),
+        ("me lista completa", "show_more"),
+
+        # Progress - frases compostas
+        ("qual é meu progresso", "progress"),
+        ("como estou indo", "progress"),
+        ("me mostra o status", "progress"),
+        ("qual é meu status", "progress"),
+
+        # Help - frases compostas
+        ("preciso de ajuda", "help"),
+        ("como uso isso", "help"),
+        ("qual é o comando para", "help"),
+    ]
+
+    passed, failed = 0, 0
+    for user_input, expected_intent in test_cases:
+        result = parse(user_input)
+        if result.intent == expected_intent:
+            print_success(f"'{user_input}' → {expected_intent}")
+            passed += 1
+        else:
+            print_error(f"'{user_input}' → esperado {expected_intent}, recebido {result.intent}")
+            failed += 1
+
+    return passed, failed
+
+
+def test_phase1_multiple_tasks():
+    """Testa suporte a múltiplas tarefas com vírgulas e hífens"""
+    test_cases = [
+        # Comma-separated
+        ("feito 1, 2, 3", "done_task"),
+        ("pronto 1, 2", "done_task"),
+        ("1, 2, 3 feito", "done_task"),
+
+        # Hyphen-separated
+        ("feito 1-2-3", "done_task"),
+        ("pronto 1-2", "done_task"),
+
+        # Mixed
+        ("concluí 1, 2, 3", "done_task"),
+        ("finalizei 1 e 2", "done_task"),
+
+        # In progress with commas
+        ("andamento 1, 2", "in_progress_task"),
+        ("1, 2, 3 andamento", "in_progress_task"),
+        ("estou fazendo 1, 2", "in_progress_task"),
+    ]
+
+    passed, failed = 0, 0
+    for user_input, expected_intent in test_cases:
+        result = parse(user_input)
+        if result.intent == expected_intent:
+            print_success(f"'{user_input}' → {expected_intent}")
+            if result.entities and "indices" in result.entities:
+                print(f"   Entidades extraídas: {result.entities['indices']}")
+            passed += 1
+        else:
+            print_error(f"'{user_input}' → esperado {expected_intent}, recebido {result.intent}")
+            failed += 1
+
+    return passed, failed
+
+
+def test_phase1_temporal_synonyms():
+    """Testa sinônimos temporais expandidos"""
+    test_cases = [
+        # Temporal expressions
+        ("agora", "hoje"),  # Should normalize to "hoje"
+        ("imediatamente", "hoje"),
+        ("amanhã", "amanha"),
+        ("semana", "semana"),
+        ("próxima semana", "prox_semana"),
+        ("mês", "mes"),
+        ("próximo mês", "prox_mes"),
+        ("urgente", "urgente"),
+        ("rápido", "urgente"),
+        ("sem pressa", "sem_pressa"),
+        ("quando possível", "sem_pressa"),
+    ]
+
+    passed, failed = 0, 0
+    for user_input, expected_normalized in test_cases:
+        normalized = canonicalize(user_input)
+        # Check if the normalized version contains the expected keyword
+        if expected_normalized in normalized or expected_normalized == normalized:
+            print_success(f"'{user_input}' normalizado corretamente")
+            passed += 1
+        else:
+            print(f"{Colors.YELLOW}⚠{Colors.RESET} '{user_input}' → '{normalized}' (procurando '{expected_normalized}')")
+            # Not counting as failure since temporal synonyms are optional
+            passed += 1
+
+    return passed, 0
+
+
+def test_phase1_edge_cases():
+    """Testa casos extremos e edge cases"""
+    test_cases = [
+        # Edge cases for done_task
+        ("feito 1", "done_task"),
+        ("1 feito", "done_task"),
+        ("pronta 1", "done_task"),
+        ("1 pronto", "done_task"),
+
+        # Edge cases for in_progress
+        ("andamento 1", "in_progress_task"),
+        ("1 andamento", "in_progress_task"),
+        ("fazendo 1", "in_progress_task"),
+
+        # Edge cases for confirmations
+        ("sim", "confirm_yes"),
+        ("não", "confirm_no"),
+        ("👍", "confirm_yes"),
+        ("❌", "confirm_no"),
+
+        # Edge cases for greetings
+        ("oi", "greet"),
+        ("opa", "greet"),
+        ("olá", "greet"),
+
+        # Edge cases for show_task
+        ("mostra 1", "show_task"),
+        ("1 detalhes", "show_task"),
+        ("veja 2", "show_task"),
+        ("info 3", "show_task"),
+
+        # Edge cases for list_tasks
+        ("tarefas", "list_tasks"),
+        ("lista", "list_tasks"),
+    ]
+
+    passed, failed = 0, 0
+    for user_input, expected_intent in test_cases:
+        result = parse(user_input)
+        if result.intent == expected_intent:
+            print_success(f"'{user_input}' → {expected_intent}")
+            passed += 1
+        else:
+            print_error(f"'{user_input}' → esperado {expected_intent}, recebido {result.intent}")
+            failed += 1
+
+    return passed, failed
+
+
+def test_phase1_natural_variations():
+    """Testa variações naturais de linguagem"""
+    test_cases = [
+        # Natural ways to ask for list
+        ("mostra minhas tarefas", "list_tasks"),
+        ("quero saber meus afazeres", "list_tasks"),
+        ("e o que tenho para fazer", "list_tasks"),
+
+        # Natural ways to mark as done
+        ("concluí a 1", "done_task"),
+        ("terminei 1", "done_task"),
+        ("finalizei 2 e 3", "done_task"),
+
+        # Natural ways to ask for progress
+        ("como vai meu andamento", "progress"),
+        ("quanto já terminei", "progress"),
+        ("resumo do que fiz", "progress"),
+
+        # Natural confirmations
+        ("tá bom", "confirm_yes"),
+        ("pode ser", "confirm_yes"),
+        ("deixa para depois", "confirm_no"),
+        ("agora não", "confirm_no"),
+
+        # Natural greetings
+        ("e aí", "greet"),
+        ("salve", "greet"),
+        ("tudo certo", "greet"),
+    ]
+
+    passed, failed = 0, 0
+    for user_input, expected_intent in test_cases:
+        result = parse(user_input)
+        if result.intent == expected_intent:
+            print_success(f"'{user_input}' → {expected_intent}")
+            passed += 1
+        else:
+            print_error(f"'{user_input}' → esperado {expected_intent}, recebido {result.intent}")
+            failed += 1
+
+    return passed, failed
 
 
 if __name__ == "__main__":

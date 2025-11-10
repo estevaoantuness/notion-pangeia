@@ -357,8 +357,10 @@ def whatsapp_webhook():
         # ═══════════════════════════════════════════════════════════════════
         # ARQUITETURA ASSÍNCRONA: Enfileirar em Redis (Node 1 → Node 2/3)
         # ═══════════════════════════════════════════════════════════════════
+        # [DESATIVADO] Redis não está disponível nesta fase
+        # Para reativar: descomentar bloco abaixo e garantir Redis configurado
 
-        if REDIS_AVAILABLE and redis_queue:
+        if False:  # if REDIS_AVAILABLE and redis_queue:
             # ✅ MODO ASSÍNCRONO: Apenas enfileira e retorna rápido
             try:
                 # Identifica usuário

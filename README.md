@@ -11,11 +11,12 @@
 
 ## 📊 Status do Projeto
 
-**Versão:** 2.1 - Produção  
-**Última Atualização:** Outubro 2025  
-**Cobertura NLP:** 90.2% (101/112 testes)  
-**Foco:** 90% Gestão de Tasks + 10% Social  
-**Status:** ✅ **Funcional e em Produção**
+**Versão:** 2.2 - Produção (Phase 1 + 3-Question Flow)
+**Última Atualização:** Novembro 2025
+**Cobertura NLP:** 85.2% (127/149 testes) | Phase 1 +25% melhoria
+**Conversas Realistas:** 100% (55/55 passos)
+**Novos Recursos:** Fluxo de 3 perguntas para criar tasks
+**Status:** ✅ **Funcional e em Produção com melhorias Phase 1**
 
 ---
 
@@ -41,6 +42,43 @@ O **Notion Pangeia** é um **assistente de produtividade** que ajuda equipes a g
 - Sem análise emocional ou de burnout
 - Sem perguntas reflexivas profundas
 - Foco 100% em produtividade
+
+---
+
+## 🆕 Melhorias Phase 1 (Novembro 2025)
+
+### 🧠 NLP Robusto Expandido
+- ✅ **Frases Compostas:** "quero ver minhas tarefas", "qual é meu progresso"
+- ✅ **Múltiplas Tarefas:** "feito 1, 2, 3" | "feito 1-2-3" | "feito 1 2 3"
+- ✅ **Sinônimos Temporais:** 50+ (hoje, amanhã, semana, mês, urgente, etc)
+- ✅ **Fuzzy Matching:** Detecta typos automaticamente (80-92% tolerance)
+- ✅ **Cobertura:** +25% em frases naturais vs versão anterior
+
+### 📝 Fluxo de 3 Perguntas para Criar Tasks
+Crie tarefas de forma conversacional:
+
+```
+User: criar tarefa
+Bot: 📝 Qual o título da tarefa?
+
+User: Revisar dashboard
+Bot: 📁 Em qual projeto? (ou 'pular')
+
+User: Tech
+Bot: 📝 Quer descrição? (ou 'pular')
+
+User: Analisar performance
+Bot: ✅ Tarefa criada!
+     📌 Revisar dashboard
+     📁 Projeto: Tech
+     📝 Descrição: Analisar performance
+```
+
+### 📊 Métricas de Qualidade
+- Taxa de sucesso: 85.2% (127/149 testes)
+- Conversas realistas: 100% (55/55 passos)
+- Intents com 100% acerto: 5
+- Confiança média: 0.884
 
 ---
 
@@ -245,15 +283,27 @@ Notion API (Tasks Database)
 
 ## 📊 Estatísticas
 
-- **Versão:** 2.1 (Produção)
-- **Linhas de Código:** ~7.500
-- **Taxa de Sucesso NLP:** 90.2%
+- **Versão:** 2.2 (Produção - Phase 1)
+- **Linhas de Código:** ~8.200 (+700 com Phase 1)
+- **Taxa de Sucesso NLP:** 85.2% (Phase 1: +25% melhoria em frases naturais)
+- **Cobertura de Testes:** 252+ testes
+- **Conversas Realistas:** 100% (55/55 passos)
+- **Intents Implementados:** 17 (5 com 100% acerto)
 - **Uptime:** 99.5%
 - **Mensagens/mês:** ~12.000
 
+## 📚 Documentação Complementar
+
+- 📋 [VALIDATION_REPORT.md](./VALIDATION_REPORT.md) - Relatório completo Phase 1 NLP
+- 🧪 [tests/nlp_metrics.py](./tests/nlp_metrics.py) - Análise de qualidade NLP em 149 casos
+- 💬 [tests/test_conversations.py](./tests/test_conversations.py) - 10 conversas realistas (100% sucesso)
+- 🔍 [src/commands/normalizer.py](./src/commands/normalizer.py) - Core NLP (845+ linhas)
+
 ---
 
-**Status:** ✅ **Sistema em Produção**  
-**Última Atualização:** Outubro 2025
+**Status:** ✅ **Sistema em Produção com Phase 1**
+**Última Atualização:** Novembro 2025
 
 🚀 **Foco total em produtividade: 90% Tasks + 10% Social**
+🧠 **NLP robusto com 85.2% de cobertura**
+📝 **Criação de tasks em 3 perguntas inteligentes**

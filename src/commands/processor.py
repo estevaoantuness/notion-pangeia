@@ -368,16 +368,24 @@ Comandos disponíveis:
         intent = result.intent
         entities = result.entities
 
-        # Saudações - DELEGAR PARA GPT (SmartTaskAgent)
+        # Saudações - responder com cumprimento contextual
         if intent == "greet":
-            # Retorna False para permitir processamento natural e humanizado pelo GPT
-            logger.info(f"Intent 'greet' detectado - delegando para SmartTaskAgent")
-            return False, None
+            logger.info(f"Intent 'greet' detectado - respondendo com saudação")
+            greeting, tasks_reminder = self._get_contextual_greeting(person_name)
+            return True, greeting
 
-        # Despedidas, Agradecimentos, Smalltalk - DELEGAR PARA GPT
-        if intent in ["goodbye", "thanks", "thanks_closing", "smalltalk_mood"]:
-            logger.info(f"Intent '{intent}' detectado - delegando para SmartTaskAgent")
-            return False, None
+        # Despedidas, Agradecimentos, Smalltalk - respostas simples
+        if intent == "goodbye":
+            logger.info(f"Intent 'goodbye' detectado")
+            return True, "Até logo! 👋"
+
+        if intent == "thanks":
+            logger.info(f"Intent 'thanks' detectado")
+            return True, "De nada! 😊"
+
+        if intent in ["thanks_closing", "smalltalk_mood"]:
+            logger.info(f"Intent '{intent}' detectado - resposta simples")
+            return True, "Tudo bem por aqui! 😊"
 
         # Ajuda - oferece tutorial completo ou básico
         if intent == "help":

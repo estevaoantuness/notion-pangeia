@@ -28,6 +28,7 @@ from apscheduler.events import EVENT_JOB_EXECUTED, EVENT_JOB_ERROR
 from config.colaboradores import get_colaboradores_ativos
 from src.whatsapp.sender import WhatsAppSender
 from src.messaging.humanizer import get_humanizer
+from src.checkins.scheduler_adapter import get_random_checkin_adapter, is_random_checkins_enabled
 
 logger = logging.getLogger(__name__)
 
@@ -146,6 +147,31 @@ class TaskScheduler:
         self.scheduler = BackgroundScheduler(timezone=TZ)
         self.whatsapp_sender = WhatsAppSender()
         self.humanizer = get_humanizer()
+
+        # Initialize Redis for random check-ins
+        try:
+            import redis
+            self.redis_client = redis.Redis(
+                host='localhost',
+                port=6379,
+                db=0,
+                decode_responses=True
+            )
+            self.redis_client.ping()
+            logger.info("Redis connected for random check-ins")
+        except Exception as e:
+            logger.warning(f"Redis connection failed: {e}. Random check-ins will not work.")
+            self.redis_client = None
+
+        # Initialize random check-in adapter (if Redis available and feature enabled)
+        if self.redis_client and is_random_checkins_enabled():
+            self.random_checkin_adapter = get_random_checkin_adapter(
+                self.redis_client,
+                self.whatsapp_sender
+            )
+            logger.info("Random check-in adapter initialized")
+        else:
+            self.random_checkin_adapter = None
 
         # Adiciona listeners de eventos
         self.scheduler.add_listener(
@@ -531,6 +557,17 @@ class TaskScheduler:
         logger.info("=" * 60)
         logger.info(f"Total de {len(plan)} jobs agendados para hoje")
         logger.info("=" * 60)
+
+        # Schedule random check-ins if enabled
+        if self.random_checkin_adapter:
+            try:
+                random_checkins_scheduled = self.random_checkin_adapter.schedule_random_checkins_for_day(
+                    today,
+                    self.scheduler
+                )
+                logger.info(f"Random check-ins scheduled: {random_checkins_scheduled}")
+            except Exception as e:
+                logger.error(f"Error scheduling random check-ins: {e}")
 
     def setup_jobs(self):
         """

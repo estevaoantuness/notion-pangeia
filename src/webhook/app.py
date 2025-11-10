@@ -355,90 +355,52 @@ def whatsapp_webhook():
             return jsonify({"status": "error", "message": "Invalid message"}), 400
 
         # ═══════════════════════════════════════════════════════════════════
-        # ARQUITETURA ASSÍNCRONA: Enfileirar em Redis (Node 1 → Node 2/3)
+        # MODO SÍNCRONO (padrão - Redis desativado)
         # ═══════════════════════════════════════════════════════════════════
-        # [DESATIVADO] Redis não está disponível nesta fase
-        # Para reativar: descomentar bloco abaixo e garantir Redis configurado
 
-        if False:  # if REDIS_AVAILABLE and redis_queue:
-            # ✅ MODO ASSÍNCRONO: Apenas enfileira e retorna rápido
-            try:
-                # Identifica usuário
-                user_name = get_colaborador_by_phone(from_number)
-                if user_name:
-                    logger.info(f"✅ Usuário identificado: {user_name}")
+        try:
+            logger.info(f"🤖 [NLP] Processando via CommandProcessor...")
 
-                # Publica mensagem na fila para Node 2 (Executor) processar
-                message_data = {
-                    "from_number": from_number,
-                    "message": message_body,
-                    "push_name": push_name,
-                    "message_type": message_type,
-                    "timestamp": datetime.now().isoformat(),
-                }
+            success, response_text = command_processor.process(
+                from_number=from_number,
+                message=message_body
+            )
 
-                if redis_queue.publish_incoming(message_data):
-                    logger.info(f"✅ Mensagem enfileirada com sucesso (ASYNC mode)")
-                    return jsonify({
-                        "status": "queued",
-                        "message": "Processando sua mensagem..."
-                    }), 202  # 202 Accepted
-                else:
-                    logger.error("❌ Falha ao enfileirar mensagem")
-                    # Fallback para síncrono
-                    REDIS_AVAILABLE = False
-
-            except Exception as e:
-                logger.error(f"❌ Erro no modo assíncrono: {e}")
-                REDIS_AVAILABLE = False
-
-        # ❌ MODO SÍNCRONO: Fallback se Redis não disponível (compatibilidade)
-        if not REDIS_AVAILABLE:
-            logger.warning("⚠️  Modo síncrono (fallback - Redis não disponível)")
-
-            try:
-                logger.info(f"🤖 [NLP] Processando via CommandProcessor...")
-
-                success, response_text = command_processor.process(
-                    from_number=from_number,
-                    message=message_body
-                )
-
-                if success:
-                    logger.info(f"✅ Resposta gerada: {response_text[:100]}...")
-                else:
-                    logger.warning(f"⚠️ Erro no processamento")
-                    response_text = "Ops, tive um problema. Tenta de novo?"
-                    success = True
-
-            except Exception as e:
-                logger.error(f"❌ Erro crítico: {e}", exc_info=True)
-                response_text = "Ops, tive um problema técnico. Pode tentar de novo?"
+            if success:
+                logger.info(f"✅ Resposta gerada: {response_text[:100]}...")
+            else:
+                logger.warning(f"⚠️ Erro no processamento")
+                response_text = "Ops, tive um problema. Tenta de novo?"
                 success = True
 
-            # Envia resposta via WhatsApp
-            try:
-                from src.whatsapp.sender import WhatsAppSender
-                sender = WhatsAppSender()
+        except Exception as e:
+            logger.error(f"❌ Erro crítico: {e}", exc_info=True)
+            response_text = "Ops, tive um problema técnico. Pode tentar de novo?"
+            success = True
 
-                send_success, send_sid, send_error = sender.send_message(
-                    person_name=from_number,
-                    message=response_text
-                )
+        # Envia resposta via WhatsApp
+        try:
+            from src.whatsapp.sender import WhatsAppSender
+            sender = WhatsAppSender()
 
-                if send_success:
-                    logger.info(f"✅ Resposta enviada. SID: {send_sid}")
-                else:
-                    logger.error(f"❌ Erro ao enviar: {send_error}")
+            send_success, send_sid, send_error = sender.send_message(
+                person_name=from_number,
+                message=response_text
+            )
 
-            except Exception as e:
-                logger.error(f"❌ Erro ao enviar resposta: {e}")
+            if send_success:
+                logger.info(f"✅ Resposta enviada. SID: {send_sid}")
+            else:
+                logger.error(f"❌ Erro ao enviar: {send_error}")
 
-            return jsonify({
-                "status": "success",
-                "processed": success,
-                "message": "Processado (modo síncrono)"
-            }), 200
+        except Exception as e:
+            logger.error(f"❌ Erro ao enviar resposta: {e}")
+
+        return jsonify({
+            "status": "success",
+            "processed": success,
+            "message": "Processado (modo síncrono)"
+        }), 200
 
     except Exception as e:
         logger.exception(

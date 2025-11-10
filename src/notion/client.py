@@ -162,30 +162,35 @@ class NotionClient:
         """
         logger.info(f"Consultando database: {database_id}")
 
-        query_params = {"database_id": database_id, "page_size": page_size}
+        query_kwargs = {}
 
         if filters:
-            query_params["filter"] = filters
+            query_kwargs["filter"] = filters
 
         if sorts:
-            query_params["sorts"] = sorts
+            query_kwargs["sorts"] = sorts
 
         results = []
         has_more = True
         start_cursor = None
 
         while has_more:
-            if start_cursor:
-                query_params["start_cursor"] = start_cursor
+            try:
+                response = self._make_request(
+                    self.client.databases.query,
+                    database_id=database_id,
+                    page_size=page_size,
+                    start_cursor=start_cursor,
+                    **query_kwargs
+                )
 
-            response = self._make_request(
-                self.client.databases.query,
-                **query_params
-            )
-
-            results.extend(response.get("results", []))
-            has_more = response.get("has_more", False)
-            start_cursor = response.get("next_cursor")
+                results.extend(response.get("results", []))
+                has_more = response.get("has_more", False)
+                start_cursor = response.get("next_cursor")
+            except Exception as e:
+                logger.error(f"Erro na query: {e}")
+                # Retorna o que conseguiu até agora
+                break
 
         logger.info(f"Encontradas {len(results)} páginas")
         return results

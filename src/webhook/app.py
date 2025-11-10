@@ -358,13 +358,41 @@ def whatsapp_webhook():
         # ARQUITETURA ASSÍNCRONA: Enfileirar em Redis (Node 1 → Node 2/3)
         # ═══════════════════════════════════════════════════════════════════
 
-        # Os próximos blocos mantêm a arquitetura síncrona padrão.
-        # O modo assíncrono via Redis está desativado nesta fase (Fase 1).
-        # Caso o Redis volte a ser usado no futuro, reativar o bloco acima
-        # e garantir que REDIS_AVAILABLE esteja definido.
+        if REDIS_AVAILABLE and redis_queue:
+            # ✅ MODO ASSÍNCRONO: Apenas enfileira e retorna rápido
+            try:
+                # Identifica usuário
+                user_name = get_colaborador_by_phone(from_number)
+                if user_name:
+                    logger.info(f"✅ Usuário identificado: {user_name}")
 
-        # ❌ MODO SÍNCRONO (padrão)
-        logger.info("⚠️  Operando em modo síncrono (Redis desativado)")
+                # Publica mensagem na fila para Node 2 (Executor) processar
+                message_data = {
+                    "from_number": from_number,
+                    "message": message_body,
+                    "push_name": push_name,
+                    "message_type": message_type,
+                    "timestamp": datetime.now().isoformat(),
+                }
+
+                if redis_queue.publish_incoming(message_data):
+                    logger.info(f"✅ Mensagem enfileirada com sucesso (ASYNC mode)")
+                    return jsonify({
+                        "status": "queued",
+                        "message": "Processando sua mensagem..."
+                    }), 202  # 202 Accepted
+                else:
+                    logger.error("❌ Falha ao enfileirar mensagem")
+                    # Fallback para síncrono
+                    REDIS_AVAILABLE = False
+
+            except Exception as e:
+                logger.error(f"❌ Erro no modo assíncrono: {e}")
+                REDIS_AVAILABLE = False
+
+        # ❌ MODO SÍNCRONO: Fallback se Redis não disponível (compatibilidade)
+        if not REDIS_AVAILABLE:
+            logger.warning("⚠️  Modo síncrono (fallback - Redis não disponível)")
 
             try:
                 logger.info(f"🤖 [NLP] Processando via CommandProcessor...")

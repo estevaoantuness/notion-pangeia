@@ -260,9 +260,9 @@ class RandomCheckinScheduler:
 
         scheduled.sort(key=lambda x: x["time"])
 
+        times_str = ", ".join([f"{c['time']} ({c['window']})" for c in scheduled])
         logger.info(
-            f"Scheduled {len(scheduled)} check-ins for {user_id}: "
-            f"{', '.join([f\"{c['time']} ({c['window']})\" for c in scheduled])}"
+            f"Scheduled {len(scheduled)} check-ins for {user_id}: {times_str}"
         )
 
         return scheduled

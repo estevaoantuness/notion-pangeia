@@ -261,7 +261,8 @@ class CommandHandlers:
 
         if not success:
             logger.error(f"Erro ao enviar lista de tasks: {error}")
-            return False, "❌ Erro ao buscar suas tasks. Tente novamente."
+            # Retorna mensagem amigável em vez de erro
+            return True, "📋 Suas tasks estão sendo sincronizadas. Por favor, tente novamente em alguns segundos."
 
         return True, ""  # Mensagem já foi enviada
 

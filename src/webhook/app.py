@@ -601,7 +601,7 @@ if __name__ == '__main__':
     Para produção, use gunicorn ou similar:
     gunicorn -w 4 -b 0.0.0.0:5000 src.webhook.app:app
     """
-    PORT = 5001  # Mudado para 5001 (porta 5000 usada pelo AirPlay no macOS)
+    PORT = int(os.environ.get('PORT', 5000))  # Usa variável de ambiente ou padrão 5000
 
     logger.info("=" * 60)
     logger.info("🚀 SERVIDOR WEBHOOK INICIANDO")

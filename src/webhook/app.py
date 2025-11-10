@@ -27,16 +27,6 @@ from src.commands.processor import CommandProcessor
 from config.settings import settings
 from config.colaboradores import get_colaborador_by_phone
 
-# Tenta importar Redis Queue (fallback síncrono se não disponível)
-try:
-    from src.queue import RedisQueue
-    REDIS_AVAILABLE = True
-except Exception as e:
-    logger_temp = logging.getLogger(__name__)
-    logger_temp.warning(f"⚠️  Redis não disponível: {e}. Usando fallback síncrono.")
-    REDIS_AVAILABLE = False
-    RedisQueue = None
-
 # Configuração de logging
 logging.basicConfig(
     level=logging.INFO,
@@ -46,16 +36,7 @@ logger = logging.getLogger(__name__)
 
 # Inicializa Flask
 app = Flask(__name__)
-
-# Inicializa Redis Queue (se disponível)
-redis_queue = None
-if REDIS_AVAILABLE:
-    try:
-        redis_queue = RedisQueue()
-        logger.info("✅ Redis Queue conectada - modo assíncrono ATIVADO")
-    except Exception as e:
-        logger.warning(f"⚠️  Erro ao conectar Redis: {e}. Usando fallback síncrono.")
-        REDIS_AVAILABLE = False
+logger.info("✅ Flask app inicializado - Modo síncrono (Redis desativado)")
 
 # Inicializa command processor (NLP-based, sem OpenAI)
 command_processor = CommandProcessor()

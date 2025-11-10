@@ -175,9 +175,10 @@ SYNONYM_MAP = {
     "manual": "tutorial_completo", "instrucoes": "tutorial_completo",
     "instruções": "tutorial_completo", "passo a passo": "tutorial_completo",
     "tutorial completo": "tutorial_completo", "completo": "tutorial_completo",
-    "detalhado": "tutorial_completo", "tudo": "tutorial_completo",
-    "mostra tudo": "tutorial_completo", "quero aprender": "tutorial_completo",
-    "preciso aprender": "tutorial_completo", "como usar tudo": "tutorial_completo",
+    "detalhado": "tutorial_completo",  # "tudo" removido pois é contextual (pode ser show_more)
+    # "mostra tudo" removido - será tratado por regex show_more com contexto
+    "quero aprender": "tutorial_completo",
+    "preciso aprender": "tutorial_completo",  # "como usar tudo" removido - contextual
     "o que posso fazer": "tutorial_completo", "o que consigo fazer": "tutorial_completo",
     "lista de comandos": "tutorial_completo", "todos os comandos": "tutorial_completo",
     "mostre os comandos": "tutorial_completo",
@@ -627,7 +628,7 @@ PATTERNS: List[CommandPattern] = [
     ("show_more", re.compile(r"^(ver|mostrar|listar)\s+(mais tarefas|todas as tarefas|o resto|o restante|a lista completa)$"), 0.85),
 
     # Comandos simples
-    ("show_more", re.compile(r"^(ver mais|mais|mostrar mais|todas|completa|lista completa)$"), 0.98),
+    ("show_more", re.compile(r"^(ver mais|mais|mostrar mais|todas|completa|lista completa|mostra tudo|mostrar tudo|tudo)$"), 0.98),
     ("progress", re.compile(r"^(progresso)$"), 0.98),
 
     # Progresso/Status - frases compostas
@@ -787,13 +788,15 @@ def extract_task_entities(intent: str, match_groups: tuple) -> Dict[str, Any]:
     return entities
 
 
-def parse(text: str, log_result: bool = False) -> ParseResult:
+def parse(text: str, log_result: bool = False, conversation_history: List[Dict] = None) -> ParseResult:
     """
     Parse uma mensagem e retorna a intenção detectada
 
     Args:
         text: Texto original da mensagem
         log_result: Se True, loga o resultado
+        conversation_history: Lista de mensagens anteriores para contexto de desambiguação
+                            Cada item: {"intent": str, "confidence": float, "timestamp": float}
 
     Returns:
         ParseResult com intent, entities, confidence, etc.
@@ -804,6 +807,9 @@ def parse(text: str, log_result: bool = False) -> ParseResult:
 
         >>> parse("bloqueada 4 - sem acesso")
         ParseResult(intent='blocked_task', confidence=0.99, entities={'index': 4, 'reason': 'sem acesso'})
+
+        >>> parse("mostra tudo", conversation_history=[{"intent": "progress"}])
+        ParseResult(intent='show_more', confidence=0.95)  # Contexto: após "progress", "mostra tudo" = show_more
     """
     original = text
 
@@ -821,10 +827,27 @@ def parse(text: str, log_result: bool = False) -> ParseResult:
             groups = m.groups()
             entities = extract_task_entities(intent, groups)
 
+            # 1.5) NOVO: Aplicar desambiguação com contexto antes de retornar
+            actual_intent = intent
+            actual_confidence = confidence
+
+            if conversation_history and len(conversation_history) > 0:
+                last_intent = conversation_history[-1].get("intent")
+
+                # Desambiguação 1: "mostra tudo" / "lista completa" após "progress" → show_more
+                if last_intent == "progress" and intent == "tutorial_complete" and any(word in normalized for word in ["tudo", "completa", "todas"]):
+                    actual_intent = "show_more"
+                    actual_confidence = 0.92
+
+                # Desambiguação 2: "tudo" / "lista completa" após "list_tasks" → reforçar list_tasks
+                elif last_intent == "list_tasks" and intent == "tutorial_complete" and any(word in normalized for word in ["tudo", "completa", "todas"]):
+                    actual_intent = "list_tasks"
+                    actual_confidence = 0.90
+
             result = ParseResult(
-                intent=intent,
+                intent=actual_intent,
                 entities=entities,
-                confidence=confidence,
+                confidence=actual_confidence,
                 normalized_text=normalized,
                 original_text=original
             )
@@ -838,6 +861,25 @@ def parse(text: str, log_result: bool = False) -> ParseResult:
     keyword_result = extract_keywords(normalized)
     if keyword_result:
         intent, confidence = keyword_result
+
+        # 2.5) NOVO: Aplicar desambiguação com contexto de conversação
+        if conversation_history and len(conversation_history) > 0:
+            last_intent = conversation_history[-1].get("intent")
+
+            # Heurística 1: "tudo" / "mostra tudo" / "lista completa" após "progress" → show_more
+            if last_intent == "progress" and any(word in normalized for word in ["tudo", "completa", "todas"]):
+                intent = "show_more"
+                confidence = max(confidence, 0.90)
+
+            # Heurística 2: "tudo" / "lista completa" após "list_tasks" → reforçar list_tasks
+            elif last_intent == "list_tasks" and any(word in normalized for word in ["tudo", "completa", "todas"]):
+                intent = "list_tasks"
+                confidence = min(confidence * 1.1, 0.99)  # Aumentar confiança mas capped em 0.99
+
+            # Heurística 3: Confirmação simples após pergunta → manter confirmação
+            elif last_intent in {"help", "tutorial_complete", "start_from_scratch"} and intent == "confirm_yes":
+                confidence = max(confidence, 0.95)
+
         result = ParseResult(
             intent=intent,
             entities={},

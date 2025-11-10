@@ -196,3 +196,33 @@ ctas:
   when_done:
     - "Quando terminar: 'feito {number}'"
     - "Ao concluir: 'feito {number}'"
+
+# Random check-ins em horários variados
+random_checkins:
+  morning:
+    - "☕ Bom dia! Como você está planejando o dia? Tem algo que precisa de atenção especial?"
+    - "🌅 E aí! Qual vai ser o foco principal hoje?"
+    - "☀️ Bom dia! O que está na sua lista de prioridades pra hoje?"
+    - "🌤️ Opa, bom dia! Tem alguma task que você quer atacar primeiro?"
+    - "☕ Bom dia! Vai dar continuidade em algo de ontem ou tem coisa nova?"
+    - "🌅 Bom dia! Como você está estruturando o dia? Alguma coisa urgente?"
+
+  afternoon:
+    - "⏰ E aí, como está o ritmo? Conseguindo avançar nas tasks?"
+    - "🔄 Rápido check-in: no que você está trabalhando agora?"
+    - "💬 Tudo fluindo bem por aí ou tem algo travando?"
+    - "⚡ Como está o andamento das coisas? Algum bloqueio?"
+    - "🎯 Conseguiu focar no que planejou de manhã ou mudou a rota?"
+    - "🔄 E aí, como está indo? Alguma task dando trabalho?"
+    - "💡 Check-in rápido: qual task está na sua tela agora?"
+
+  evening:
+    - "🌅 Finalizando o expediente. O que você conseguiu avançar hoje?"
+    - "🌆 E aí, como foi o dia? Conseguiu fazer o que tinha planejado?"
+    - "✅ Hora de fechar! O que saiu do papel hoje?"
+    - "🌙 Acabando o dia. Ficou algo pendente pra amanhã?"
+    - "🌃 Rapidinho: o que você marcou como feito hoje?"
+
+  late_night:
+    - "🌙 Ainda por aí? Como foi o fechamento do dia?"
+    - "✨ Dia longo, hein? Conseguiu finalizar o que precisava?"

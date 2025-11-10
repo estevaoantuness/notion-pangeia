@@ -9,6 +9,7 @@ import logging
 from typing import Optional, Tuple
 
 from src.notion.updater import TaskUpdater
+from src.notion.task_creator import TaskCreator
 from src.cache.task_mapper import get_task_mapper
 from src.whatsapp.sender import WhatsAppSender
 from src.messaging.humanizer import get_humanizer
@@ -26,7 +27,8 @@ class CommandHandlers:
     def __init__(
         self,
         task_updater: Optional[TaskUpdater] = None,
-        whatsapp_sender: Optional[WhatsAppSender] = None
+        whatsapp_sender: Optional[WhatsAppSender] = None,
+        task_creator: Optional[TaskCreator] = None
     ):
         """
         Inicializa os handlers focados em gestão de tasks.
@@ -34,9 +36,11 @@ class CommandHandlers:
         Args:
             task_updater: Atualizador de tasks
             whatsapp_sender: Sender de WhatsApp
+            task_creator: Criador de tasks
         """
         self.task_updater = task_updater or TaskUpdater()
         self.whatsapp_sender = whatsapp_sender or WhatsAppSender()
+        self.task_creator = task_creator or TaskCreator()
         self.task_mapper = get_task_mapper()
         self.humanizer = get_humanizer()
         logger.info("CommandHandlers inicializado (modo simples - gestão de tasks)")
@@ -591,3 +595,114 @@ class CommandHandlers:
         self.whatsapp_sender.send_message(person_name, message)
 
         return True, ""  # Mensagem já foi enviada
+
+    def handle_create_task_start(self, person_name: str) -> Tuple[bool, str]:
+        """
+        Inicia o fluxo de criação de tarefa (pergunta 1/3).
+
+        Args:
+            person_name: Nome do colaborador
+
+        Returns:
+            Tuple (sucesso, mensagem_resposta)
+        """
+        logger.info(f"Iniciando fluxo de criação de tarefa para {person_name}")
+
+        return True, "📝 Qual o *título* da tarefa?"
+
+    def handle_create_task_get_project(
+        self,
+        person_name: str,
+        title: str
+    ) -> Tuple[bool, str]:
+        """
+        Processa título e pede projeto (pergunta 2/3).
+
+        Args:
+            person_name: Nome do colaborador
+            title: Título da tarefa
+
+        Returns:
+            Tuple (sucesso, mensagem_resposta)
+        """
+        logger.info(f"Recebido título '{title}' para nova tarefa de {person_name}")
+
+        return True, "📁 Em qual *projeto*? (ou 'pular' se não quiser especificar)"
+
+    def handle_create_task_get_description(
+        self,
+        person_name: str,
+        title: str,
+        project: str
+    ) -> Tuple[bool, str]:
+        """
+        Processa projeto e pede descrição (pergunta 3/3).
+
+        Args:
+            person_name: Nome do colaborador
+            title: Título da tarefa
+            project: Projeto (ou 'pular')
+
+        Returns:
+            Tuple (sucesso, mensagem_resposta)
+        """
+        logger.info(f"Projeto '{project}' recebido para tarefa '{title}' de {person_name}")
+
+        return True, "📝 Quer adicionar uma *descrição*? (ou 'pular' para finalizar)"
+
+    def handle_create_task_finalize(
+        self,
+        person_name: str,
+        title: str,
+        project: str,
+        description: str
+    ) -> Tuple[bool, str]:
+        """
+        Processa descrição e cria a tarefa no Notion.
+
+        Args:
+            person_name: Nome do colaborador
+            title: Título da tarefa
+            project: Projeto (ou 'pular')
+            description: Descrição (ou 'pular')
+
+        Returns:
+            Tuple (sucesso, mensagem_resposta)
+        """
+        logger.info(f"Finalizando criação de tarefa para {person_name}: {title}")
+
+        try:
+            # Preparar parâmetros para TaskCreator
+            create_params = {
+                "title": title,
+                "assignee": person_name,
+            }
+
+            # Adicionar projeto se não foi pulado
+            if project and project.lower() != "pular":
+                create_params["project"] = project
+
+            # Adicionar descrição se não foi pulada
+            if description and description.lower() != "pular":
+                create_params["description"] = description
+
+            # Criar tarefa no Notion
+            self.task_creator.create_task(**create_params)
+
+            # Preparar mensagem de sucesso
+            message = f"✅ Tarefa criada com sucesso!\n\n"
+            message += f"📌 *{title}*\n"
+
+            if project and project.lower() != "pular":
+                message += f"📁 Projeto: {project}\n"
+
+            if description and description.lower() != "pular":
+                message += f"📝 Descrição: {description}\n"
+
+            message += f"👤 Responsável: {person_name}"
+
+            return True, message
+
+        except Exception as e:
+            logger.error(f"Erro ao criar tarefa: {e}")
+            return False, "❌ Erro ao criar tarefa. Tente novamente!"

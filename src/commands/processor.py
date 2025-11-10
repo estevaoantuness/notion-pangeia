@@ -320,6 +320,75 @@ Comandos disponíveis:
         intent = pending_state.get("intent")
 
         # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        # CRIAR TAREFA - FLUXO DE 3 PERGUNTAS
+        # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        if intent == "create_task":
+            step = pending_state.get("step", 1)
+
+            # STEP 1: Receber título
+            if step == 1:
+                title = message.strip()
+
+                # Validar se não é cancelamento
+                if is_confirmation(title) is False:
+                    self._clear_user_state(person_name)
+                    return True, "Ok, cancelei a criação. Avise quando quiser criar! 🚀"
+
+                # Salvar título e ir para step 2
+                self._set_user_state(person_name, {
+                    "intent": "create_task",
+                    "step": 2,  # Step 2: esperando projeto
+                    "title": title,
+                    "project": None,
+                    "description": None
+                })
+
+                return self.handlers.handle_create_task_get_project(person_name, title)
+
+            # STEP 2: Receber projeto
+            elif step == 2:
+                project = message.strip()
+                title = pending_state.get("title")
+
+                # Validar se não é cancelamento
+                if is_confirmation(project) is False:
+                    self._clear_user_state(person_name)
+                    return True, "Ok, cancelei a criação. Avise quando quiser criar! 🚀"
+
+                # Salvar projeto e ir para step 3
+                self._set_user_state(person_name, {
+                    "intent": "create_task",
+                    "step": 3,  # Step 3: esperando descrição
+                    "title": title,
+                    "project": project,
+                    "description": None
+                })
+
+                return self.handlers.handle_create_task_get_description(person_name, title, project)
+
+            # STEP 3: Receber descrição e finalizar
+            elif step == 3:
+                description = message.strip()
+                title = pending_state.get("title")
+                project = pending_state.get("project")
+
+                # Validar se não é cancelamento
+                if is_confirmation(description) is False:
+                    self._clear_user_state(person_name)
+                    return True, "Ok, cancelei a criação. Avise quando quiser criar! 🚀"
+
+                # Limpar estado antes de finalizar (importante!)
+                self._clear_user_state(person_name)
+
+                # Finalizar criação
+                return self.handlers.handle_create_task_finalize(
+                    person_name=person_name,
+                    title=title,
+                    project=project,
+                    description=description
+                )
+
+        # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
         # SLOT-FILLING BLOQUEADA - DESABILITADO
         # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
@@ -572,6 +641,24 @@ Comandos disponíveis:
         # Mostrar dicas
         if intent == "show_tips":
             return self.handlers.handle_show_tips(person_name)
+
+        # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        # CRIAR TAREFA - FLUXO DE 3 PERGUNTAS (SLOT-FILLING)
+        # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        if intent == "create_task":
+            # Iniciar fluxo de criação de tarefa
+            success, response = self.handlers.handle_create_task_start(person_name)
+
+            # Configurar estado de slot-filling para próxima resposta
+            self._set_user_state(person_name, {
+                "intent": "create_task",
+                "step": 1,  # Step 1: esperando título
+                "title": None,
+                "project": None,
+                "description": None
+            })
+
+            return success, response
 
         # Confirmações (contextuais)
         if intent == "confirm_yes":

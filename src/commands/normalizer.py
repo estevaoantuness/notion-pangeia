@@ -614,6 +614,13 @@ PATTERNS: List[CommandPattern] = [
     ("list_tasks", re.compile(r"^(quero|vou|pode|quer|podes?|consegues?|me|mostra)\s+\w*\s*(ver|mostrar|listar|visualizar)\s+(?:as|as minhas|meus|as)\s+(tarefas|tasks)$"), 0.85),
     ("list_tasks", re.compile(r"^(quero|pode|consegue)\s+\w*\s*(ver|mostrar|listar)\s+(minhas tarefas|minhas tasks|as tarefas|as tasks)$"), 0.85),
 
+    # Listar tarefas - perguntas diretas e naturais (ALTA PRIORIDADE - antes de in_progress)
+    # Ex: "e o que tenho para fazer", "me lista tudo", "qual tarefa tenho"
+    # NOTA: canonicalize substitui "o que" por "tarefas"
+    ("list_tasks", re.compile(r"^(e|E)\s+tarefas\s+(pra|para)\s+fazer$"), 0.92),
+    ("list_tasks", re.compile(r"^(qual|quais).*?(tarefa|tarefas|tenho).*?(pra|para)\s+fazer$"), 0.90),
+    ("list_tasks", re.compile(r"^(me\s+)?(lista|mostra)\s+(?:completa|tudo|todas|as)\s+(?:tarefas|tasks)$"), 0.88),
+
     # Ver/mostrar mais tarefas - frases compostas
     # Ex: "me mostra mais", "quero ver todas", "lista completa"
     ("show_more", re.compile(r"^(quero|pode|consegue|mostra|mostra-me)\s+\w*\s*(ver|mostrar|listar)\s+(mais|todas|todo|tudo|completo|a lista completa)$"), 0.85),
@@ -634,6 +641,13 @@ PATTERNS: List[CommandPattern] = [
     # Ex: "preciso de ajuda", "qual é o comando para", "como uso"
     ("help", re.compile(r"^(preciso|pode|consegue|me ajuda|qual\s+e|como)\s+\w*\s*(ajuda|comando|usar|funciona)$"), 0.80),
 
+    # Ajuda - perguntas sobre comandos e funcionalidades
+    # Ex: "quais são os comandos", "qual é o comando para", "o que eu posso fazer"
+    # NOTA: canonicalize substitui "comandos" por "ajuda"
+    ("help", re.compile(r"^(qual|quais)\s+(sao|são)\s+(?:os\s+)?(ajuda|funcoes|funções)$"), 0.88),
+    ("help", re.compile(r"^(qual\s+e|quais\s+sao)\s+(?:o|os)?\s*(ajuda|funcoes|funções)$"), 0.88),
+    ("help", re.compile(r"^(o que|o que eu)\s+(posso|consigo|conseguo)\s+(fazer).*$"), 0.85),
+
     # Tutoriais diretos (alta confiança - respondem imediatamente)
     ("tutorial_complete", re.compile(r"^(tutorial_completo|tutorial|guia|guia completo|como funciona|passo a passo|manual|documentacao|lista de comandos|todos os comandos)$"), 0.98),
     ("tutorial_quick", re.compile(r"^(tutorial_basico|basico|resumo|rapido|quick|simples|tldr|principais comandos|essencial)$"), 0.98),
@@ -650,8 +664,14 @@ PATTERNS: List[CommandPattern] = [
     ("goodbye", re.compile(r"^(ate|falou)$"), 0.95),
     ("thanks", re.compile(r"^(thanks|valeu)$"), 0.95),
 
-    # Criar tarefa
+    # Criar tarefa - padrões rígidos (alta confiança)
     ("create_task", re.compile(r"^(criar tarefa|nova tarefa|criar task)$"), 0.95),
+
+    # Criar tarefa - frases compostas com verbos auxiliares
+    # Ex: "vou criar uma tarefa", "quero adicionar uma nova task", "preciso registrar uma tarefa"
+    # NOTA: canonicalize converte "uma" para "1", "a" para "1", etc
+    ("create_task", re.compile(r"^(vou|vamos|quero|preciso|posso)\s+(criar|adicionar|registrar).*?(tarefa|nova tarefa|task)$"), 0.88),
+    ("create_task", re.compile(r"^(criar|adicionar|nova|registrar)\s+\d+?\s*(tarefa|task)$"), 0.85),
 
     # Smalltalk (mas não "beleza" sozinho que é confirmação)
     ("smalltalk_mood", re.compile(r"^(como vai|de boa)$"), 0.90),

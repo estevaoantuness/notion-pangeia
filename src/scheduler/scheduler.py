@@ -587,9 +587,10 @@ class TaskScheduler:
         # Log all scheduled jobs for verification
         logger.info("📋 JOBS AGENDADOS:")
         for job in self.scheduler.get_jobs():
-            # next_run_time only available after scheduler.start()
-            run_time = job.next_run_time if hasattr(job, 'next_run_time') and job.next_run_time else "(pending)"
-            logger.info(f"  - {job.id} @ {run_time}")
+            # next_run_time só existe depois do scheduler iniciar
+            run_time = getattr(job, "next_run_time", None)
+            run_time_str = run_time if run_time else "(pending)"
+            logger.info(f"  - {job.id} @ {run_time_str}")
 
         logger.info("=" * 60)
 

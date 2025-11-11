@@ -336,28 +336,77 @@ def whatsapp_webhook():
             return jsonify({"status": "error", "message": "Invalid message"}), 400
 
         # ═══════════════════════════════════════════════════════════════════
-        # MODO SÍNCRONO (padrão - Redis desativado)
+        # VERIFICAR SE É RESPOSTA A CHECK-IN PENDENTE
         # ═══════════════════════════════════════════════════════════════════
 
-        try:
-            logger.info(f"🤖 [NLP] Processando via CommandProcessor...")
+        from src.checkins.pending_tracker import get_pending_checkin_tracker
+        from src.checkins.feedback_handler import get_feedback_handler
+        from src.database.connection import get_db_engine
 
-            success, response_text = command_processor.process(
-                from_number=from_number,
-                message=message_body
-            )
+        tracker = get_pending_checkin_tracker()
+        pending_checkin = tracker.get_pending_checkin(push_name)
 
-            if success:
-                logger.info(f"✅ Resposta gerada: {response_text[:100]}...")
-            else:
-                logger.warning(f"⚠️ Erro no processamento")
-                response_text = "Ops, tive um problema. Tenta de novo?"
+        if pending_checkin:
+            logger.info(f"📍 Resposta detectada para check-in: {pending_checkin.checkin_type}")
+
+            try:
+                # Get database connection and feedback handler
+                db_engine = get_db_engine()
+                feedback_handler = get_feedback_handler(db_engine)
+
+                # Process the check-in response
+                from datetime import datetime
+                feedback = feedback_handler.process_checkin_response(
+                    user_id=push_name,
+                    response_text=message_body,
+                    checkin_id=pending_checkin.checkin_id,
+                    checkin_window=pending_checkin.checkin_type,
+                    checkin_message=pending_checkin.checkin_message,
+                    checkin_timestamp=pending_checkin.sent_timestamp,
+                    response_timestamp=datetime.utcnow()
+                )
+
+                if feedback:
+                    logger.info(f"✅ Check-in response recorded: {feedback.response_intent.value}")
+                    # Clear the pending check-in
+                    tracker.clear_pending_checkin(push_name)
+                    # Send acknowledgment
+                    response_text = "Obrigado! Registrei sua resposta. 👍"
+                    success = True
+                else:
+                    logger.error(f"❌ Failed to record check-in response")
+                    response_text = "Tive um problema ao registrar sua resposta. Pode tentar de novo?"
+                    success = True
+
+            except Exception as e:
+                logger.error(f"❌ Erro ao processar resposta de check-in: {e}", exc_info=True)
+                response_text = "Tive um problema ao registrar sua resposta. Pode tentar de novo?"
                 success = True
 
-        except Exception as e:
-            logger.error(f"❌ Erro crítico: {e}", exc_info=True)
-            response_text = "Ops, tive um problema técnico. Pode tentar de novo?"
-            success = True
+        else:
+            # ═══════════════════════════════════════════════════════════════════
+            # MODO SÍNCRONO - PROCESSA COMO COMANDO NORMAL (Redis desativado)
+            # ═══════════════════════════════════════════════════════════════════
+
+            try:
+                logger.info(f"🤖 [NLP] Processando via CommandProcessor...")
+
+                success, response_text = command_processor.process(
+                    from_number=from_number,
+                    message=message_body
+                )
+
+                if success:
+                    logger.info(f"✅ Resposta gerada: {response_text[:100]}...")
+                else:
+                    logger.warning(f"⚠️ Erro no processamento")
+                    response_text = "Ops, tive um problema. Tenta de novo?"
+                    success = True
+
+            except Exception as e:
+                logger.error(f"❌ Erro crítico: {e}", exc_info=True)
+                response_text = "Ops, tive um problema técnico. Pode tentar de novo?"
+                success = True
 
         # Envia resposta via WhatsApp
         try:

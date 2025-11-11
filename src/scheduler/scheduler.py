@@ -29,6 +29,7 @@ from config.colaboradores import get_colaboradores_ativos
 from src.whatsapp.sender import WhatsAppSender
 from src.messaging.humanizer import get_humanizer
 from src.checkins.scheduler_adapter import get_random_checkin_adapter, is_random_checkins_enabled
+from src.checkins.pending_tracker import get_pending_checkin_tracker
 
 logger = logging.getLogger(__name__)
 
@@ -444,6 +445,9 @@ class TaskScheduler:
         total_enviados = 0
         total_erros = 0
 
+        # Get pending check-in tracker for recording sent messages
+        tracker = get_pending_checkin_tracker()
+
         # Pega pergunta humanizada
         question = self.humanizer.get_checkin_question(checkin_key)
 
@@ -459,6 +463,17 @@ class TaskScheduler:
 
                 if success:
                     logger.info(f"✅ Check-in enviado para {nome}. SID: {sid}")
+
+                    # Record pending check-in so responses can be routed correctly
+                    checkin_id = tracker.record_sent_checkin(
+                        user_id=nome,
+                        person_name=nome,
+                        checkin_type=checkin_key,
+                        checkin_message=question,
+                        response_window_minutes=120  # 2 hours to respond
+                    )
+                    logger.info(f"📍 Recorded pending check-in: {checkin_id}")
+
                     total_enviados += 1
                 else:
                     logger.error(f"❌ Falha ao enviar para {nome}: {error}")

@@ -79,7 +79,9 @@ class TestEstevaoIntegration:
         assert success is True, "Greeting deve retornar sucesso"
         assert response is not None, "Greeting deve retornar mensagem"
         assert len(response) > 0, "Greeting não pode ser vazia"
-        assert "bom dia" in response.lower() or "oi" in response.lower() or "opa" in response.lower(), "Greeting deve conter saudação"
+        # Check for time-based greetings (bom dia/boa tarde/boa noite)
+        assert any(phrase in response.lower() for phrase in ["bom", "boa", "oi", "opa"]), \
+            "Greeting deve conter saudação"
 
         # Step 2: Verificar que a pergunta foi feita
         assert "tarefas" in response.lower() or "progresso" in response.lower(), \

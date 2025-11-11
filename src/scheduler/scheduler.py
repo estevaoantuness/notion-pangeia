@@ -235,17 +235,29 @@ class TaskScheduler:
         logger.info(f"📊 RESUMO: {total_enviados} enviados, {total_erros} erros")
         logger.info("=" * 60)
 
+    def _send_checkin_metas(self):
+        """Wrapper para check-in de metas (08:00)."""
+        self._send_checkin("metas", "Metas")
+
     def _send_checkin_planning(self):
         """Wrapper para check-in de planejamento."""
-        self._send_checkin("13h30", "Planejamento")
+        self._send_checkin("planning", "Planejamento")
 
     def _send_checkin_status(self):
         """Wrapper para check-in de status."""
-        self._send_checkin("15h30", "Status")
+        self._send_checkin("status", "Status")
+
+    def _send_checkin_consolidado(self):
+        """Wrapper para check-in de consolidado (sexta)."""
+        self._send_checkin("consolidado", "Consolidado")
 
     def _send_checkin_closing(self):
         """Wrapper para check-in de fechamento."""
-        self._send_checkin("18h00", "Fechamento")
+        self._send_checkin("closing", "Fechamento")
+
+    def _send_weekend_digest(self):
+        """Wrapper para digest do fim de semana."""
+        self._send_checkin("weekend_digest", "Digest do Fim de Semana")
 
     def _send_checkin_reflection(self):
         """

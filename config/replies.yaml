@@ -161,15 +161,25 @@ help:
       Fale de forma natural! 😊
 
 checkins:
+  metas: # 08:00
+    - "🎯 Bom dia! Qual é a meta principal de hoje?"
+    - "🚀 Começando o dia! Qual tarefa vamos atacar primeiro?"
+    - "💪 E aí! Qual é o foco de hoje?"
   planning: # 13:30
     - "☕ Check-in rápido!\n\nComo estão as tarefas? Algum bloqueio?"
     - "🌤️ Hora do check-in!\n\nTudo OK com as tasks? Conseguindo avançar?"
   status: # 15:30
     - "⏰ Status das 15:30!\n\nProgresso do dia OK? Conseguindo avançar?"
     - "💬 Como vai o andamento?\n\nAlgum bloqueio ou está fluindo bem?"
+  consolidado: # 12:00 (sexta)
+    - "📊 Consolidado da semana!\n\nComo você se sente com o progresso desta semana?"
+    - "✨ Sexta! Como foi sua semana? Conseguiu todo aquele planejamento?"
   closing: # 18:00
     - "🌆 Finalizando o dia!\n\nO que você conseguiu fazer hoje? O que ficou para amanhã?"
     - "🌅 Fechamento do dia!\n\nConseguiu concluir o planejado? O que ficou pendente?"
+  weekend_digest: # 10:00 (sábado/domingo)
+    - "📅 Resumo do fim de semana!\n\nComo foi? Teve tempo de descansar e recarregar?"
+    - "🌴 Fim de semana! Aproveite para descansar e se recuperar. Próxima semana volta com tudo! 💪"
   reflection: # 22:00
     - "RESUMO_AUTOMATICO"  # Será substituído por resumo calculado no scheduler
     - "RESUMO_AUTOMATICO"

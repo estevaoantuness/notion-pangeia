@@ -516,7 +516,7 @@ class TaskScheduler:
 
         Chamado automaticamente 15 minutos após o envio do check-in inicial.
         Verifica se há um check-in pendente e, se houver, envia uma mensagem
-        de follow-up aleatória das 15 opções.
+        de follow-up contextualizada com progresso do dia.
 
         Args:
             user_id: ID do usuário
@@ -525,17 +525,38 @@ class TaskScheduler:
         """
         try:
             from src.checkins.pending_tracker import get_pending_checkin_tracker
+            from src.notion.tasks import TasksManager
 
             tracker = get_pending_checkin_tracker()
             pending_checkin = tracker.get_pending_checkin(user_id)
 
             # Verifica se ainda há check-in pendente
             if pending_checkin and pending_checkin.checkin_id == checkin_id:
-                # Usuário não respondeu - enviar follow-up
-                followup_msg = self.humanizer.get_followup_message()
+                # Usuário não respondeu - preparar follow-up contextualizado
+
+                # Tentar obter dados de progresso do dia
+                done = None
+                total = None
+                try:
+                    tasks_mgr = TasksManager()
+                    all_tasks = tasks_mgr.get_all_tasks()
+                    total = len(all_tasks)
+                    done = sum(1 for t in all_tasks if t.get('status') == 'Done')
+                except Exception as e:
+                    logger.warning(f"⚠️ Não consegui recuperar tasks para progresso: {e}")
+                    # Continua sem dados de progresso
+
+                # Gerar follow-up contextualizado com hora e progresso
+                followup_msg = self.humanizer.get_contextual_followup(
+                    hour=datetime.now(TZ).hour,
+                    done=done,
+                    total=total
+                )
 
                 logger.info("=" * 60)
                 logger.info(f"📬 ENVIANDO FOLLOW-UP PARA {user_id}")
+                if done is not None and total is not None:
+                    logger.info(f"📊 Progresso: {done}/{total} tarefas ({int(done/total*100)}%)")
                 logger.info("=" * 60)
 
                 success, sid, error = self.whatsapp_sender.send_message(
@@ -545,7 +566,7 @@ class TaskScheduler:
 
                 if success:
                     logger.info(f"✅ Follow-up enviado para {user_id}. SID: {sid}")
-                    logger.info(f"📨 Mensagem: {followup_msg[:80]}...")
+                    logger.info(f"📨 Mensagem: {followup_msg[:100]}...")
                 else:
                     logger.error(f"❌ Falha ao enviar follow-up para {user_id}: {error}")
 

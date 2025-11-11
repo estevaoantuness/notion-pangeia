@@ -194,21 +194,33 @@ checkins:
     - "RESUMO_AUTOMATICO"
 
 checkin_followups:
-  - "Oi! Vi que você não respondeu ao check-in. Tudo bem por aí? 😊"
-  - "Só lembrando do check-in de mais cedo. Consegue responder quando puder?"
-  - "Hey! Ainda preciso da sua resposta. Como estão as coisas?"
-  - "Opa! Esqueceu do check-in? Sem problemas, pode responder agora!"
-  - "Tá aí? Preciso da sua resposta do check-in anterior 🙏"
-  - "Ei! Ainda dá tempo de responder o check-in!"
-  - "Fala! Viu a mensagem anterior? Consegue dar um feedback?"
-  - "Oi de novo! Como foi? Consegue compartilhar?"
-  - "E aí, tudo certo? Falta só sua resposta aqui! 👍"
-  - "Lembrando do check-in! Pode responder quando puder"
-  - "Beleza? Ainda estou esperando seu retorno do check-in!"
-  - "Oi! Não quero te incomodar, mas preciso do seu feedback"
-  - "Tá corrido hoje? Quando puder, responde o check-in!"
-  - "Ei! Só pra não deixar passar - consegue responder?"
-  - "Opa! Me conta como foi, ainda dá pra registrar! 🎯"
+  # Mensagens de follow-up contextualizadas por horário
+  # Placeholders: {percent}, {done}, {total}
+
+  morning:  # 08:00 - Check-in Metas (começando o dia)
+    - "🌅 E aí! Ainda não respondeu a meta de hoje. Qual a prioridade? 🎯"
+    - "☀️ Bom dia! Qual é o foco principal para hoje? Vamo começar?"
+    - "💪 Começando o dia! Qual meta vamos atacar primeiro?"
+    - "🚀 E aí! Qual tarefa vamos conquistar hoje?"
+    - "🎯 Bora começar! Qual é a meta principal?"
+
+  afternoon:  # 13:30-18:00 - Check-ins Planning/Status/Closing (em andamento)
+    - "📊 Opa! Você fez {done}/{total} tarefas ({percent}%). Consegue responder rápido? 💪"
+    - "💡 E aí! Você conquistou {percent}% do dia. Como está o ritmo? Algum bloqueio?"
+    - "⚡ Ritmo firme! Você já fez {done}/{total} ({percent}%). Conseguindo avançar?"
+    - "🔄 Progresso: {percent}% ({done} de {total}). Consegue compartilhar o status?"
+    - "🎯 {percent}% do dia conquistado ({done}/{total}). Como vai? Tudo fluindo?"
+    - "💪 Você está em {percent}%! Já fez {done} de {total}. Consegue responder?"
+    - "📈 Metade do dia: {percent}% concluído. Como está saindo? 🚀"
+
+  evening:  # 18:00+ - Check-in Fechamento (finalizando)
+    - "🌆 Reta final! Você fez {done}/{total} ({percent}%). O que fica para amanhã? 🎯"
+    - "✨ Finalizando! {percent}% concluído ({done}/{total}). O que saiu do papel hoje?"
+    - "🌅 Fechando o dia com {percent}%! Qual task fica pendente? 👍"
+    - "🎉 Dia produtivo! {done}/{total} concluídas ({percent}%). Como foi? 💪"
+    - "🌙 Hora de fechar! Você conquistou {percent}%. O que ficou para amanhã?"
+    - "✅ Resultados: {percent}% do planejado. Alguma coisa travou? 🎯"
+    - "🏆 Encerando com {percent}%! De {total} tarefas, {done} saíram do papel. Parabéns! 🎊"
 
 ctas:
   see_tasks:

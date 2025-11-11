@@ -348,18 +348,63 @@ class MessageHumanizer:
 
     def get_followup_message(self) -> str:
         """
-        Retorna mensagem de follow-up para check-in não respondido.
+        Retorna mensagem de follow-up para check-in não respondido (genérica).
 
-        Usa lista simples de variações para parecer natural e humanizado.
+        DEPRECATED: Use get_contextual_followup() para mensagens personalizadas.
 
         Returns:
-            Mensagem de follow-up aleatória (1 de 15 variações)
+            Mensagem de follow-up aleatória
         """
-        followups = self.replies.get('checkin_followups', [])
-        if not followups:
+        # Fallback para modo genérico (sem contexto)
+        return self.get_contextual_followup(hour=None, done=None, total=None)
+
+    def get_contextual_followup(self, hour: int = None, done: int = None, total: int = None) -> str:
+        """
+        Retorna mensagem de follow-up contextualizada com horário e progresso do dia.
+
+        Args:
+            hour: Hora atual (0-23). Se None, detecta automaticamente.
+            done: Tarefas concluídas. Se None, usa mensagem genérica.
+            total: Total de tarefas. Se None, usa mensagem genérica.
+
+        Returns:
+            Mensagem de follow-up contextualizada com {done}, {total}, {percent} preenchidos
+        """
+        import datetime
+
+        # Detectar hora se não fornecida
+        if hour is None:
+            hour = datetime.datetime.now().hour
+
+        # Determinar período do dia
+        if hour < 12:
+            period = 'morning'
+        elif hour < 18:
+            period = 'afternoon'
+        else:
+            period = 'evening'
+
+        # Obter mensagens do período
+        followups = self.replies.get('checkin_followups', {})
+        period_messages = followups.get(period, [])
+
+        if not period_messages:
+            # Fallback se não encontrar período
             return "Oi! Ainda estou esperando sua resposta do check-in anterior. Consegue responder?"
 
-        return random.choice(followups)
+        # Escolher mensagem aleatória do período
+        message = random.choice(period_messages)
+
+        # Se temos dados de progresso, preencher placeholders
+        if done is not None and total is not None and total > 0:
+            percent = int((done / total) * 100)
+            message = message.format(
+                done=done,
+                total=total,
+                percent=percent
+            )
+
+        return message
 
     def get_task_list_message(
         self,

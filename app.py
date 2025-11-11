@@ -7,6 +7,7 @@ from src.webhook.app import app, initialize_scheduler
 # Inicializa scheduler na importação do app
 # Isso garante que o scheduler é inicializado exatamente uma vez,
 # independentemente se rodando via Gunicorn, Flask dev server, ou outro WSGI server
+# (Força redeploy com timestamp: 2025-11-11 21:30)
 initialize_scheduler()
 
 if __name__ == '__main__':

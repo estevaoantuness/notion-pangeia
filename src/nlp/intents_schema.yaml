@@ -1,0 +1,425 @@
+# ==============================================================================
+# INTENT SCHEMA WITH SLOTS AND VALIDATION
+# ==============================================================================
+# Comprehensive schema defining intents, their slots, types, validation rules,
+# and default values for the Pangeia Bot NLP system.
+#
+# This schema drives:
+# - Slot extraction from user messages
+# - Slot normalization and validation
+# - Recovery message generation for missing/invalid slots
+# - Context-based slot inference
+#
+# Created: 2025-11-11
+# Version: 1.0
+# ==============================================================================
+
+# ==============================================================================
+# TASK MANAGEMENT INTENTS
+# ==============================================================================
+
+create_task:
+  description: "Create a new task in Notion"
+  examples:
+    - "criar tarefa"
+    - "nova tarefa em tech - revisar dashboard"
+    - "adicionar tarefa: implementar feature X"
+  slots:
+    title:
+      type: text
+      required: true
+      description: "Task title/description"
+      validation:
+        min_length: 3
+        max_length: 200
+      examples:
+        - "revisar dashboard"
+        - "implementar feature X"
+        - "corrigir bug no login"
+    project:
+      type: enum
+      required: false
+      description: "Project name where task will be created"
+      validation:
+        allowed_values: ["tech", "growth", "ops", "design", "pessoal"]
+        fuzzy_match: true  # Allow "TEC H" -> "tech"
+        case_insensitive: true
+      default: null
+      examples:
+        - "tech"
+        - "growth"
+        - "ops"
+    due_date:
+      type: date
+      required: false
+      description: "Task due date (relative or absolute)"
+      validation:
+        allow_past: false  # Don't allow past dates
+        allow_relative: true  # Allow "amanhã", "sexta"
+      default: null
+      examples:
+        - "amanhã"
+        - "sexta"
+        - "próxima semana"
+        - "2025-11-15"
+    priority:
+      type: enum
+      required: false
+      description: "Task priority level"
+      validation:
+        allowed_values: ["alta", "média", "baixa"]
+        fuzzy_match: true
+      default: "média"
+      examples:
+        - "alta"
+        - "urgente"
+        - "média"
+        - "tranquilo"
+
+done_task:
+  description: "Mark one or more tasks as completed"
+  examples:
+    - "feito 3"
+    - "feito 1, 2, 3"
+    - "pronto 1-5"
+    - "concluí as tarefas 2 e 4"
+  slots:
+    indices:
+      type: list[int]
+      required: true
+      description: "Task indices to mark as done (1-based)"
+      validation:
+        min_value: 1
+        max_value: 999
+        allow_ranges: true  # "1-3" -> [1, 2, 3]
+        allow_commas: true  # "1, 2, 3" -> [1, 2, 3]
+        allow_spaces: true  # "1 2 3" -> [1, 2, 3]
+      examples:
+        - "1"
+        - "1, 2, 3"
+        - "1-3"
+        - "1 2 3"
+        - "2, 4-6, 8"
+
+in_progress_task:
+  description: "Mark one or more tasks as in progress"
+  examples:
+    - "andamento 2"
+    - "fazendo 1, 3"
+    - "começando 1-4"
+  slots:
+    indices:
+      type: list[int]
+      required: true
+      description: "Task indices to mark as in progress (1-based)"
+      validation:
+        min_value: 1
+        max_value: 999
+        allow_ranges: true
+        allow_commas: true
+        allow_spaces: true
+      examples:
+        - "1"
+        - "1, 2"
+        - "1-5"
+
+blocked_task:
+  description: "Mark a task as blocked with a reason"
+  examples:
+    - "bloqueada 4 - sem acesso ao servidor"
+    - "bloqueada 2: aguardando aprovação"
+  slots:
+    index:
+      type: int
+      required: true
+      description: "Task index to mark as blocked (1-based)"
+      validation:
+        min_value: 1
+        max_value: 999
+      examples:
+        - "1"
+        - "4"
+    reason:
+      type: text
+      required: true
+      description: "Reason why the task is blocked"
+      validation:
+        min_length: 3
+        max_length: 200
+      examples:
+        - "sem acesso ao servidor"
+        - "aguardando aprovação do cliente"
+        - "dependência de outra tarefa"
+
+# ==============================================================================
+# TASK VIEWING INTENTS
+# ==============================================================================
+
+list_tasks:
+  description: "List all tasks for the user"
+  examples:
+    - "minhas tarefas"
+    - "lista"
+    - "ver tarefas"
+  slots:
+    # No required slots - lists all tasks
+    filter:
+      type: enum
+      required: false
+      description: "Filter tasks by status"
+      validation:
+        allowed_values: ["todas", "pendentes", "em andamento", "concluídas", "bloqueadas"]
+      default: "todas"
+      examples:
+        - "todas"
+        - "pendentes"
+        - "concluídas"
+
+show_task:
+  description: "Show details of a specific task"
+  examples:
+    - "mostre 3"
+    - "ver 5"
+    - "detalhes da 2"
+  slots:
+    index:
+      type: int
+      required: true
+      description: "Task index to show details (1-based)"
+      validation:
+        min_value: 1
+        max_value: 999
+      examples:
+        - "1"
+        - "5"
+        - "10"
+
+progress:
+  description: "Show progress summary and statistics"
+  examples:
+    - "progresso"
+    - "status"
+    - "como estou"
+  slots:
+    # No required slots - shows overall progress
+    period:
+      type: enum
+      required: false
+      description: "Time period for progress report"
+      validation:
+        allowed_values: ["hoje", "semana", "mês", "geral"]
+      default: "hoje"
+      examples:
+        - "hoje"
+        - "semana"
+        - "mês"
+
+# ==============================================================================
+# CONVERSATION INTENTS
+# ==============================================================================
+
+greet:
+  description: "User greeting"
+  examples:
+    - "oi"
+    - "olá"
+    - "bom dia"
+  slots:
+    # No slots required
+
+goodbye:
+  description: "User farewell"
+  examples:
+    - "tchau"
+    - "até mais"
+    - "falou"
+  slots:
+    # No slots required
+
+thanks:
+  description: "User expressing gratitude"
+  examples:
+    - "obrigado"
+    - "valeu"
+    - "thanks"
+  slots:
+    # No slots required
+
+help:
+  description: "User requesting help or available commands"
+  examples:
+    - "ajuda"
+    - "help"
+    - "?"
+  slots:
+    # No slots required
+
+# ==============================================================================
+# CONFIRMATION INTENTS
+# ==============================================================================
+
+confirm_yes:
+  description: "User confirms or agrees"
+  examples:
+    - "sim"
+    - "ok"
+    - "pode ser"
+    - "👍"
+  slots:
+    # No slots required
+
+confirm_no:
+  description: "User declines or disagrees"
+  examples:
+    - "não"
+    - "cancelar"
+    - "deixa"
+    - "❌"
+  slots:
+    # No slots required
+
+# ==============================================================================
+# SLOT TYPE DEFINITIONS
+# ==============================================================================
+# This section defines the data types and their normalization rules
+
+slot_types:
+  int:
+    description: "Integer number"
+    normalizer: "normalize_int"
+    examples: ["1", "10", "999"]
+
+  list[int]:
+    description: "List of integers (comma/range/space separated)"
+    normalizer: "normalize_indices"
+    examples: ["1,2,3", "1-3", "1 2 3", "2,4-6,8"]
+
+  text:
+    description: "Free text string"
+    normalizer: "normalize_text"
+    examples: ["revisar dashboard", "sem acesso ao servidor"]
+
+  enum:
+    description: "Enumerated value from allowed list"
+    normalizer: "normalize_enum"
+    examples: ["alta", "tech", "pendentes"]
+
+  date:
+    description: "Date (absolute or relative)"
+    normalizer: "normalize_date"
+    examples: ["amanhã", "sexta", "2025-11-15", "próxima semana"]
+
+# ==============================================================================
+# VALIDATION RULES
+# ==============================================================================
+# Common validation rules applied across slots
+
+validation_rules:
+  task_index:
+    description: "Validate task index exists in user's task list"
+    validator: "validate_task_exists"
+    error_message: "Tarefa {index} não encontrada. Você tem {total} tarefas."
+
+  project_name:
+    description: "Validate project exists in Notion"
+    validator: "validate_project_exists"
+    error_message: "Projeto '{project}' não encontrado. Projetos disponíveis: {available_projects}"
+
+  text_length:
+    description: "Validate text length"
+    validator: "validate_text_length"
+    error_message: "O texto deve ter entre {min} e {max} caracteres."
+
+  date_not_past:
+    description: "Validate date is not in the past"
+    validator: "validate_date_not_past"
+    error_message: "A data {date} já passou. Escolha uma data futura."
+
+# ==============================================================================
+# CONTEXT INFERENCE RULES
+# ==============================================================================
+# Rules for inferring missing slots from conversation context
+
+context_inference:
+  last_task_index:
+    description: "Infer task index from recently mentioned task"
+    ttl_seconds: 120  # Remember for 2 minutes
+    applicable_to:
+      - done_task
+      - in_progress_task
+      - blocked_task
+      - show_task
+    example:
+      - user: "mostre 3"  # Sets last_task_index = 3
+      - user: "feito"     # Infers index = 3 from context
+
+  last_project:
+    description: "Infer project from recently created task"
+    ttl_seconds: 300  # Remember for 5 minutes
+    applicable_to:
+      - create_task
+    example:
+      - user: "criar tarefa em tech"  # Sets last_project = "tech"
+      - user: "nova tarefa: revisar código"  # Infers project = "tech"
+
+  pending_intent:
+    description: "Remember incomplete intent awaiting slot values"
+    ttl_seconds: 600  # Remember for 10 minutes
+    applicable_to:
+      - create_task
+      - blocked_task
+    example:
+      - user: "criar tarefa"  # Sets pending_intent = "create_task", awaiting_slot = "title"
+      - user: "revisar dashboard"  # Fills title slot
+
+# ==============================================================================
+# RECOVERY MESSAGE TEMPLATES
+# ==============================================================================
+# Templates for generating helpful recovery messages when slots are missing
+
+recovery_templates:
+  done_task:
+    missing_indices: "📋 Para marcar como concluída, me diga o número da tarefa.\n\nExemplos:\n• feito 2\n• feito 1, 3, 5\n• feito 1-3"
+
+  in_progress_task:
+    missing_indices: "📋 Para marcar como em andamento, me diga o número da tarefa.\n\nExemplos:\n• andamento 2\n• fazendo 1, 3\n• começando 1-5"
+
+  blocked_task:
+    missing_index: "📋 Qual tarefa está bloqueada? Me diga o número.\n\nExemplo: bloqueada 4"
+    missing_reason: "🤔 Qual o motivo do bloqueio da tarefa {index}?\n\nExemplo: sem acesso ao servidor"
+
+  create_task:
+    missing_title: "📝 Qual o título da tarefa que você quer criar?\n\nExemplo: revisar dashboard"
+    missing_project: "📁 Em qual projeto? ({available_projects})\n\nExemplo: tech"
+
+  show_task:
+    missing_index: "👁️ Qual tarefa você quer ver? Me diga o número.\n\nExemplo: mostre 3"
+
+  invalid_index: "❌ Tarefa {index} não encontrada. Você tem {total} tarefas.\n\nDiga 'minhas tarefas' para ver a lista."
+
+  invalid_project: "❌ Projeto '{project}' não encontrado.\n\nProjetos disponíveis: {available_projects}"
+
+  invalid_date: "❌ Data '{date}' inválida.\n\nExemplos válidos:\n• amanhã\n• sexta\n• próxima semana\n• 2025-11-15"
+
+  technical_error: "⚠️ Ops, tive um problema técnico. Pode tentar novamente?\n\nSe persistir, diga 'ajuda' para ver comandos disponíveis."
+
+# ==============================================================================
+# METADATA
+# ==============================================================================
+
+metadata:
+  version: "1.0"
+  created: "2025-11-11"
+  description: "Intent and slot schema for Pangeia Bot NLP system"
+  total_intents: 11
+  total_slots: 18
+  supported_languages: ["pt-BR"]
+
+notes:
+  - "All task indices are 1-based (not 0-based)"
+  - "Slot normalization happens before validation"
+  - "Context inference only happens if slot is missing and TTL hasn't expired"
+  - "Recovery messages should never be generic 'Ops, tive um problema'"
+  - "Fuzzy matching is case-insensitive and handles typos"
+  - "Date normalization converts relative dates (amanhã) to absolute dates"
+  - "Indices support ranges (1-3), commas (1,2,3), and spaces (1 2 3)"

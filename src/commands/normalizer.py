@@ -67,6 +67,13 @@ NO_SET: Set[str] = {
     "❌", "🚫", "✗"
 }
 
+# Expressões de desejo/vontade (para respostas a perguntas)
+WANT_SET: Set[str] = {
+    "quero", "quer", "gostaria", "prefiro", "escolho", "seleciono",
+    "queria", "eu quero", "eu gosto", "prefiro",
+    "😍", "🙌", "👀"
+}
+
 # ==============================================================================
 # KEYWORD SETS - Para extração de palavras-chave em frases naturais
 # ==============================================================================
@@ -101,6 +108,10 @@ KEYWORD_SETS: Dict[str, Set[str]] = {
     },
     "help": {
         "ajuda", "help", "comandos", "como", "tutorial"
+    },
+    "want": {
+        "quero", "quer", "gostaria", "prefiro", "escolho", "seleciono",
+        "queria", "eu quero", "eu gosto", "preference"
     }
 }
 
@@ -905,6 +916,10 @@ def parse(text: str, log_result: bool = False, conversation_history: List[Dict] 
     # Agradecimentos
     if any(tok in {"valeu", "brigado", "obrigado", "thanks"} for tok in tokens):
         return ParseResult("thanks", {}, 0.85, normalized, original)
+
+    # Expressões de desejo/vontade (respostas a perguntas do bot)
+    if any(word in normalized for word in WANT_SET):
+        return ParseResult("want_clarification", {}, 0.88, normalized, original)
 
     # Comandos incompletos (baixa confiança)
     if "feito" in first_tokens or "pronto" in first_tokens:

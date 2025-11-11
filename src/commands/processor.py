@@ -140,7 +140,8 @@ Posso te ajudar com suas tarefas ou o progresso do dia. O que você prefere?"""
         # Adiciona sugestão implícita (conversacional, sem lista de comandos)
         suggestion = "\n\nQuer ver suas tarefas ou como está o progresso do dia?"
 
-        return greeting + suggestion, None
+        # Retornar com ação pendente para routing de resposta
+        return greeting + suggestion, "ask_task_or_progress"
 
     def process(
         self,
@@ -425,7 +426,15 @@ Posso te ajudar com suas tarefas ou o progresso do dia. O que você prefere?"""
         # Saudações - responder com cumprimento contextual
         if intent == "greet":
             logger.info(f"Intent 'greet' detectado - respondendo com saudação")
-            greeting, tasks_reminder = self._get_contextual_greeting(person_name)
+            greeting, pending_action = self._get_contextual_greeting(person_name)
+            # Setar estado pendente para que próxima resposta (sim/não/quero/não quero) seja roteada corretamente
+            if pending_action:
+                self._set_user_state(person_name, {
+                    "pending_confirm": {
+                        "action": pending_action,
+                        "question": "ask_task_or_progress"
+                    }
+                })
             return True, greeting
 
         # Despedidas, Agradecimentos, Smalltalk - respostas com humanizer
@@ -675,6 +684,48 @@ Pode me dizer o que você gostaria de fazer! 😊"""
             self._clear_user_state(person_name)
             acknowledgment = self.humanizer.pick("acknowledgments", "professional")
             return True, f"{acknowledgment} Se quiser, peça 'tarefas' quando for a hora."
+
+        # Expressões de desejo/vontade (resposta a perguntas do bot)
+        if intent == "want_clarification":
+            logger.info(f"Intent 'want_clarification' detectado - roteando para ação pendente")
+            pending_state = self._get_user_state(person_name)
+
+            if pending_state and "pending_confirm" in pending_state:
+                # Usuário respondeu a pergunta do bot com expressão de desejo
+                question = pending_state.get("pending_confirm", {}).get("question")
+                self._clear_user_state(person_name)
+
+                # Se a pergunta era sobre tarefas ou progresso, oferece escolha
+                if question == "ask_task_or_progress":
+                    # Extrair o que o usuário quer
+                    normalized = result.normalized_text if hasattr(result, 'normalized_text') else ""
+
+                    # Se mencionou "tarefa" ou "ver" → mostrar tarefas
+                    if any(word in normalized for word in ["tarefa", "tasks", "lista", "ver"]):
+                        return self.handlers.handle_list(person_name)
+                    # Se mencionou "progresso" ou "como" → mostrar progresso
+                    elif any(word in normalized for word in ["progresso", "progress", "status", "como", "quanto"]):
+                        return self.handlers.handle_progress(person_name)
+                    # Caso contrário, pedir para clarificar
+                    else:
+                        confirmation = self.humanizer.pick("confirmations", "positive")
+                        return True, f"{confirmation} Você quer ver:\n• Tarefas\n• Progresso\n\nMe diga qual dos dois! 😊"
+                else:
+                    # Outro tipo de pergunta pendente
+                    confirmation = self.humanizer.pick("confirmations", "positive")
+                    return True, confirmation
+            else:
+                # Expressão de desejo sem contexto de pergunta
+                # Pode ser "quero tarefas" ou "quero progresso"
+                normalized = result.normalized_text if hasattr(result, 'normalized_text') else ""
+
+                if any(word in normalized for word in ["tarefa", "tasks", "lista", "ver"]):
+                    return self.handlers.handle_list(person_name)
+                elif any(word in normalized for word in ["progresso", "progress", "status"]):
+                    return self.handlers.handle_progress(person_name)
+                else:
+                    confirmation = self.humanizer.pick("confirmations", "positive")
+                    return True, f"{confirmation} Você quer ver tarefas ou progresso?"
 
         # Intent desconhecido
         logger.warning(f"Intent não tratado: {intent}")

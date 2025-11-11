@@ -1,0 +1,109 @@
+# Banco de Palavras-Chave → Comandos
+#
+# Este arquivo lista os principais intents do bot e as palavras/expressões
+# naturais que mapeiam para cada comando. Use como referência rápida para
+# ajustar o NLP ou treinar agentes humanos.
+
+commands:
+  list_tasks:
+    canonical_command: "minhas tarefas"
+    description: "Lista as tarefas do dia ou por projeto/escopo."
+    keywords:
+      - "lista"
+      - "tarefas pendentes"
+      - "o que falta"
+      - "tarefas do dia"
+      - "lista geral"
+      - "tarefas do marketing"
+      - "quais tarefas tenho"
+    example_phrases:
+      - "Quero ver minhas tarefas"
+      - "O que falta do dia?"
+      - "Lista geral das tarefas do projeto Growth"
+
+  progress:
+    canonical_command: "progresso"
+    description: "Mostra resumo do dia: concluídas, em andamento e pendentes."
+    keywords:
+      - "status"
+      - "status geral"
+      - "andamento do dia"
+      - "como tá o dia"
+      - "quanto falta"
+      - "relatório"
+      - "resumo"
+    example_phrases:
+      - "Qual o status geral?"
+      - "Como tá meu dia hoje?"
+      - "Me mostra o andamento"
+
+  done_task:
+    canonical_command: "feito N"
+    description: "Marca uma ou várias tarefas como concluídas."
+    keywords:
+      - "feito"
+      - "terminei"
+      - "concluí"
+      - "dei baixa"
+      - "zerou"
+      - "completei"
+      - "pronto"
+    example_phrases:
+      - "Dei baixa na 4"
+      - "Terminei as tarefas 2 e 3"
+      - "Pronto 5"
+
+  in_progress_task:
+    canonical_command: "andamento N"
+    description: "Move tarefas para em andamento/estou fazendo."
+    keywords:
+      - "andamento"
+      - "fazendo"
+      - "comecei"
+      - "puxa"
+      - "coloca"
+      - "tocando"
+      - "levando"
+    example_phrases:
+      - "Puxa 2 pro andamento"
+      - "Tocando a 5"
+      - "Comecei a fazer a 1"
+
+  help:
+    canonical_command: "ajuda"
+    description: "Apresenta guia rápido, exemplos ou tutorial completo."
+    keywords:
+      - "ajuda"
+      - "comandos"
+      - "manda aí"
+      - "me orienta"
+      - "como usar"
+      - "preciso de orientação"
+    example_phrases:
+      - "Manda aí os comandos"
+      - "Me orienta como usar"
+      - "Como funciona?"
+
+  show_task:
+    canonical_command: "mostrar N"
+    description: "Mostra detalhes de uma tarefa específica."
+    keywords:
+      - "mostra"
+      - "detalhes"
+      - "ver a"
+      - "info da"
+    example_phrases:
+      - "Mostra a tarefa 3"
+      - "Quero detalhes da 1"
+
+  create_task:
+    canonical_command: "criar tarefa"
+    description: "Fluxo guiado em três passos para criar uma nova tarefa."
+    keywords:
+      - "criar"
+      - "adicionar"
+      - "nova tarefa"
+      - "registrar"
+    example_phrases:
+      - "Quero criar uma nova tarefa"
+      - "Adicionar tarefa no projeto Vendas"

@@ -6,7 +6,7 @@ para envio via WhatsApp, incluindo contexto de horário.
 """
 
 from datetime import datetime
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Tuple
 from zoneinfo import ZoneInfo
 
 # Timezone
@@ -504,9 +504,7 @@ def format_progress_report(
     progress: Dict
 ) -> str:
     """
-    Formata relatório visual de progresso do dia.
-
-    Mostra TODAS as tarefas agrupadas por status com estatísticas.
+    Formata relatório visual de progresso com foco em barras e próximos passos.
 
     Args:
         person_name: Nome do colaborador
@@ -514,100 +512,52 @@ def format_progress_report(
         progress: Estatísticas de progresso
 
     Returns:
-        Mensagem formatada com relatório visual
+        Mensagem formatada com relatório visual enxuto
     """
-    from config.settings import settings
-
-    # Dados básicos
-    hoje = datetime.now(TZ).strftime("%d/%m/%Y")
     first_name = person_name.split()[0]
 
-    # Estatísticas
     total = progress.get("total", 0)
     concluidas = progress.get("concluidas", 0)
     em_andamento = progress.get("em_andamento", 0)
     pendentes = progress.get("pendentes", 0)
+    percentual = progress.get("percentual", 0)
 
-    # Percentuais
-    done_percent = (concluidas / total * 100) if total > 0 else 0
-    in_progress_percent = (em_andamento / total * 100) if total > 0 else 0
-    pending_percent = (pendentes / total * 100) if total > 0 else 0
+    message = f"📊 *Relatório de Progresso* ({first_name})\n\n"
+    message += f"*Progresso Geral:* {percentual}%\n\n"
+    message += f"{_build_progress_bar(percentual)}\n\n"
 
-    # Header
-    message = f"📊 Seu progresso hoje ({hoje})\n\n"
+    message += "*Detalhamento:*\n"
+    message += f"  ✅ Concluídas: {concluidas}\n"
+    message += f"  🔄 Em andamento: {em_andamento}\n"
+    message += f"  ⬜ Pendentes: {pendentes}\n"
+    message += f"  📊 Total: {total}\n\n"
 
-    # Seção: CONCLUÍDAS (se houver)
-    # Busca tasks concluídas do Notion (não do grouped que está filtrado)
-    from src.notion.tasks import TasksManager
-    tasks_manager = TasksManager()
-    all_results = tasks_manager.notion_client.query_database(database_id=tasks_manager.database_id)
+    focus_source, focus_task = _select_focus_task(tasks_grouped)
+    message += "*Foco Atual:*\n"
+    if focus_task:
+        icon = "🔄" if focus_source == "em_andamento" else "⬜"
+        message += f"  {icon} {_truncate_text(focus_task.get('nome', 'Sem título'), 72)}\n\n"
+    else:
+        message += "  🙌 Sem tarefas em andamento agora.\n\n"
 
-    concluidas_list = []
-    em_andamento_list = []
-    pendentes_list = []
+    upcoming_tasks = tasks_grouped.get("a_fazer", []) or []
+    if focus_source == "a_fazer" and focus_task:
+        # Evita repetir a mesma tarefa na lista de próximas
+        upcoming_tasks = upcoming_tasks[1:]
 
-    # Filtra por pessoa e agrupa
-    for task in all_results:
-        assignees_prop = task.get("properties", {}).get("Assignees", {})
-        assignees = assignees_prop.get("multi_select", [])
-
-        is_responsible = False
-        for assignee in assignees:
-            assignee_name = assignee.get("name", "")
-            if tasks_manager._normalize_name(person_name) in tasks_manager._normalize_name(assignee_name):
-                is_responsible = True
-                break
-
-        if not is_responsible:
-            continue
-
-        parsed = tasks_manager._parse_task(task)
-        status = parsed.get("status", "")
-
-        if status == "Concluída":
-            concluidas_list.append(parsed)
-        elif status == "Em Andamento":
-            em_andamento_list.append(parsed)
-        else:
-            pendentes_list.append(parsed)
-
-    # CONCLUÍDAS
-    if concluidas_list:
-        message += "━━━━━━━━━━━━━━━━━━━━━━\n"
-        message += f"✅ CONCLUÍDAS ({len(concluidas_list)}/{total} - {done_percent:.0f}%)\n\n"
-        for i, task in enumerate(concluidas_list, 1):
-            title = _truncate_text(task['nome'], 50)
-            message += f"{i}. {title}\n"
+    message += "*Próximas Tarefas:*\n"
+    if upcoming_tasks:
+        preview = upcoming_tasks[:3]
+        for task in preview:
+            message += f"  ⬜ {_truncate_text(task.get('nome', 'Sem título'), 72)}\n"
+        remaining = len(upcoming_tasks) - len(preview)
+        if remaining > 0:
+            message += f"  _...e mais {remaining}_\n"
         message += "\n"
+    else:
+        message += "  ✅ Todas em dia!\n\n"
 
-    # EM ANDAMENTO
-    if em_andamento_list:
-        message += "━━━━━━━━━━━━━━━━━━━━━━\n"
-        message += f"🔵 EM ANDAMENTO ({len(em_andamento_list)}/{total} - {in_progress_percent:.0f}%)\n\n"
-        for i, task in enumerate(em_andamento_list, 1):
-            title = _truncate_text(task['nome'], 50)
-            message += f"{i}. {title}\n"
-        message += "\n"
-
-    # PENDENTES
-    if pendentes_list:
-        message += "━━━━━━━━━━━━━━━━━━━━━━\n"
-        message += f"⚪ PENDENTES ({len(pendentes_list)}/{total} - {pending_percent:.0f}%)\n\n"
-        for i, task in enumerate(pendentes_list, 1):
-            title = _truncate_text(task['nome'], 50)
-            message += f"{i}. {title}\n"
-        message += "\n"
-
-    # RESUMO
-    message += "━━━━━━━━━━━━━━━━━━━━━━\n"
-    message += "📈 RESUMO DO DIA\n\n"
-    message += f"Total: {total} tarefas\n"
-    message += f"Concluídas: {concluidas} ({done_percent:.0f}%)\n"
-    message += f"Em andamento: {em_andamento} ({in_progress_percent:.0f}%)\n"
-    message += f"Pendentes: {pendentes} ({pending_percent:.0f}%)\n\n"
-
-    # Mensagem motivacional
-    message += _get_motivational_message(done_percent, em_andamento, pendentes)
+    message += "━━━━━━━━━━━━━━━━━━━━━━"
 
     return message
 
@@ -617,6 +567,27 @@ def _truncate_text(text: str, max_length: int) -> str:
     if len(text) <= max_length:
         return text
     return text[:max_length - 3] + "..."
+
+
+def _build_progress_bar(percentual: int, segments: int = 10) -> str:
+    """Retorna barra visual baseada no percentual informado."""
+    percentual = max(0, min(100, int(percentual)))
+    filled_segments = int(round((percentual / 100) * segments))
+    filled_segments = max(0, min(segments, filled_segments))
+    bar = "█" * filled_segments + "░" * (segments - filled_segments)
+    return f"[{bar}] {percentual}%"
+
+
+def _select_focus_task(tasks_grouped: Dict[str, List[Dict]]) -> Tuple[Optional[str], Optional[Dict]]:
+    """Seleciona tarefa principal para destacar no relatório."""
+    em_andamento = tasks_grouped.get("em_andamento", []) or []
+    pendentes = tasks_grouped.get("a_fazer", []) or []
+
+    if em_andamento:
+        return "em_andamento", em_andamento[0]
+    if pendentes:
+        return "a_fazer", pendentes[0]
+    return None, None
 
 
 def _get_motivational_message(done_percent: float, in_progress: int, pending: int) -> str:

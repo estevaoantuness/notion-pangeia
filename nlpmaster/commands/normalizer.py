@@ -23,7 +23,7 @@ Data: 2025
 
 import re
 import unicodedata
-from typing import Dict, Optional, Tuple, Any, List, Set
+from typing import Dict, Optional, Tuple, Any, List, Set, Union
 from dataclasses import dataclass
 import logging
 
@@ -67,6 +67,13 @@ NO_SET: Set[str] = {
     "❌", "🚫", "✗"
 }
 
+# Expressões de desejo/vontade (para respostas a perguntas)
+WANT_SET: Set[str] = {
+    "quero", "quer", "gostaria", "prefiro", "escolho", "seleciono",
+    "queria", "eu quero", "eu gosto", "prefiro",
+    "😍", "🙌", "👀"
+}
+
 # ==============================================================================
 # KEYWORD SETS - Para extração de palavras-chave em frases naturais
 # ==============================================================================
@@ -85,22 +92,29 @@ KEYWORD_SETS: Dict[str, Set[str]] = {
     },
     "list_tasks": {
         "tarefas", "tasks", "lista", "listar", "mostrar", "ver",
-        "quais", "minhas", "meus"
+        "quais", "minhas", "meus", "pendentes", "resto", "restante",
+        "faltam", "falta"
     },
     "progress": {
         "progresso", "status", "como", "quanto", "andamento",
-        "resumo", "relatório", "avanço"
+        "resumo", "relatório", "avanço", "geral"
     },
     "done_task": {
         "feito", "pronto", "finalizei", "completei", "concluí",
-        "terminei", "foi feita"
+        "terminei", "foi feita", "baixa", "cabo"
     },
     "in_progress_task": {
         "fazendo", "comecei", "iniciando", "trabalhando",
-        "andamento", "vou fazer", "comeco", "fazer"
+        "andamento", "vou fazer", "comeco", "fazer",
+        "puxa", "coloca", "tocando"
     },
     "help": {
-        "ajuda", "help", "comandos", "como", "tutorial"
+        "ajuda", "help", "comandos", "como", "tutorial",
+        "orienta", "manda"
+    },
+    "want": {
+        "quero", "quer", "gostaria", "prefiro", "escolho", "seleciono",
+        "queria", "eu quero", "eu gosto", "preference"
     }
 }
 
@@ -144,7 +158,8 @@ SYNONYM_MAP = {
     "minhas tarefas": "tarefas", "meus itens": "tarefas",
     "ver tarefas": "tarefas", "mostrar tarefas": "tarefas",
     "quais tarefas": "tarefas", "o que tenho": "tarefas",
-    "o que falta": "tarefas",
+    "o que falta": "tarefas", "tarefas pendentes": "tarefas",
+    "lista geral": "tarefas", "tarefas do dia": "tarefas",
 
     # Comandos - Ver mais
     "mostrar mais": "ver mais",
@@ -154,11 +169,13 @@ SYNONYM_MAP = {
     "status": "progresso",
     "quanto falta": "progresso", "como estou": "progresso",
     "como está": "progresso", "como esta": "progresso",
-    "resumo": "progresso",
+    "resumo": "progresso", "status geral": "progresso",
+    "como ta": "progresso", "como tá": "progresso",
 
     # Comandos - Ajuda
     "help": "ajuda", "comandos": "ajuda",
     "comando": "ajuda", "como usar": "ajuda", "como uso": "ajuda",
+    "manda ai": "ajuda", "me orienta": "ajuda", "preciso de orientação": "ajuda",
 
     # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
     # COMANDOS DE TUTORIAIS DIRETOS
@@ -570,37 +587,39 @@ PATTERNS: List[CommandPattern] = [
     # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
     # Done task - formato simples (feito 1, feito 1 2 3, 1 2 3 feito)
-    ("done_task", re.compile(r"^(feito|pronto|pronta)\s+((?:\d+[,\s]*)+)$"), 0.99),
-    ("done_task", re.compile(r"^((?:\d+[,\s]*)+)\s+(feito|pronto|pronta|concluida)$"), 0.99),
+    ("done_task", re.compile(r"^(feito|pronto|pronta)\s+(?P<indices>(?:\d+[,\s]*)+)$"), 0.99),
+    ("done_task", re.compile(r"^(?P<indices>(?:\d+[,\s]*)+)\s+(feito|pronto|pronta|concluida)$"), 0.99),
 
     # Done task - com separadores de vírgula e hífen (1, 2, 3 feito | 1-2-3 feito)
-    ("done_task", re.compile(r"^(feito|pronto|pronta)\s+((?:\d+\s*[,\-\s]+)*\d+)$"), 0.98),
-    ("done_task", re.compile(r"^((?:\d+\s*[,\-\s]+)*\d+)\s+(feito|pronto|pronta|concluida)$"), 0.98),
+    ("done_task", re.compile(r"^(feito|pronto|pronta)\s+(?P<indices>(?:\d+\s*[,\-\s]+)*\d+)$"), 0.98),
+    ("done_task", re.compile(r"^(?P<indices>(?:\d+\s*[,\-\s]+)*\d+)\s+(feito|pronto|pronta|concluida)$"), 0.98),
 
     # Done task - frases compostas
     # Ex: "quero marcar 1 como feito", "marca 1 2 como pronto"
-    ("done_task", re.compile(r"^(quero|marca|marque|consegues?|podes?)\s+\w*\s*(marcar|feito|pronto)\s+((?:\d+\s*)+)\s+(feito|pronto|pronta|concluido|como feito)$"), 0.85),
-    ("done_task", re.compile(r"^(concluí|conclui|finalizei|terminei)\s+(?:a|o)?\s+((?:\d+\s*)+)$"), 0.85),
+    ("done_task", re.compile(r"^(quero|marca|marque|consegues?|podes?)\s+\w*\s*(marcar|feito|pronto)\s+(?P<indices>(?:\d+\s*)+)\s+(feito|pronto|pronta|concluido|como feito)$"), 0.85),
+    ("done_task", re.compile(r"^(concluí|conclui|finalizei|terminei)\s+(?:a|o)?\s+(?P<indices>(?:\d+\s*)+)$"), 0.85),
+    ("done_task", re.compile(r"^(?:dei\s+(?:baixa|cabo)|zer(?:ei|ou|ado)|liquidei)\s+(?:nas?|nos?)?\s*(?P<indices>(?:\d+\s*)+)$"), 0.88),
 
     # In progress task - formato simples
-    ("in_progress_task", re.compile(r"^(andamento|fazendo|em andamento)\s+((?:\d+[,\s]*)+)$"), 0.99),
-    ("in_progress_task", re.compile(r"^((?:\d+[,\s]*)+)\s+(andamento|fazendo|em andamento)$"), 0.99),
+    ("in_progress_task", re.compile(r"^(andamento|fazendo|em andamento)\s+(?P<indices>(?:\d+[,\s]*)+)$"), 0.99),
+    ("in_progress_task", re.compile(r"^(?P<indices>(?:\d+[,\s]*)+)\s+(andamento|fazendo|em andamento)$"), 0.99),
 
     # In progress task - com separadores
-    ("in_progress_task", re.compile(r"^(andamento|fazendo|em andamento)\s+((?:\d+\s*[,\-\s]+)*\d+)$"), 0.98),
-    ("in_progress_task", re.compile(r"^((?:\d+\s*[,\-\s]+)*\d+)\s+(andamento|fazendo|em andamento)$"), 0.98),
+    ("in_progress_task", re.compile(r"^(andamento|fazendo|em andamento)\s+(?P<indices>(?:\d+\s*[,\-\s]+)*\d+)$"), 0.98),
+    ("in_progress_task", re.compile(r"^(?P<indices>(?:\d+\s*[,\-\s]+)*\d+)\s+(andamento|fazendo|em andamento)$"), 0.98),
 
     # In progress task - frases compostas
     # Ex: "estou fazendo 1", "começei a fazer 2 3"
-    ("in_progress_task", re.compile(r"^(estou|vou|comecei|comeco|vou fazer|estou fazendo)\s+\w*\s*(fazer|fazendo|andamento)?\s+((?:\d+\s*)+)$"), 0.85),
-    ("in_progress_task", re.compile(r"^(marca|marque|consegues?|podes?)\s+\w*\s*(andamento|fazendo|em andamento)\s+((?:\d+\s*)+)$"), 0.85),
+    ("in_progress_task", re.compile(r"^(estou|vou|comecei|comeco|vou fazer|estou fazendo)\s+\w*\s*(fazer|fazendo|andamento)?\s+(?P<indices>(?:\d+\s*)+)$"), 0.85),
+    ("in_progress_task", re.compile(r"^(marca|marque|consegues?|podes?)\s+\w*\s*(andamento|fazendo|em andamento)\s+(?P<indices>(?:\d+\s*)+)$"), 0.85),
+    ("in_progress_task", re.compile(r"^(puxa|puxe|coloca|coloque)\s+(?P<indices>(?:\d+\s*)+)\s+(?:pro|para|no)\s+(andamento|fazendo)$"), 0.88),
+    ("in_progress_task", re.compile(r"^(tocando|levando)\s+(?P<indices>(?:\d+\s*)+)$"), 0.87),
 
-    # ("blocked_task_no_reason", re.compile(r"^(bloqueada)\s+(\d+)$"), 0.90),
-    # ("blocked_task_no_reason", re.compile(r"^(\d+)\s+(bloqueada)$"), 0.90),
+    ("blocked_task", re.compile(r"^(bloqueada|bloqueado)\s+(?P<index>\d+)(?:\s*[-:]\s*(?P<reason>.+))?$"), 0.95),
 
     # Mostrar detalhes de tarefa
-    ("show_task", re.compile(r"^(mostre?|mostra|ver|veja|abra?|detalhes?|info)\s+(?:a\s+)?(\d+)$"), 0.99),
-    ("show_task", re.compile(r"^(\d+)\s+(detalhes?|info)$"), 0.99),
+    ("show_task", re.compile(r"^(mostre?|mostra|ver|veja|abra?|detalhes?|info)\s+(?:a\s+)?(?P<index>\d+)$"), 0.99),
+    ("show_task", re.compile(r"^(?P<index>\d+)\s+(detalhes?|info)$"), 0.99),
 
     # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
     # COMANDOS SIMPLES E FRASES COMPOSTAS (PHASE 1 EXPANSION)
@@ -622,6 +641,15 @@ PATTERNS: List[CommandPattern] = [
     ("list_tasks", re.compile(r"^(qual|quais).*?(tarefa|tarefas|tenho).*?(pra|para)\s+fazer$"), 0.90),
     ("list_tasks", re.compile(r"^(me\s+)?(lista|mostra)\s+(?:completa|tudo|todas|as)\s+(?:tarefas|tasks)$"), 0.88),
 
+    # Listar tarefas com escopo explícito
+    ("list_tasks", re.compile(r"^(tarefas|tasks)\s+(?:da|do|de)?\s*(?P<scope>semana|mes|mês|todas?|completa?)$"), 0.90),
+    ("list_tasks", re.compile(r"^(?:todas?|toda)\s+(?:as|a)?\s*(tarefas|tasks)$"), 0.90),
+    ("list_tasks", re.compile(r"^(tarefas|tasks)\s+(?:pendentes|que\s+faltam|em\s+aberto)$"), 0.90),
+    ("list_tasks", re.compile(r"^(?:o\s+que|qual)\s+(?:falta|resta)(?:\s+(?:do|da)\s+dia)?$"), 0.88),
+
+    # Listar tarefas de um projeto específico
+    ("list_tasks", re.compile(r"^(tarefas|tasks)\s+(?:do|da|de)\s+(?:projeto\s+)?(?P<project>[\w\s\-]+)$"), 0.88),
+
     # Ver/mostrar mais tarefas - frases compostas
     # Ex: "me mostra mais", "quero ver todas", "lista completa"
     ("show_more", re.compile(r"^(quero|pode|consegue|mostra|mostra-me)\s+\w*\s*(ver|mostrar|listar)\s+(mais|todas|todo|tudo|completo|a lista completa)$"), 0.85),
@@ -635,6 +663,12 @@ PATTERNS: List[CommandPattern] = [
     # Ex: "como estou indo", "qual é meu progresso", "mostra meu progresso"
     ("progress", re.compile(r"^(como|qual|mostra|qual\s+e|como\s+esta)\s+\w*\s*(e|esta|está|estou|meu|o meu)\s+(progresso|status|como vai|como estou)$"), 0.85),
     ("progress", re.compile(r"^(quero|pode|consegue)\s+\w*\s*(ver|mostrar|listar)\s+(progresso|status|meu progresso)$"), 0.85),
+    ("progress", re.compile(r"^(?:qual|como)\s+(?:o\s+)?status\s+(?:geral|do\s+dia)$"), 0.90),
+    ("progress", re.compile(r"^(?:como)\s+(?:ta|tá|esta|está)\s+(?:o\s+)?dia$"), 0.88),
+    ("progress", re.compile(r"^(progresso|status)\s+(?:da|do|de)?\s*(?P<scope>semana|dia|hoje)$"), 0.90),
+
+    # Create task com projeto/título inline
+    ("create_task", re.compile(r"^(criar|nova|adicionar)\s+(?:uma\s+)?taref[ao](?:\s+em\s+(?P<project>[\w\s\\-]+))?(?:\s*[-:]\s*(?P<title>.+))?$"), 0.88),
 
     ("help", re.compile(r"^(ajuda|\?)$"), 0.95),
 
@@ -740,52 +774,178 @@ def extract_keywords(text: str) -> Optional[Tuple[str, float]]:
     return None
 
 
-def extract_task_entities(intent: str, match_groups: tuple) -> Dict[str, Any]:
+def extract_task_entities(intent: str, match: Union[re.Match, Tuple[Any, ...]]) -> Dict[str, Any]:
     """
     Extrai entidades de comandos relacionados a tarefas
     Suporta: "feito 1", "feito 1 2 3", "feito 1, 2, 3", "feito 1-2-3"
     """
     entities: Dict[str, Any] = {}
+    groupdict: Dict[str, Any] = {}
+
+    if isinstance(match, re.Match):
+        groupdict = match.groupdict()
+        match_groups = match.groups()
+    else:
+        match_groups = tuple(match)
 
     # Comandos de tarefas (done_task ou in_progress_task)
     if intent in {"done_task", "in_progress_task"}:
-        # Encontra o grupo que contém os números
+        raw = groupdict.get("indices")
+        if raw:
+            normalized = normalize_indices(raw)
+            if normalized:
+                if len(normalized) == 1:
+                    entities["index"] = normalized[0]
+                else:
+                    entities["indices"] = normalized
+                return entities
+
+        # Fallback para patterns antigos sem grupos nomeados
         for g in match_groups:
             if g and re.search(r"\d+", g.strip()):
-                # Extrai todos os números (independentemente de separadores)
-                # Suporta: espaços, vírgulas, hífens
-                numbers = [int(n) for n in re.findall(r"\d+", g)]
-                if numbers:
-                    # Se for apenas 1 número, usa "index" (mantém compatibilidade)
-                    # Se forem vários, usa "indices"
-                    if len(numbers) == 1:
-                        entities["index"] = numbers[0]
+                normalized = normalize_indices(g)
+                if normalized:
+                    if len(normalized) == 1:
+                        entities["index"] = normalized[0]
                     else:
-                        entities["indices"] = numbers
+                        entities["indices"] = normalized
                 break
         return entities
 
-    # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-    # EXTRAÇÃO DE ENTIDADES BLOQUEADA - DESABILITADO
-    # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-    # if intent in {"blocked_task", "blocked_task_no_reason"}:
-    #     # Extrair índice (número da tarefa)
-    #     nums = [g for g in match_groups if g and g.strip() and g.strip().isdigit()]
-    #     if nums:
-    #         entities["index"] = int(nums[0].strip())
-    #
-    #     # Extrair motivo do bloqueio (se presente)
-    #     if intent == "blocked_task":
-    #         # Filtra grupos vazios e remove palavras-chave de comando
-    #         reasons = [
-    #             g for g in match_groups
-    #             if g and g.strip() and not g.strip().isdigit()
-    #             and g.strip() not in {"bloqueada", "bloqueado", "a", "a "}
-    #         ]
-    #         if reasons:
-    #             entities["reason"] = reasons[-1].strip()
+    if intent == "blocked_task":
+        if groupdict.get("index"):
+            idx = normalize_single_index(groupdict["index"])
+            if idx:
+                entities["index"] = idx
+        if groupdict.get("reason"):
+            entities["reason"] = normalize_text_value(groupdict["reason"])
+        return entities
+
+    if intent == "show_task":
+        idx = groupdict.get("index")
+        if idx:
+            normalized = normalize_single_index(idx)
+            if normalized:
+                entities["index"] = normalized
+        else:
+            for g in match_groups:
+                if g and g.strip().isdigit():
+                    entities["index"] = int(g.strip())
+                    break
+        return entities
+
+    if intent == "create_task":
+        if groupdict.get("project"):
+            entities["project"] = normalize_project(groupdict["project"])
+        if groupdict.get("title"):
+            entities["title"] = normalize_text_value(groupdict["title"])
+        return entities
+
+    if intent == "list_tasks":
+        if groupdict.get("scope"):
+            entities["scope"] = normalize_scope(groupdict["scope"])
+        if groupdict.get("project"):
+            entities["project"] = normalize_project(groupdict["project"])
+        return entities
+
+    if intent == "progress":
+        if groupdict.get("scope"):
+            entities["scope"] = normalize_scope(groupdict["scope"])
+        return entities
 
     return entities
+
+
+def normalize_indices(raw_indices: str) -> List[int]:
+    if not raw_indices:
+        return []
+
+    normalized = raw_indices.replace("—", "-").replace("–", "-").replace("−", "-")
+    parts = re.split(r"[,\s]+", normalized.strip())
+
+    indices: List[int] = []
+    for part in parts:
+        part = part.strip()
+        if not part:
+            continue
+
+        if "-" in part:
+            range_parts = part.split("-")
+            if len(range_parts) == 2 and all(p.isdigit() for p in range_parts):
+                start, end = int(range_parts[0]), int(range_parts[1])
+                if start <= end:
+                    indices.extend(range(start, end + 1))
+                else:
+                    indices.extend(range(start, end - 1, -1))
+            else:
+                for p in range_parts:
+                    if p.isdigit():
+                        indices.append(int(p))
+        elif part.isdigit():
+            indices.append(int(part))
+
+    indices = [n for n in indices if n > 0]
+    indices = sorted(set(indices))
+    return indices[:20]
+
+
+def normalize_single_index(raw_index: str) -> Optional[int]:
+    if not raw_index:
+        return None
+
+    raw_index = raw_index.strip()
+    if raw_index.isdigit():
+        value = int(raw_index)
+        return value if value > 0 else None
+    return None
+
+
+def normalize_text_value(raw_text: Optional[str]) -> Optional[str]:
+    if not raw_text:
+        return None
+
+    text = " ".join(raw_text.split())
+    if not text:
+        return None
+
+    return text[0].upper() + text[1:]
+
+
+def normalize_scope(raw_scope: Optional[str]) -> str:
+    if not raw_scope:
+        return "hoje"
+
+    raw_lower = raw_scope.lower().strip()
+    scope_map = {
+        "hoje": "hoje",
+        "dia": "hoje",
+        "hj": "hoje",
+        "semana": "semana",
+        "week": "semana",
+        "todas": "todas",
+        "todos": "todas",
+        "tudo": "todas",
+        "completa": "todas",
+        "completo": "todas",
+        "mes": "mes",
+        "mês": "mes",
+        "month": "mes",
+    }
+
+    return scope_map.get(raw_lower, "hoje")
+
+
+def normalize_project(raw_project: Optional[str]) -> Optional[str]:
+    if not raw_project:
+        return None
+
+    project = " ".join(raw_project.split())
+    if not project:
+        return None
+
+    project = project.title()
+    project = re.sub(r"[^\w\s\-]", "", project)
+    return project.strip()
 
 
 def parse(text: str, log_result: bool = False, conversation_history: List[Dict] = None) -> ParseResult:
@@ -824,8 +984,7 @@ def parse(text: str, log_result: bool = False, conversation_history: List[Dict] 
     for intent, rgx, confidence in PATTERNS:
         m = rgx.match(normalized)
         if m:
-            groups = m.groups()
-            entities = extract_task_entities(intent, groups)
+            entities = extract_task_entities(intent, m)
 
             # 1.5) NOVO: Aplicar desambiguação com contexto antes de retornar
             actual_intent = intent
@@ -905,6 +1064,10 @@ def parse(text: str, log_result: bool = False, conversation_history: List[Dict] 
     # Agradecimentos
     if any(tok in {"valeu", "brigado", "obrigado", "thanks"} for tok in tokens):
         return ParseResult("thanks", {}, 0.85, normalized, original)
+
+    # Expressões de desejo/vontade (respostas a perguntas do bot)
+    if any(word in normalized for word in WANT_SET):
+        return ParseResult("want_clarification", {}, 0.88, normalized, original)
 
     # Comandos incompletos (baixa confiança)
     if "feito" in first_tokens or "pronto" in first_tokens:

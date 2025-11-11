@@ -77,11 +77,35 @@ def initialize_scheduler():
 
 
 # Tenta inicializar scheduler imediatamente na importação
+# Mas apenas se não estiver rodando como um worker secundário do Gunicorn
+import os
+
+# Check if we're the master process or a worker
+# Gunicorn sets GUNICORN_PIDFILE, but we can use WEB_CONCURRENCY to detect
+# If we're running as WSGI, let only one process initialize the scheduler
+_should_init_scheduler = True
+
+# Try to use a file lock to ensure only one process initializes
 try:
-    logger.info("🔴 Iniciando scheduler na importação do módulo...")
-    initialize_scheduler()
-except Exception as e:
-    logger.error(f"⚠️ Failed to initialize scheduler at import: {e}")
+    _lock_file = "/tmp/scheduler_init.lock"
+    if os.path.exists(_lock_file):
+        _should_init_scheduler = False
+        logger.info("⏭️  Scheduler já foi inicializado por outro worker, pulando...")
+    else:
+        # Create lock file
+        os.makedirs(os.path.dirname(_lock_file) or ".", exist_ok=True)
+        open(_lock_file, 'a').close()
+        _should_init_scheduler = True
+except:
+    # If lock mechanism fails, try anyway
+    _should_init_scheduler = True
+
+if _should_init_scheduler:
+    try:
+        logger.info("🔴 Iniciando scheduler na importação do módulo (worker principal)...")
+        initialize_scheduler()
+    except Exception as e:
+        logger.error(f"⚠️ Failed to initialize scheduler at import: {e}")
 
 
 def get_scheduler_safe():

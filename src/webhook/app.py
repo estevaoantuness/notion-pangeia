@@ -55,6 +55,8 @@ def initialize_scheduler():
 
     Esta função garante que o scheduler só seja inicializado uma vez,
     mesmo que o módulo seja importado múltiplas vezes.
+
+    Flask 3.0+ compatibility: Uses explicit call instead of before_first_request
     """
     global _scheduler_initialized, scheduler
 
@@ -70,10 +72,17 @@ def initialize_scheduler():
     _scheduler_initialized = True
 
 
-@app.before_first_request
-def _init_scheduler():
-    """Inicializa scheduler na primeira requisição da aplicação."""
-    initialize_scheduler()
+def get_scheduler_safe():
+    """
+    Retorna o scheduler, inicializando se necessário.
+
+    Esta é a forma segura de acessar o scheduler que garante
+    inicialização lazy uma única vez.
+    """
+    global scheduler
+    if not _scheduler_initialized:
+        initialize_scheduler()
+    return scheduler
 
 
 @app.route('/health', methods=['GET'])
@@ -132,8 +141,9 @@ def scheduler_jobs():
     """
     try:
         jobs = []
-        if scheduler and scheduler.scheduler:
-            for job in scheduler.scheduler.get_jobs():
+        sched = get_scheduler_safe()
+        if sched and sched.scheduler:
+            for job in sched.scheduler.get_jobs():
                 jobs.append({
                     "id": job.id,
                     "name": job.name,
@@ -165,13 +175,14 @@ def scheduler_run_job(job_id: str):
         JSON com resultado
     """
     try:
-        if not scheduler:
+        sched = get_scheduler_safe()
+        if not sched:
             return {
                 "status": "error",
                 "message": "Scheduler não foi inicializado"
             }, 503
 
-        success = scheduler.run_job_now(job_id)
+        success = sched.run_job_now(job_id)
 
         if success:
             return {
@@ -649,6 +660,9 @@ if __name__ == '__main__':
     logger.info(f"Endpoint: http://localhost:{PORT}/webhook/whatsapp")
     logger.info(f"Health: http://localhost:{PORT}/health")
     logger.info("=" * 60)
+
+    # Inicializa scheduler antes de rodar o servidor
+    initialize_scheduler()
 
     # Executa servidor
     app.run(

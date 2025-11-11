@@ -27,49 +27,49 @@ COLABORADORES: Dict[str, Dict[str, any]] = {
     "Julio Inoue": {
         "telefone": "+5511999322027",
         "cargo": "Desenvolvedor",
-        "ativo": True,
+        "ativo": False,
         "notion_id": None
     },
     "Arthur Leuzzi": {
         "telefone": "+554888428246",
         "cargo": "Desenvolvedor",
-        "ativo": True,
+        "ativo": False,
         "notion_id": None
     },
     "Joaquim": {
         "telefone": "+5511980992410",
         "cargo": "Desenvolvedor",
-        "ativo": True,
+        "ativo": False,
         "notion_id": None
     },
     "Kevin": {
         "telefone": "+554792054701",
         "cargo": "Desenvolvedor",
-        "ativo": True,
+        "ativo": False,
         "notion_id": None
     },
     "Leo Confettura": {
         "telefone": "+552498117033",
         "cargo": "Desenvolvedor",
-        "ativo": True,
+        "ativo": False,
         "notion_id": None
     },
     "Luna Machado": {
         "telefone": "+554484282600",
         "cargo": "Desenvolvedora",
-        "ativo": True,
+        "ativo": False,
         "notion_id": None
     },
     "Sami Monteleone": {
         "telefone": "+551998100715",
         "cargo": "Desenvolvedor",
-        "ativo": True,
+        "ativo": False,
         "notion_id": None
     },
     "Saraiva": {
         "telefone": "+551199143605",
         "cargo": "Desenvolvedor",
-        "ativo": True,
+        "ativo": False,
         "notion_id": None
     },
 }

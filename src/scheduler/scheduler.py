@@ -576,17 +576,26 @@ class TaskScheduler:
                 trigger=DateTrigger(run_date=dt),
                 id=job_id,
                 name=job_name,
-                replace_existing=False
+                replace_existing=True  # ✅ FIXED: Replace duplicates (was False)
             )
 
             logger.info(f"✅ Agendado: {job_name} → {dt.strftime('%H:%M:%S')}")
 
         logger.info("=" * 60)
         logger.info(f"Total de {len(plan)} jobs agendados para hoje")
+
+        # Log all scheduled jobs for verification
+        logger.info("📋 JOBS AGENDADOS:")
+        for job in self.scheduler.get_jobs():
+            logger.info(f"  - {job.id} @ {job.next_run_time}")
+
         logger.info("=" * 60)
 
         # Schedule random check-ins if enabled
-        if self.random_checkin_adapter:
+        # ⚠️ DISABLED: Causing conflicts with regular check-in schedule
+        # Both systems were triggering at same time, causing duplicates
+        # Use either regular schedule OR random schedule, not both
+        if False and self.random_checkin_adapter:  # DISABLED
             try:
                 random_checkins_scheduled = self.random_checkin_adapter.schedule_random_checkins_for_day(
                     today,

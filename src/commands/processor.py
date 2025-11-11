@@ -14,11 +14,16 @@ Agora com sistema NLP robusto:
 """
 
 import logging
-from typing import Optional, Tuple, Dict, Any
+from typing import Optional, Tuple, Dict, Any, List
 from datetime import datetime
 
 from src.commands.parser import CommandParser
-from src.commands.normalizer import parse as nlp_parse, ParseResult, is_confirmation
+from src.commands.normalizer import (
+    parse as nlp_parse,
+    ParseResult,
+    is_confirmation,
+    normalize_indices,
+)
 from src.commands.handlers import CommandHandlers
 from config.colaboradores import get_colaborador_by_phone
 from src.messaging.humanizer import get_humanizer
@@ -298,6 +303,32 @@ Posso te ajudar com suas tarefas ou o progresso do dia. O que você prefere?"""
 
         intent = pending_state.get("intent")
 
+        # Slot-filling para comandos de tarefas (feito / andamento)
+        if intent in {"done_task", "in_progress_task"}:
+            if is_confirmation(message) is False:
+                self._clear_user_state(person_name)
+                return True, "Sem problemas! Quando quiser é só me dizer o número da tarefa. 😊"
+
+            indices = normalize_indices(message)
+            if not indices:
+                error_key = "missing_index_done" if intent == "done_task" else "missing_index_in_progress"
+                return True, self.humanizer.get_error_message(error_key)
+
+            self._clear_user_state(person_name)
+            return self._process_task_indices(person_name, intent, indices)
+
+        if intent == "show_task":
+            if is_confirmation(message) is False:
+                self._clear_user_state(person_name)
+                return True, "Tudo bem! Quando quiser ver detalhes é só me dizer o número. 👌"
+
+            indices = normalize_indices(message)
+            if not indices:
+                return True, self.humanizer.get_error_message("missing_index_show_task")
+
+            self._clear_user_state(person_name)
+            return self.handlers.handle_show_task(person_name, indices[0])
+
         # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
         # CRIAR TAREFA - FLUXO DE 3 PERGUNTAS
         # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -502,7 +533,11 @@ Pode me dizer o que você gostaria de fazer! 😊"""
             if task_index:
                 return self.handlers.handle_show_task(person_name, task_index)
             else:
-                return True, "❌ Informe o número da tarefa.\n\nExemplo: mostre 2"
+                self._set_user_state(person_name, {
+                    "intent": "show_task",
+                    "expected": "index"
+                })
+                return True, self.humanizer.get_error_message("missing_index_show_task")
 
         # Tarefas concluídas (1 ou múltiplas)
         if intent == "done_task":
@@ -511,29 +546,15 @@ Pode me dizer o que você gostaria de fazer! 😊"""
             task_number = entities.get("index")
 
             if task_numbers:
-                # Múltiplas tarefas
-                responses = []
-                for task_num in task_numbers:
-                    success, response = self.handlers.handle_done(
-                        person_name=person_name,
-                        task_number=task_num
-                    )
-                    if success:
-                        responses.append(f"✅ Tarefa {task_num}")
-                    else:
-                        responses.append(f"❌ Tarefa {task_num}: {response}")
-
-                return True, "\n".join(responses)
-
+                return self._process_task_indices(person_name, "done_task", task_numbers)
             elif task_number:
-                # Tarefa única
-                return self.handlers.handle_done(
-                    person_name=person_name,
-                    task_number=task_number
-                )
+                return self._process_task_indices(person_name, "done_task", [task_number])
 
-            else:
-                return True, "Me diga o número da tarefa. Ex: 'feito 2' ou 'feito 2 5 6'"
+            self._set_user_state(person_name, {
+                "intent": "done_task",
+                "expected": "indices"
+            })
+            return True, self.humanizer.get_error_message("missing_index_done")
 
         # Tarefas em andamento (1 ou múltiplas)
         if intent == "in_progress_task":
@@ -542,29 +563,15 @@ Pode me dizer o que você gostaria de fazer! 😊"""
             task_number = entities.get("index")
 
             if task_numbers:
-                # Múltiplas tarefas
-                responses = []
-                for task_num in task_numbers:
-                    success, response = self.handlers.handle_in_progress(
-                        person_name=person_name,
-                        task_number=task_num
-                    )
-                    if success:
-                        responses.append(f"✅ Tarefa {task_num}")
-                    else:
-                        responses.append(f"❌ Tarefa {task_num}: {response}")
-
-                return True, "\n".join(responses)
-
+                return self._process_task_indices(person_name, "in_progress_task", task_numbers)
             elif task_number:
-                # Tarefa única
-                return self.handlers.handle_in_progress(
-                    person_name=person_name,
-                    task_number=task_number
-                )
+                return self._process_task_indices(person_name, "in_progress_task", [task_number])
 
-            else:
-                return True, "Qual o número da tarefa? Ex: 'andamento 3' ou 'andamento 2 3'"
+            self._set_user_state(person_name, {
+                "intent": "in_progress_task",
+                "expected": "indices"
+            })
+            return True, self.humanizer.get_error_message("missing_index_in_progress")
 
         # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
         # COMANDO BLOQUEADA - DESABILITADO
@@ -723,6 +730,38 @@ Pode me dizer o que você gostaria de fazer! 😊"""
         # Intent desconhecido
         logger.warning(f"Intent não tratado: {intent}")
         return True, self._get_disambiguation_message()
+
+    def _process_task_indices(
+        self,
+        person_name: str,
+        intent: str,
+        indices: List[int]
+    ) -> Tuple[bool, str]:
+        """Executa handlers de tarefas para uma lista de índices normalizados."""
+        if not indices:
+            return True, ""
+
+        handler = (
+            self.handlers.handle_done
+            if intent == "done_task"
+            else self.handlers.handle_in_progress
+        )
+
+        if len(indices) == 1:
+            return handler(person_name=person_name, task_number=indices[0])
+
+        responses = []
+        for task_num in indices:
+            success, response = handler(
+                person_name=person_name,
+                task_number=task_num
+            )
+            if success:
+                responses.append(f"✅ Tarefa {task_num}")
+            else:
+                responses.append(f"❌ Tarefa {task_num}: {response}")
+
+        return True, "\n".join(responses)
 
     def process_by_name(
         self,

@@ -125,6 +125,15 @@ errors:
     - "⚠️ Problema temporário.\n\nAguarde um momento e tente novamente. 🙏\n\nSe persistir, entre em contato com o suporte."
   notion_error:
     - "⚠️ Problema temporário com o Notion.\n\nEstou com dificuldade para acessar suas tarefas.\n\nJá estou tentando reconectar. Aguarde e tente:\n'minhas tarefas'"
+  missing_index_done:
+    - "📋 Qual tarefa você concluiu? Me diga o número.\n\nExemplo: *feito 2* ou *feito 1 3 5*"
+    - "Pra eu marcar certinho, preciso do número da tarefa.\n\nDiga algo como: *feito 4*"
+  missing_index_in_progress:
+    - "💪 Me diz o número da tarefa que está em andamento.\n\nExemplo: *andamento 3*"
+    - "Qual tarefa você começou? Use algo como: *andamento 2 3*"
+  missing_index_show_task:
+    - "🔎 Qual tarefa você quer ver? Me passe o número.\n\nExemplo: *mostra 2*"
+    - "Pra abrir os detalhes preciso do número.\n\nDiga: *ver 4*"
 
 help:
   full:

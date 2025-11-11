@@ -1,0 +1,357 @@
+"""
+Módulo de Humanização de Mensagens.
+
+Implementa o guia de humanização para tornar as interações
+mais naturais, empáticas e profissionais-casuais.
+
+Baseado no guia JSON com regras de:
+- Linguagem: pt-BR profissional-casual
+- Emojis: max 2 por mensagem, sem repetição adjacente
+- Variações: múltiplas opções para cada tipo de mensagem
+"""
+
+import random
+from datetime import datetime
+from typing import Optional, Dict, List
+import pytz
+
+from config.settings import settings
+
+
+class MessageHumanizer:
+    """
+    Humaniza mensagens do bot seguindo guia de tom e estilo.
+
+    Características:
+    - Tom profissional-casual
+    - Máximo 2 emojis por mensagem
+    - Variações aleatórias para evitar repetição
+    - Contexto temporal (hora do dia, dia da semana)
+    """
+
+    # Paleta de emojis permitida
+    EMOJI_PALETTE = ["✅","⏳","🚧","📋","🔗","💪","🎉","👀","⚠️","⭐","☀️","🌙"]
+
+    # Catálogo de mensagens
+    CATALOG = {
+        "ajuda": [
+            "Guia rápido: \"minhas tarefas\", \"progresso\", \"feito N\", \"andamento N\", \"bloqueada N - motivo\". Quer ver sua lista agora?",
+            "Posso fazer: listar tarefas, marcar concluída (\"feito N\"), iniciar (\"andamento N\") ou registrar bloqueio (\"bloqueada N - motivo\"). Começamos pela lista?",
+            "Comandos úteis: \"minhas tarefas\" | \"progresso\" | \"feito N\" | \"andamento N\" | \"bloqueada N - motivo\". Qual deseja usar?",
+            "Para agir rápido: diga \"minhas tarefas\" para ver a numeração; depois use \"feito N\" ou \"andamento N\". Precisa de exemplo?",
+            "Dica: \"minhas tarefas\" mostra os números; \"bloqueada N - motivo\" registra impedimento. Quer que eu envie sua lista?",
+            "Tem dúvida? Use \"ajuda\" a qualquer momento. Ex.: concluir: \"feito 2\"; iniciar: \"andamento 3\"; listar: \"minhas tarefas\".",
+            "Ferramentas do dia a dia: listar, concluir, iniciar, bloquear (com motivo) e ver progresso. Começamos por qual?",
+            "Para bloquear algo, lembre o motivo: \"bloqueada 4 - sem acesso\". Para concluir: \"feito 4\". Quer abrir a lista?"
+        ],
+
+        "listar_tarefas": [
+            "{first_name}, aqui está sua lista de hoje (1..N). Use \"feito N\" para concluir ou \"andamento N\" para começar. Página completa: {link}",
+            "Agenda do dia pronta. Numeração 1..N para você agir. Concluir: \"feito N\" | Iniciar: \"andamento N\" | Bloquear: \"bloqueada N - motivo\". Ver tudo: {link}",
+            "Estas são suas tarefas de hoje. Fale \"feito {task_number}\" quando encerrar uma ou \"andamento {task_number}\" para iniciar. Detalhes no Notion: {link}",
+            "Lista carregada. Se algo impedir, use \"bloqueada N - motivo\". Para conferir contextos, abra: {link}",
+            "Suas tarefas estão numeradas para facilitar. Quer que eu destaque a próxima prioridade? Link da página: {link}",
+            "Aqui está o panorama do dia. Quando concluir, diga \"feito N\". Se quiser ver tudo em tela cheia: {link}",
+            "Listei suas tasks. Precisa reorganizar prioridades? Posso ajudar. Acesso completo: {link}",
+            "Tudo pronto. Use os números para atualizar rápido. Se preferir, abra a visualização completa: {link}"
+        ],
+
+        "progresso": [
+            "Progresso: {done}/{total} ({percent}%). Quer priorizar a próxima?",
+            "{percent}% do dia entregue ({done}/{total}). Alguma pendência que eu deva marcar?",
+            "Você concluiu {done} de {total}. Mantemos o ritmo? Posso sugerir a próxima.",
+            "Status atual: {done}/{total} concluídas. Precisa de ajuda com algo específico?",
+            "{percent}% feito. Se algo travou, posso registrar um bloqueio para visibilidade.",
+            "Parcial do dia: {done}/{total}. Quer ver a lista numerada de novo?",
+            "Boa evolução: {percent}%. Preferir focar nas urgentes ou nas rápidas agora?",
+            "Resumo: {done} concluídas de {total}. Quer abrir o link geral? {link}"
+        ],
+
+        "concluir": [
+            "✅ Pronto! Marquei \"{task_title}\" como concluída. Prossigo com a próxima?",
+            "Feito! \"{task_title}\" concluída. Quer ver sua lista atualizada?",
+            "Boa! \"{task_title}\" já está fechada. Quer que eu inicie outra?",
+            "Concluída: \"{task_title}\". Precisa registrar algum detalhe antes de seguir?",
+            "Finalizei \"{task_title}\". Quer priorizar a próxima tarefa?",
+            "Registro feito: \"{task_title}\" concluída. Deseja abrir o painel completo?",
+            "Conferido e concluído: \"{task_title}\". Avançamos?",
+            "Tudo certo com \"{task_title}\". Posso listar a próxima?"
+        ],
+
+        "andamento": [
+            "⏳ Coloquei \"{task_title}\" em andamento. Aviso se precisar de algo.",
+            "\"{task_title}\" agora está em andamento. Quer definir a próxima etapa?",
+            "Status atualizado para em andamento: \"{task_title}\". Sigo acompanhando.",
+            "Iniciei \"{task_title}\". Quando finalizar, diga \"feito {task_number}\".",
+            "Movi \"{task_title}\" para andamento. Deseja registrar um objetivo rápido?",
+            "Começamos \"{task_title}\". Precisa de checklist?",
+            "Atualizado: \"{task_title}\" em andamento. Quer ver a lista numerada?",
+            "Marquei como em andamento: \"{task_title}\". Próximo passo definido?"
+        ],
+
+        "bloqueada": [
+            "🚧 \"{task_title}\" marcada como bloqueada. Motivo: \"{reason}\". Quer que eu notifique o time?",
+            "Registrei o bloqueio em \"{task_title}\": \"{reason}\". Precisamos envolver alguém?",
+            "Bloqueio anotado: \"{task_title}\" — \"{reason}\". Posso registrar uma ação de follow‑up?",
+            "\"{task_title}\" está bloqueada por: \"{reason}\". Deseja abrir um pedido de suporte?",
+            "Status atualizado: bloqueada. \"{task_title}\" — \"{reason}\". Quer priorizar outra enquanto isso?",
+            "Bloqueio confirmado em \"{task_title}\". \"{reason}\". Sigo monitorando.",
+            "Anotei o bloqueio: \"{task_title}\" (\"{reason}\"). Posso adicionar observações?",
+            "Bloqueada por \"{reason}\": \"{task_title}\". Vamos redirecionar o foco por enquanto?"
+        ],
+
+        "erro_formato": [
+            "Quase lá. Use \"feito N\" (verbo antes do número). Quer ver sua lista numerada?",
+            "Não entendi o formato. Ex.: \"andamento 2\" ou \"bloqueada 3 - sem acesso\". Mostro a lista?",
+            "Formato diferente do esperado. Tente: \"feito 2\". Posso enviar \"minhas tarefas\"?",
+            "Para eu entender, mande assim: \"feito N\" ou \"andamento N\". Quer atualizar a numeração?",
+            "Preciso no padrão: \"bloqueada N - motivo\". Ex.: \"bloqueada 4 - aguardando aprovação\". Mostro as tasks?",
+            "Não consegui mapear. Diga \"minhas tarefas\" e depois use \"feito N\". Envio a lista?",
+            "Vamos padronizar: \"feito 1\", \"andamento 1\", \"bloqueada 1 - motivo\". Quer a lista agora?",
+            "Se preferir, eu relembro os números com \"minhas tarefas\". Depois é só mandar \"feito N\"."
+        ],
+
+        "indice_invalido": [
+            "Não encontrei a tarefa {task_number}. Quer que eu envie \"minhas tarefas\" para confirmar a numeração?",
+            "Índice {task_number} não está na lista atual. Mostro a lista numerada?",
+            "Esse número não bate com o mapeamento do dia. Deseja atualizar a lista?",
+            "{task_number} não consta na sua lista. Posso reenviar a numeração 1..N?",
+            "Parece fora do intervalo. Que tal eu mandar \"minhas tarefas\" de novo?",
+            "Não localizei {task_number}. Atualizo a listagem para você decidir?",
+            "Número inválido no contexto atual. Quer ver o painel completo? {link}",
+            "Esse índice não está ativo hoje. Envio a lista para confirmar?"
+        ],
+
+        "sem_tarefas": [
+            "Você não tem tarefas hoje. Quer puxar algo do backlog?",
+            "Sem itens na sua lista por enquanto. Posso sugerir prioridades?",
+            "Nada por aqui agora. Quer abrir o board no Notion? {link}",
+            "Lista vazia. Deseja que eu busque tarefas do projeto principal?",
+            "Sem tarefas ativas. Prefere revisar pendências antigas?",
+            "Nada agendado para hoje. Quer importar do backlog rápido?",
+            "Dia livre por enquanto. Abro a página geral? {link}",
+            "Sem tarefas. Posso criar um planejamento leve para hoje?"
+        ],
+
+        "onboarding": [
+            "Boas‑vindas! Posso listar suas tasks: diga \"minhas tarefas\". Para concluir algo: \"feito N\". Quer começar pela lista?",
+            "Oi! Para ver sua agenda: \"minhas tarefas\". Depois use \"feito N\" ou \"andamento N\". Envio a lista agora?",
+            "Bem‑vindo. Eu ajudo a agir rápido: \"minhas tarefas\" mostra os números; \"feito N\" conclui; \"bloqueada N - motivo\" registra impedimento.",
+            "Vamos nessa. Primeiro, \"minhas tarefas\"; depois você usa os números: \"feito N\" ou \"andamento N\". Quer ver a numeração?",
+            "Conte comigo para organizar o dia. Diga \"minhas tarefas\" e eu te guio pelos próximos passos."
+        ]
+    }
+
+    # Saudações temporais
+    SAUDACOES_TEMPORAIS = {
+        "manha": [
+            "Bom dia! ☀️ Tudo pronto para começar?",
+            "Opa, bom dia! Café tomado? Vamos organizar as prioridades.",
+            "E aí, bom dia! Posso listar suas tarefas de hoje?",
+            "Bom dia por aqui. Quer ver a agenda 1..N?",
+            "Começando o dia? Trago suas tasks agora."
+        ],
+        "tarde": [
+            "Boa tarde! Como está o ritmo por aí?",
+            "E aí! Boa tarde. Quer um check rápido de progresso?",
+            "Olá! Boa tarde. Posso listar o que falta hoje?",
+            "Seguimos! Boa tarde. Atualizo sua lista?",
+            "Boa tarde, {first_name}. Foco na próxima entrega?"
+        ],
+        "noite": [
+            "Boa noite! 🌙 Fechamos o dia com mais uma?",
+            "Olá, boa noite. Quer registrar o que ficou concluído?",
+            "E aí! Boa noite. Precisa marcar algo como bloqueado?",
+            "Noite por aqui. Mostro a lista final do dia?",
+            "Boa noite. Quer um resumo rápido de progresso?"
+        ],
+        "segunda": [
+            "Segunda chegou. Bora começar a semana com clareza!",
+            "Nova semana, novas entregas. Quer ver as prioridades?",
+            "Segunda‑feira: organizo sua lista para um bom início?",
+            "Vamos abrir a semana com foco. Posso listar suas tasks?",
+            "Semana nova, energia nova. Quer priorizar as urgentes?"
+        ],
+        "sexta": [
+            "Sextou! 🎉 Vamos fechar a semana redondo?",
+            "Último gás da semana. Quer ver o que falta?",
+            "Sexta é dia de concluir. Mostro sua lista final?",
+            "Fechamento de semana: priorizamos o essencial?",
+            "Quase lá. Quer um resumo do que resta hoje?"
+        ],
+        "fallback": [
+            "Olá! Posso te ajudar a organizar as tarefas agora?",
+            "Oi! Quer listar suas tarefas e decidir a próxima?",
+            "Tudo bem por aí? Trago sua lista numerada?",
+            "Vamos avançar mais uma? Posso sugerir a próxima.",
+            "Precisando de algo? Posso listar ou atualizar status."
+        ]
+    }
+
+    # Perguntas de check-in
+    CHECKINS = {
+        "13h30": [
+            "Planejamento rápido: o que entra hoje? Quais projetos e tasks? Objetivo em uma frase.",
+            "Me diga: o que você precisa fazer hoje? Em quais projetos? Qual o objetivo principal?",
+            "Liste as tasks de hoje e o porquê de cada uma. Como pretende executar?",
+            "Quais entregas entram hoje? Diga projeto, task e objetivo.",
+            "Planejo com você: tarefas do dia, projeto e resultado esperado.",
+            "Resumo do plano: o que fazer, por quê e como você vai atacar?"
+        ],
+        "15h30": [
+            "Status agora: o que está fazendo? Algo mudou? Surgiu demanda nova?",
+            "Como está a task atual? Quer registrar dúvidas ou bloqueios?",
+            "Checkpoint: andamento atual, mudanças desde cedo e possíveis impedimentos.",
+            "Qual é a tarefa em foco agora? Teve alguma alteração de rota?",
+            "Seguimos bem? Atualize: o que faz agora e se há novidades.",
+            "Quer registrar evolução desde a manhã? Posso anotar mudanças."
+        ],
+        "18h00": [
+            "Fechamento: o que você entregou? Algum insight? Maior desafio e como resolveu?",
+            "Encerrando o dia: entregas, aprendizados e desafios superados.",
+            "Me conte o que saiu hoje, o que aprendeu e como resolveu o mais difícil.",
+            "Resumo do dia: feitos, lições e soluções aplicadas.",
+            "Quais foram as entregas de hoje e o maior aprendizado?",
+            "Fechamos com o que foi entregue e os insights principais?"
+        ],
+        "22h00": [
+            "Como foi o dia? Conseguiu entregar tudo que planejou?",
+            "Quer registrar algo sobre o dia de hoje?",
+            "Dia finalizado? Quer compartilhar como foi?",
+            "Como está se sentindo com as entregas de hoje?",
+            "Quer fazer um resumo rápido do dia?"
+        ]
+    }
+
+    def __init__(self):
+        """Inicializa o humanizador."""
+        self.tz = pytz.timezone(settings.TIMEZONE)
+
+    def get_message(
+        self,
+        message_type: str,
+        placeholders: Optional[Dict[str, str]] = None
+    ) -> str:
+        """
+        Retorna mensagem humanizada com variação.
+
+        Args:
+            message_type: Tipo de mensagem do catálogo
+            placeholders: Dicionário com valores para substituir
+
+        Returns:
+            Mensagem formatada
+        """
+        if message_type not in self.CATALOG:
+            return f"Mensagem tipo '{message_type}' não encontrada."
+
+        # Escolhe variação aleatória
+        message = random.choice(self.CATALOG[message_type])
+
+        # Substitui placeholders se fornecidos
+        if placeholders:
+            for key, value in placeholders.items():
+                placeholder = f"{{{key}}}"
+                if placeholder in message:
+                    message = message.replace(placeholder, str(value))
+
+        return message
+
+    def get_greeting(self, person_name: Optional[str] = None) -> str:
+        """
+        Retorna saudação contextual baseada em hora/dia.
+
+        Args:
+            person_name: Nome da pessoa (para personalizar)
+
+        Returns:
+            Saudação apropriada
+        """
+        now = datetime.now(self.tz)
+        hour = now.hour
+        weekday = now.weekday()
+
+        # Prioridade para dia da semana especial
+        if weekday == 0:  # Segunda
+            greeting = random.choice(self.SAUDACOES_TEMPORAIS["segunda"])
+        elif weekday == 4:  # Sexta
+            greeting = random.choice(self.SAUDACOES_TEMPORAIS["sexta"])
+        # Senão, por período do dia
+        elif 5 <= hour < 12:
+            greeting = random.choice(self.SAUDACOES_TEMPORAIS["manha"])
+        elif 12 <= hour < 18:
+            greeting = random.choice(self.SAUDACOES_TEMPORAIS["tarde"])
+        elif 18 <= hour < 24:
+            greeting = random.choice(self.SAUDACOES_TEMPORAIS["noite"])
+        else:
+            greeting = random.choice(self.SAUDACOES_TEMPORAIS["fallback"])
+
+        # Personaliza com nome se fornecido
+        if person_name and "{first_name}" in greeting:
+            first_name = person_name.split()[0]
+            greeting = greeting.replace("{first_name}", first_name)
+
+        return greeting
+
+    def get_checkin_question(self, hour_minute: str) -> str:
+        """
+        Retorna pergunta de check-in apropriada.
+
+        Args:
+            hour_minute: Horário no formato "HH:MM" (ex: "13:30")
+
+        Returns:
+            Pergunta de check-in
+        """
+        # Mapeia horários aproximados
+        checkin_map = {
+            "13:30": "13h30",
+            "15:30": "15h30",
+            "18:00": "18h00",
+            "22:00": "22h00",
+        }
+
+        checkin_key = checkin_map.get(hour_minute)
+
+        if checkin_key and checkin_key in self.CHECKINS:
+            return random.choice(self.CHECKINS[checkin_key])
+
+        return "Como estão as coisas por aí? Quer compartilhar um update?"
+
+    def personalize(self, message: str, person_name: str) -> str:
+        """
+        Personaliza mensagem com nome da pessoa.
+
+        Args:
+            message: Mensagem base
+            person_name: Nome completo da pessoa
+
+        Returns:
+            Mensagem personalizada
+        """
+        first_name = person_name.split()[0]
+
+        # Substitui todos os placeholders de nome
+        message = message.replace("{first_name}", first_name)
+        message = message.replace("{nome}", first_name)
+
+        return message
+
+
+# Instância global
+_humanizer_instance = None
+
+
+def get_humanizer() -> MessageHumanizer:
+    """
+    Retorna instância singleton do humanizador.
+
+    Returns:
+        MessageHumanizer: Instância global
+    """
+    global _humanizer_instance
+
+    if _humanizer_instance is None:
+        _humanizer_instance = MessageHumanizer()
+
+    return _humanizer_instance

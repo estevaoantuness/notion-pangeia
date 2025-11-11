@@ -1,0 +1,306 @@
+# Catálogo completo de respostas humanizadas do bot
+# Estrutura: categoria > subcategoria > lista de variações
+
+greetings:
+  morning:
+    - "☀️ Bom dia, {name}!"
+    - "🌅 Bom dia! Bora começar bem?"
+    - "☀️ Oi, {name}! Dia novo, metas novas!"
+    - "🌤️ Bom dia! Preparado para mais um dia produtivo?"
+  afternoon:
+    - "🌤️ Boa tarde, {name}!"
+    - "☀️ E aí, {name}? Tarde produtiva?"
+    - "🌞 Boa tarde! Como está o ritmo?"
+  evening:
+    - "🌆 Boa noite, {name}!"
+    - "🌙 Oi, {name}! Finalizando o dia?"
+    - "✨ Boa noite! Hora de descansar."
+  monday:
+    - "☀️ Bom dia e ótima semana, {name}!"
+    - "🚀 Segunda produtiva começa agora!"
+    - "💪 Bora começar a semana com tudo!"
+  friday:
+    - "☀️ Bom dia, {name}! Sextou! 🎉"
+    - "🎉 Sexta-feira! Vamos fechar com chave de ouro!"
+    - "✨ Última sexta do mês! Bora finalizar bem!"
+
+task_list:
+  with_tasks:
+    header:
+      - "📋 Suas tarefas para hoje:"
+      - "📋 Aqui está sua lista de hoje:"
+      - "📋 Tasks do dia:"
+    footer:
+      - "💬 Para atualizar, use:\n• feito 2\n• andamento 3\n• bloqueada 4 - motivo"
+      - "💬 Comandos:\n• feito N - concluir\n• andamento N - iniciar\n• bloqueada N - reportar"
+    footer_cta:
+      - "Precisa de ajuda? Digite 'ajuda'"
+      - "Dúvidas? Digite 'ajuda'"
+  no_tasks:
+    - "🎉 Você está em dia!\n\nNenhuma tarefa pendente no momento.\n\nQuer criar uma nova tarefa? Digite 'criar tarefa'\nOu veja o progresso geral: 'progresso'"
+    - "✨ Tudo limpo por aqui!\n\nVocê concluiu todas as suas tarefas. Parabéns! 🎯\n\nAproveite para:\n• Revisar o progresso: 'progresso'\n• Planejar novas ações: 'criar tarefa'"
+    - "🏆 Lista vazia = dia produtivo!\n\nTodas as tasks foram concluídas.\n\nVeja seu progresso: 'progresso'"
+
+task_completed:
+  default:
+    - "✅ Tarefa {number} marcada como concluída!\n\n\"{title}\" ✓"
+    - "✅ Feito! Tarefa {number} finalizada.\n\n\"{title}\" ✓"
+    - "🎉 Tarefa {number} concluída com sucesso!\n\n\"{title}\" ✓"
+    - "✅ Pronto! \"{title}\" está concluída."
+  first_of_day:
+    - "✅ Primeira tarefa do dia concluída!\n\n\"{title}\" ✓\n\nÓtimo começo! Você já saiu na frente. 💪"
+    - "🚀 Primeira tarefa já foi!\n\n\"{title}\" ✓\n\nVocê está voando hoje."
+    - "✅ Começou bem!\n\n\"{title}\" ✓\n\nPrimeira do dia já caiu. Continue assim! 🎯"
+  last_of_day:
+    - "🎉 Última tarefa concluída!\n\n\"{title}\" ✓\n\n100% do dia completo! Parabéns pelo foco. 🏆"
+    - "✨ Fechou o dia com chave de ouro!\n\n\"{title}\" ✓\n\nTodas as tasks concluídas! 🎯"
+    - "🏆 Perfeito!\n\n\"{title}\" ✓\n\nVocê arrasou hoje! 100% completo."
+  high_priority:
+    - "✅ Tarefa de alta prioridade concluída!\n\n\"{title}\" 🔴 ✓\n\nEssa era importante! Muito bem. 🚀"
+  with_progress:
+    - "Progresso atualizado: {old_percent}% → {new_percent}%\nContinue assim! 🚀"
+    - "Você está em {new_percent}% agora! 💪"
+  already_done:
+    - "ℹ️ A tarefa {number} já estava marcada como concluída.\n\n\"{title}\" ✓"
+
+task_in_progress:
+  default:
+    - "🔄 Tarefa {number} marcada como 'Em Andamento'\n\n\"{title}\" está em progresso.\n\nFoco total! Você consegue. 💪"
+    - "💪 Boa! Tarefa {number} está rodando.\n\n\"{title}\"\n\nQuando terminar: 'feito {number}'"
+    - "🔄 Iniciando tarefa {number}!\n\n\"{title}\"\n\nVamos com tudo! 🚀"
+  high_priority:
+    - "🔄 Tarefa {number} em andamento! 🔴 Prioridade Alta\n\n\"{title}\"\n\nEssa é importante! Vamos com tudo. 🚀"
+    - "🚨 Foco na prioridade alta!\n\n\"{title}\" 🔴\n\nVocê está na task certa. 💪"
+  medium_priority:
+    - "🔄 Boa! Tarefa {number} está rodando.\n\n\"{title}\" 🟡\n\nUm passo de cada vez. Você está indo bem! 💡"
+  already_in_progress:
+    - "ℹ️ A tarefa {number} já estava em andamento.\n\n\"{title}\" está em progresso.\n\nContinue focado! Quando terminar: 'feito {number}'"
+
+task_blocked:
+  with_reason:
+    - "🚫 Tarefa {number} marcada como bloqueada\n\n\"{title}\"\nMotivo: {reason}\n\nRegistrado! Vou notificar a equipe. 📢"
+    - "⚠️ Entendi. Tarefa {number} bloqueada.\n\n\"{title}\"\nMotivo: {reason}\n\nSem problemas! Vamos focar no que dá pra fazer. 💪"
+    - "🚫 Bloqueio registrado!\n\n\"{title}\"\nMotivo: {reason}\n\nVou alertar quem pode ajudar. 📢"
+  high_priority_blocked:
+    - "🚫 Tarefa {number} bloqueada (Prioridade Alta)\n\n\"{title}\" 🔴\nMotivo: {reason}\n\n⚠️ Essa é prioritária! Vou alertar a equipe."
+  without_reason:
+    - "🤔 Entendi que a tarefa {number} está bloqueada.\n\n\"{title}\"\n\nPode me contar o motivo do bloqueio?\nIsso ajuda a equipe a resolver mais rápido! 💡"
+    - "🚫 Tarefa {number} bloqueada.\n\n\"{title}\"\n\nQual é o motivo? Assim posso notificar quem pode ajudar."
+  reason_received:
+    - "✅ Bloqueio registrado!\n\nTarefa {number}: \"{title}\"\nMotivo: {reason}\n\nVou notificar quem pode ajudar. 📢"
+
+progress:
+  zero:
+    - "📊 Progresso do dia: 0%\n\nAinda não há tarefas concluídas hoje.\n\n💡 Dica: Comece pela tarefa de maior prioridade!"
+    - "📊 Nenhuma tarefa concluída ainda.\n\nVamos começar? 💪\nVeja sua lista: 'minhas tarefas'"
+  low: # 1-24%
+    - "📊 Progresso do dia: {percent}%\n\n✅ {done} de {total} tarefas concluídas\n\nVocê está começando bem! Continue assim. 💪"
+    - "📊 {percent}% concluído.\n\n✅ {done}/{total} tasks\n\nRitmo firme! Vamos que vamos. 🚀"
+  medium: # 25-49%
+    - "📊 Progresso do dia: {percent}%\n\n✅ {done} de {total} tarefas concluídas\n\nRitmo firme! Você já está quase na metade. 🚀"
+    - "📊 {percent}% - Mais de 1/4 feito!\n\n✅ {done}/{total} tasks\n\nContinue assim! 💪"
+  high: # 50-74%
+    - "📊 Progresso do dia: {percent}%\n\n✅ {done} de {total} tarefas concluídas\n\nMais da metade feita! Está quase lá. 🎯"
+    - "📊 {percent}% concluído!\n\n✅ {done}/{total} tasks\n\nVocê já passou da metade! 🚀"
+  very_high: # 75-99%
+    - "📊 Progresso do dia: {percent}%\n\n✅ {done} de {total} tarefas concluídas\n\nQuase 100%! Só falta um empurrãozinho. 💥"
+    - "📊 {percent}% - Quase lá!\n\n✅ {done}/{total} tasks\n\nMais um pouco e você fecha o dia! 🎯"
+  complete:
+    - "🎉 Progresso do dia: 100%\n\n✅ Todas as {total} tarefas concluídas!\n\nExcelente trabalho hoje! Você arrasou. 🏆"
+    - "✨ 100% do dia completo!\n\n✅ {total}/{total} tasks\n\nVocê é demais! Descanse bem. 🎯"
+    - "🏆 Dia perfeito!\n\n✅ {done}/{total} tasks concluídas\n\nParabéns pelo foco e dedicação! 💪"
+
+errors:
+  invalid_index:
+    - "⚠️ Ops! Não encontrei a tarefa {index}.\n\nVocê tem apenas {total} tarefas na lista de hoje.\n\nVeja a lista atualizada: 'minhas tarefas'"
+    - "⚠️ Tarefa {index} não existe.\n\nTotal de tarefas: {total}\n\nConfira: 'minhas tarefas'"
+  invalid_format:
+    - "⚠️ Formato incorreto.\n\nPara marcar como concluída, use:\n**feito 2** (onde 2 é o número da tarefa)\n\nVeja sua lista: 'minhas tarefas'"
+    - "🤔 Não entendi o formato.\n\nExemplo correto:\n• feito 2\n• andamento 3\n• bloqueada 4 - motivo\n\nPrecisa de ajuda? 'ajuda'"
+  unknown_command:
+    - "🤔 Não entendi esse comando.\n\nVocê quis dizer:\n• 'minhas tarefas' - ver sua lista\n• 'progresso' - ver como está o dia\n• 'ajuda' - ver todos os comandos"
+    - "😅 Desculpa, não consegui entender.\n\nTente usar:\n• minhas tarefas\n• progresso\n• feito 2\n• ajuda"
+  technical_error:
+    - "⚠️ Ops! Algo deu errado.\n\nNão consegui processar sua solicitação agora.\n\n**O que você pode fazer:**\n• Tente novamente em alguns segundos\n• Digite 'ajuda' se precisar"
+    - "⚠️ Problema temporário.\n\nAguarde um momento e tente novamente. 🙏\n\nSe persistir, entre em contato com o suporte."
+  notion_error:
+    - "⚠️ Problema temporário com o Notion.\n\nEstou com dificuldade para acessar suas tarefas.\n\nJá estou tentando reconectar. Aguarde e tente:\n'minhas tarefas'"
+
+help:
+  full:
+    - |
+      💬 Como posso te ajudar?
+
+      **Comandos disponíveis:**
+
+      📋 **Ver tarefas**
+      • minhas tarefas
+      • lista
+      • tarefas
+
+      📊 **Acompanhar progresso**
+      • progresso
+      • status
+
+      ✅ **Atualizar tarefas**
+      • feito 2
+      • andamento 3
+      • bloqueada 4 - motivo do bloqueio
+
+      ---
+
+      **Dicas rápidas:**
+      • Use números para identificar tarefas
+      • Sempre informe o motivo em bloqueios
+      • Digite "progresso" para ver como está o dia
+
+      Precisa de algo específico? É só perguntar! 😊
+  short:
+    - |
+      💬 Principais comandos:
+
+      • **minhas tarefas** - ver sua lista
+      • **progresso** - acompanhar o dia
+      • **feito 2** - concluir tarefa
+      • **andamento 3** - iniciar tarefa
+      • **bloqueada 4 - motivo** - reportar bloqueio
+
+      Precisa de ajuda? Digite 'ajuda' 😊
+
+checkins:
+  planning: # 13:30
+    - "☕ Check-in rápido!\n\nComo estão as tarefas? Algum bloqueio?"
+    - "🌤️ Hora do check-in!\n\nTudo OK com as tasks? Conseguindo avançar?"
+  status: # 15:30
+    - "⏰ Status das 15:30!\n\nProgresso do dia OK? Conseguindo avançar?"
+    - "💬 Como vai o andamento?\n\nAlgum bloqueio ou está fluindo bem?"
+  closing: # 18:00
+    - "🌆 Finalizando o dia!\n\nO que você conseguiu fazer hoje? O que ficou para amanhã?"
+    - "🌅 Fechamento do dia!\n\nConseguiu concluir o planejado? O que ficou pendente?"
+  reflection: # 22:00
+    - "RESUMO_AUTOMATICO"  # Será substituído por resumo calculado no scheduler
+    - "RESUMO_AUTOMATICO"
+
+ctas:
+  see_tasks:
+    - "Veja o restante: 'minhas tarefas'"
+    - "Outras tarefas: 'minhas tarefas'"
+    - "Continue com: 'minhas tarefas'"
+  check_progress:
+    - "Veja o progresso: 'progresso'"
+    - "Acompanhe: 'progresso'"
+    - "Status do dia: 'progresso'"
+  need_help:
+    - "Precisa de ajuda? Digite 'ajuda'"
+    - "Dúvidas? Digite 'ajuda'"
+  when_done:
+    - "Quando terminar: 'feito {number}'"
+    - "Ao concluir: 'feito {number}'"
+
+# Random check-ins em horários variados
+random_checkins:
+  morning:
+    - "☕ Bom dia! Como você está planejando o dia? Tem algo que precisa de atenção especial?"
+    - "🌅 E aí! Qual vai ser o foco principal hoje?"
+    - "☀️ Bom dia! O que está na sua lista de prioridades pra hoje?"
+    - "🌤️ Opa, bom dia! Tem alguma task que você quer atacar primeiro?"
+    - "☕ Bom dia! Vai dar continuidade em algo de ontem ou tem coisa nova?"
+    - "🌅 Bom dia! Como você está estruturando o dia? Alguma coisa urgente?"
+
+  afternoon:
+    - "⏰ E aí, como está o ritmo? Conseguindo avançar nas tasks?"
+    - "🔄 Rápido check-in: no que você está trabalhando agora?"
+    - "💬 Tudo fluindo bem por aí ou tem algo travando?"
+    - "⚡ Como está o andamento das coisas? Algum bloqueio?"
+    - "🎯 Conseguiu focar no que planejou de manhã ou mudou a rota?"
+    - "🔄 E aí, como está indo? Alguma task dando trabalho?"
+    - "💡 Check-in rápido: qual task está na sua tela agora?"
+
+  evening:
+    - "🌅 Finalizando o expediente. O que você conseguiu avançar hoje?"
+    - "🌆 E aí, como foi o dia? Conseguiu fazer o que tinha planejado?"
+    - "✅ Hora de fechar! O que saiu do papel hoje?"
+    - "🌙 Acabando o dia. Ficou algo pendente pra amanhã?"
+    - "🌃 Rapidinho: o que você marcou como feito hoje?"
+
+  late_night:
+    - "🌙 Ainda por aí? Como foi o fechamento do dia?"
+    - "✨ Dia longo, hein? Conseguiu finalizar o que precisava?"
+
+# Confirmations - Quick acknowledgments (casual tone)
+confirmations:
+  positive:
+    - "Beleza!"
+    - "Show!"
+    - "Entendi!"
+    - "Massa!"
+    - "Tranquilo!"
+    - "Blz!"
+    - "Anotado!"
+    - "Bora!"
+  professional:
+    - "Perfeito!"
+    - "Registrado!"
+    - "Confirmado!"
+    - "Pronto!"
+    - "OK, entendi!"
+  motivational:
+    - "Isso aí! 💪"
+    - "Vamos nessa! 🚀"
+    - "Fechou! 🎯"
+
+# Acknowledgments - Between message fillers (casual tone)
+acknowledgments:
+  positive:
+    - "Isso aí!"
+    - "Vamos nessa!"
+    - "Bora!"
+    - "Partiu!"
+    - "Fechou!"
+    - "Opa!"
+    - "Blz!"
+  professional:
+    - "Prosseguindo..."
+    - "Entendido."
+    - "Pode crer."
+    - "Certamente."
+  thinking:
+    - "Hmm..."
+    - "Deixa eu ver..."
+    - "Um segundo..."
+    - "Checando aqui..."
+    - "Processando..."
+
+# Fillers - Conversational pauses (casual tone)
+fillers:
+  thinking:
+    - "🤔 Hmm..."
+    - "💭 Deixa eu pensar..."
+    - "⏳ Um segundo..."
+    - "🔍 Checando aqui..."
+    - "⚙️ Processando..."
+  casual:
+    - "Opa!"
+    - "Valeu!"
+    - "E aí?"
+    - "Ó!"
+    - "Beleza!"
+
+# Gratitude responses - Thank you handling (mixed tone)
+gratitude_responses:
+  casual:
+    - "De nada! 😊"
+    - "Tmj! 💪"
+    - "Fico feliz em ajudar!"
+    - "Disponha! 🙌"
+    - "Por nada!"
+  professional:
+    - "De nada!"
+    - "Fico feliz em ajudar."
+    - "Sempre aqui para ajudar."
+    - "Com prazer!"
+  motivational:
+    - "Valeu! Você consegue! 💪"
+    - "De nada! Vamos que vamos! 🚀"
+    - "Tmj na caminhada! 🎯"
+    - "Fico feliz de ajudar nessa jornada! ✨"

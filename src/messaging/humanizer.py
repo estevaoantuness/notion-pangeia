@@ -10,9 +10,14 @@ import random
 import yaml
 from pathlib import Path
 from datetime import datetime
+from zoneinfo import ZoneInfo
 from typing import Dict, Optional
 
 logger = logging.getLogger(__name__)
+
+# Timezone for Brazilian context (São Paulo)
+# This ensures greetings are based on correct local time
+TZ = ZoneInfo("America/Sao_Paulo")
 
 
 class MessageHumanizer:
@@ -102,13 +107,18 @@ class MessageHumanizer:
         """
         Retorna saudação contextual baseada em hora e dia da semana.
 
+        Usa timezone de São Paulo (America/Sao_Paulo) para garantir que
+        greetings sejam baseados na hora local correta, mesmo quando
+        deployado em servidores com timezone diferente (ex: Railway).
+
         Args:
             name: Nome da pessoa (opcional)
 
         Returns:
             Saudação formatada
         """
-        now = datetime.now()
+        # Use São Paulo timezone to ensure correct local time
+        now = datetime.now(TZ)
         hour = now.hour
         weekday = now.weekday()  # 0=Monday, 4=Friday
 

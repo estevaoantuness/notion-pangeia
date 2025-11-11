@@ -93,6 +93,12 @@ def health_check():
     Returns:
         JSON com status do serviço
     """
+    # Inicializa scheduler na primeira requisição
+    global _scheduler_initialized
+    if not _scheduler_initialized:
+        logger.info("⚡ Initializing scheduler on first /health check request...")
+        initialize_scheduler()
+
     return {
         "status": "healthy",
         "service": "notion-pangeia-webhook",

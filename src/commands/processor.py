@@ -127,15 +127,8 @@ Posso te ajudar com suas tarefas ou o progresso do dia. O que você prefere?"""
         Returns:
             Tuple (mensagem, ação_pendente)
         """
-        hour = datetime.now().hour
-
-        # Saudação contextual usando humanizer (com anti-repetição)
-        if hour < 12:
-            greeting = self.humanizer.pick("greetings", "morning", name=person_name)
-        elif hour < 18:
-            greeting = self.humanizer.pick("greetings", "afternoon", name=person_name)
-        else:
-            greeting = self.humanizer.pick("greetings", "evening", name=person_name)
+        # Usar get_greeting() que já tem a lógica correta de hora e dia da semana
+        greeting = self.humanizer.get_greeting(name=person_name)
 
         # Adiciona sugestão implícita (conversacional, sem lista de comandos)
         suggestion = "\n\nQuer ver suas tarefas ou como está o progresso do dia?"

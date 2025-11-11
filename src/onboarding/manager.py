@@ -348,21 +348,19 @@ class OnboardingManager:
         Returns:
             Mensagem com tutorial detalhado
         """
-        message = "📋 *Como Funciona*\n\n"
-        message += "Você pode conversar comigo de forma natural:\n\n"
-        message += "*Exemplos de conversa:*\n"
-        message += "*1.* \"Ver minhas tarefas\" → mostro sua lista\n"
-        message += "*2.* \"Terminei a tarefa 2\" → marco como concluída\n"
-        message += "*3.* \"Comecei a 2 e 3\" → marco como em andamento\n\n"
-        message += "Você pode falar:\n"
-        message += "• \"Ver minhas tarefas\", \"minhas tarefas\", \"lista\"\n"
-        message += "• \"Terminei a 2\", \"pronto com 2\", \"feito a 2\"\n"
-        message += "• \"Comecei a 3\", \"estou fazendo a 3\"\n"
-        message += "• \"Como está o progresso?\", \"progresso\"\n\n"
-        message += "*Além disso:*\n"
-        message += "• Eu aviso você ao longo do dia para sincronizar\n"
-        message += "• Você pode conversar livremente!\n\n"
-        message += "Pode chamar \"ajuda\" se precisar! 😊"
+        message = "🤖 *Guia Completo*\n\n"
+        message += "Eu gerencio suas tarefas e te aviso ao longo do dia.\n\n"
+        message += "*📋 Ver tarefas:*\n"
+        message += "\"minhas tarefas\", \"lista\", \"tarefas\"\n\n"
+        message += "*✅ Concluir:*\n"
+        message += "\"feito 2\", \"terminei a 2\", \"pronto 2\"\n\n"
+        message += "*🔄 Iniciar:*\n"
+        message += "\"andamento 2\", \"comecei a 2\", \"estou fazendo 2\"\n\n"
+        message += "*📊 Progresso:*\n"
+        message += "\"progresso\", \"como está\", \"status\"\n\n"
+        message += "*💬 Fale naturalmente*\n"
+        message += "Aceito variações, abreviações e até gírias!\n\n"
+        message += "Dúvida? Mande \"ajuda\""
 
         return message
 
@@ -373,11 +371,13 @@ class OnboardingManager:
         Returns:
             Mensagem com comandos básicos
         """
-        message = "✅ *Comandos:*\n\n"
-        message += "• tarefas\n"
-        message += "• feito 2\n"
-        message += "• progresso\n\n"
-        message += "Digite: *tarefas*"
+        message = "⚡ *Guia Rápido*\n\n"
+        message += "📋 Ver → \"tarefas\"\n"
+        message += "✅ Feito → \"feito 2\"\n"
+        message += "🔄 Andamento → \"andamento 3\"\n"
+        message += "📊 Status → \"progresso\"\n\n"
+        message += "Fale como quiser! 💬\n\n"
+        message += "Começar: *tarefas*"
 
         return message
 

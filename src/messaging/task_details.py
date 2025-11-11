@@ -69,17 +69,9 @@ def format_task_details(task: Dict, task_index: int) -> str:
 
     message += "\n"
 
-    # Link
+    # CTA natural
     message += "━━━━━━━━━━━━━━━━━━━━━━\n"
-    message += "🔗 *Ver no Notion*\n"
-    message += f"{task['url']}\n\n"
-
-    # Ações rápidas
-    message += "━━━━━━━━━━━━━━━━━━━━━━\n"
-    message += "*Ações rápidas:*\n"
-    message += f"• *feito {task_index}* → marcar como concluída\n"
-    message += f"• *andamento {task_index}* → começar tarefa\n"
-    message += f"• *bloqueada {task_index} [motivo]* → bloquear"
+    message += "Pode me falar quando terminar, começar ou se precisar de ajuda com essa tarefa! 😊"
 
     return message
 

@@ -115,20 +115,14 @@ class CommandProcessor:
             del self.user_states[user_id]
 
     def _get_disambiguation_message(self) -> str:
-        """Retorna mensagem de desambiguação com sugestões"""
-        return """Posso ajudar com:
+        """Retorna mensagem de desambiguação conversacional"""
+        return """Hmm, não entendi bem... 😊
 
-• *tarefas* - ver suas tarefas
-• *progresso* - ver andamento do dia
-• *feito N* - marcar tarefa N como concluída
-• *andamento N* - marcar tarefa N em andamento
-• *ajuda* - ver todos os comandos
-
-O que você precisa?"""
+Posso te ajudar com suas tarefas ou o progresso do dia. O que você prefere?"""
 
     def _get_contextual_greeting(self, person_name: str) -> Tuple[str, Optional[str]]:
         """
-        Retorna saudação contextual baseada no horário + lista de comandos
+        Retorna saudação contextual com sugestão implícita
 
         Returns:
             Tuple (mensagem, ação_pendente)
@@ -143,19 +137,10 @@ O que você precisa?"""
         else:
             greeting = self.humanizer.pick("greetings", "evening", name=person_name)
 
-        # Adiciona lista de comandos
-        commands_list = """
+        # Adiciona sugestão implícita (conversacional, sem lista de comandos)
+        suggestion = "\n\nQuer ver suas tarefas ou como está o progresso do dia?"
 
-Comandos disponíveis:
-
-• *tarefas* - ver suas tarefas
-• *progresso* - ver andamento do dia
-• *feito N* - marcar tarefa N como concluída
-• *feito 2 5 6* - marcar múltiplas tarefas
-• *andamento N* - marcar tarefa N em andamento
-• *ajuda* - ver todos os comandos"""
-
-        return greeting + commands_list, None
+        return greeting + suggestion, None
 
     def process(
         self,
@@ -459,29 +444,32 @@ Comandos disponíveis:
             filler = self.humanizer.pick("fillers", "casual")
             return True, f"{filler} Tudo bem por aqui! 😊"
 
-        # Ajuda - oferece tutorial completo ou básico
+        # Ajuda - oferece orientação natural
         if intent == "help":
             help_type = entities.get("help_type", "help") if isinstance(entities, dict) else "help"
 
             try:
                 if help_type == "help_comandos" or help_type == "comandos":
-                    return True, """Comandos disponíveis:
+                    return True, """Posso te ajudar de várias formas:
 
-• *tarefas* - ver suas tarefas
-• *progresso* - ver andamento do dia
-• *feito N* - marcar tarefa N como concluída
-• *andamento N* - marcar tarefa N em andamento
-• *criar tarefa* - criar nova tarefa
-• *ajuda* - ver este guia"""
+📋 *Suas tarefas* - peça para ver suas tarefas do dia
+📊 *Progresso* - veja como está o progresso
+✅ *Marcar concluído* - pode dizer "terminei a tarefa 2" ou "pronto 3"
+🔄 *Começar* - pode dizer "comecei a 2" ou "estou trabalhando na 3"
+➕ *Criar tarefa* - me conte sobre uma nova tarefa que você quer adicionar
+
+Qualquer dúvida, é só chamar! 😊"""
 
                 elif help_type == "help_exemplos" or help_type == "exemplos":
-                    return True, """Exemplos de uso:
+                    return True, """Aqui estão exemplos de como conversar comigo:
 
-• tarefas
-• feito 2
-• andamento 3
-• progresso
-• ajuda"""
+"Ver minhas tarefas"
+"Como está o progresso?"
+"Terminei a tarefa 2"
+"Comecei a 3"
+"Preciso de ajuda"
+
+Você pode falar de forma natural, como com um colega!"""
 
                 else:
                     # Ajuda padrão - oferece tutorial
@@ -490,12 +478,9 @@ Comandos disponíveis:
             except Exception as e:
                 logger.error(f"Erro no handler de ajuda: {e}")
                 # Fallback seguro
-                return True, """Posso ajudar com:
+                return True, """Posso te ajudar com suas tarefas ou progresso do dia.
 
-• *tarefas* - ver suas tarefas
-• *progresso* - ver andamento
-• *feito N* - marcar tarefa
-• *ajuda* - ver comandos"""
+Pode me dizer o que você gostaria de fazer! 😊"""
 
         # Listar tarefas
         if intent == "list_tasks" or intent == "resend_list":

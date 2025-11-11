@@ -31,14 +31,14 @@ task_list:
       - "📋 Aqui está sua lista de hoje:"
       - "📋 Tasks do dia:"
     footer:
-      - "💬 Para atualizar, use:\n• feito 2\n• andamento 3\n• bloqueada 4 - motivo"
-      - "💬 Comandos:\n• feito N - concluir\n• andamento N - iniciar\n• bloqueada N - reportar"
+      - "💬 Pode me avisar quando terminar, começar ou se tiver algum bloqueio!"
+      - "💬 Me conte do progresso quando quiser - terminei a 2, comecei a 3..."
     footer_cta:
-      - "Precisa de ajuda? Digite 'ajuda'"
-      - "Dúvidas? Digite 'ajuda'"
+      - "Precisa de ajuda? Me chama! 😊"
+      - "Dúvidas? Pode chamar!"
   no_tasks:
-    - "🎉 Você está em dia!\n\nNenhuma tarefa pendente no momento.\n\nQuer criar uma nova tarefa? Digite 'criar tarefa'\nOu veja o progresso geral: 'progresso'"
-    - "✨ Tudo limpo por aqui!\n\nVocê concluiu todas as suas tarefas. Parabéns! 🎯\n\nAproveite para:\n• Revisar o progresso: 'progresso'\n• Planejar novas ações: 'criar tarefa'"
+    - "🎉 Você está em dia!\n\nNenhuma tarefa pendente no momento.\n\nQuer criar uma nova tarefa? Me conte sobre ela!\nOu veja o progresso geral se quiser."
+    - "✨ Tudo limpo por aqui!\n\nVocê concluiu todas as suas tarefas. Parabéns! 🎯\n\nAproveite para revisar seu progresso ou planejar novas ações."
     - "🏆 Lista vazia = dia produtivo!\n\nTodas as tasks foram concluídas.\n\nVeja seu progresso: 'progresso'"
 
 task_completed:
@@ -131,41 +131,34 @@ help:
     - |
       💬 Como posso te ajudar?
 
-      **Comandos disponíveis:**
+      Posso fazer várias coisas para você:
 
-      📋 **Ver tarefas**
-      • minhas tarefas
-      • lista
-      • tarefas
-
-      📊 **Acompanhar progresso**
-      • progresso
-      • status
-
-      ✅ **Atualizar tarefas**
-      • feito 2
-      • andamento 3
-      • bloqueada 4 - motivo do bloqueio
+      📋 **Ver suas tarefas** - peça para ver suas tarefas do dia
+      📊 **Acompanhar progresso** - veja como está o andamento
+      ✅ **Marcar concluído** - fale "terminei a tarefa 2" ou "pronto 3"
+      🔄 **Começar tarefa** - fale "comecei a 2" ou "estou trabalhando na 3"
+      ➕ **Criar tarefa** - me conte sobre uma nova tarefa
+      🚫 **Bloquear tarefa** - me avise se algo está impedindo a tarefa
 
       ---
 
-      **Dicas rápidas:**
-      • Use números para identificar tarefas
-      • Sempre informe o motivo em bloqueios
-      • Digite "progresso" para ver como está o dia
+      **Dicas:**
+      • Fale de forma natural, como com um colega
+      • Se tiver bloqueios, me conte o motivo
+      • Posso te acompanhar durante o dia
 
-      Precisa de algo específico? É só perguntar! 😊
+      Precisa de algo específico? É só chamar! 😊
   short:
     - |
-      💬 Principais comandos:
+      💬 Como conversar comigo:
 
-      • **minhas tarefas** - ver sua lista
-      • **progresso** - acompanhar o dia
-      • **feito 2** - concluir tarefa
-      • **andamento 3** - iniciar tarefa
-      • **bloqueada 4 - motivo** - reportar bloqueio
+      "Ver minhas tarefas" - vejo sua lista
+      "Terminei a 2" - marco como concluída
+      "Comecei a 3" - marco como em andamento
+      "Como está o progresso?" - mostro o andamento
+      "Preciso de ajuda" - auxilio com dúvidas
 
-      Precisa de ajuda? Digite 'ajuda' 😊
+      Fale de forma natural! 😊
 
 checkins:
   planning: # 13:30

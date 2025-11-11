@@ -6,11 +6,43 @@ para envio via WhatsApp, incluindo contexto de horário.
 """
 
 from datetime import datetime
-from typing import Dict, List
+from typing import Dict, List, Optional
 from zoneinfo import ZoneInfo
 
 # Timezone
 TZ = ZoneInfo("America/Sao_Paulo")
+
+
+def should_include_notion_link(user_message: Optional[str] = None) -> bool:
+    """
+    Detecta se o usuário solicitou explicitamente um link do Notion.
+
+    Retorna True apenas se o usuário pediu especificamente.
+
+    Args:
+        user_message: Mensagem do usuário (opcional)
+
+    Returns:
+        True se deve incluir link, False caso contrário
+    """
+    if not user_message:
+        return False
+
+    message_lower = user_message.lower()
+
+    # Keywords que indicam pedido de link
+    link_keywords = [
+        "notion",
+        "link",
+        "ver no notion",
+        "abrir no notion",
+        "mostrar no notion",
+        "acesso",
+        "url",
+        "whatsapp",
+    ]
+
+    return any(keyword in message_lower for keyword in link_keywords)
 
 
 def get_number_emoji(num: int) -> str:
@@ -189,13 +221,8 @@ def format_daily_tasks_message(
         else:
             message += "✨ Dia produtivo! Boa noite.\n"
 
-    # Link para central de tasks no Notion
-    from config.settings import settings
-    tasks_db_url = f"https://notion.so/{settings.NOTION_TASKS_DB_ID.replace('-', '')}"
-    message += f"Ver todas: {tasks_db_url}\n"
-
-    # CTAs
-    message += f"\nUse: feito N | andamento N | ajuda"
+    # CTA natural (sem lista de comandos)
+    message += f"\nPode me avisar quando terminar, começar ou se tiver algum bloqueio! 😊"
 
     return message
 
@@ -291,13 +318,8 @@ def format_full_task_list(
         else:
             message += "✨ Dia produtivo! Boa noite.\n"
 
-    # Link para central de tasks no Notion
-    from config.settings import settings
-    tasks_db_url = f"https://notion.so/{settings.NOTION_TASKS_DB_ID.replace('-', '')}"
-    message += f"Ver no Notion: {tasks_db_url}\n"
-
-    # CTAs
-    message += f"\nUse: feito N | andamento N | ajuda"
+    # CTA natural (sem lista de comandos)
+    message += f"\nPode me avisar quando terminar, começar ou se tiver algum bloqueio! 😊"
 
     return message
 
@@ -586,10 +608,6 @@ def format_progress_report(
 
     # Mensagem motivacional
     message += _get_motivational_message(done_percent, em_andamento, pendentes)
-
-    # Link
-    tasks_db_url = f"https://notion.so/{settings.NOTION_TASKS_DB_ID.replace('-', '')}"
-    message += f"\n\nVer no Notion: {tasks_db_url}"
 
     return message
 

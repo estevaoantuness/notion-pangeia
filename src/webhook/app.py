@@ -65,11 +65,23 @@ def initialize_scheduler():
         return
 
     logger.info("🔧 Inicializando scheduler...")
-    scheduler = get_scheduler()
-    scheduler.setup_jobs()
-    scheduler.start()
-    logger.info("✅ Scheduler ATIVADO - mensagens automáticas habilitadas")
-    _scheduler_initialized = True
+    try:
+        scheduler = get_scheduler()
+        scheduler.setup_jobs()
+        scheduler.start()
+        logger.info("✅ Scheduler ATIVADO - mensagens automáticas habilitadas")
+        _scheduler_initialized = True
+    except Exception as e:
+        logger.error(f"❌ Erro ao inicializar scheduler: {e}")
+        _scheduler_initialized = True  # Mark as initialized even if failed, to avoid retries
+
+
+# Tenta inicializar scheduler imediatamente na importação
+try:
+    logger.info("🔴 Iniciando scheduler na importação do módulo...")
+    initialize_scheduler()
+except Exception as e:
+    logger.error(f"⚠️ Failed to initialize scheduler at import: {e}")
 
 
 def get_scheduler_safe():

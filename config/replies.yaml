@@ -193,6 +193,23 @@ checkins:
     - "RESUMO_AUTOMATICO"  # Será substituído por resumo calculado no scheduler
     - "RESUMO_AUTOMATICO"
 
+checkin_followups:
+  - "Oi! Vi que você não respondeu ao check-in. Tudo bem por aí? 😊"
+  - "Só lembrando do check-in de mais cedo. Consegue responder quando puder?"
+  - "Hey! Ainda preciso da sua resposta. Como estão as coisas?"
+  - "Opa! Esqueceu do check-in? Sem problemas, pode responder agora!"
+  - "Tá aí? Preciso da sua resposta do check-in anterior 🙏"
+  - "Ei! Ainda dá tempo de responder o check-in!"
+  - "Fala! Viu a mensagem anterior? Consegue dar um feedback?"
+  - "Oi de novo! Como foi? Consegue compartilhar?"
+  - "E aí, tudo certo? Falta só sua resposta aqui! 👍"
+  - "Lembrando do check-in! Pode responder quando puder"
+  - "Beleza? Ainda estou esperando seu retorno do check-in!"
+  - "Oi! Não quero te incomodar, mas preciso do seu feedback"
+  - "Tá corrido hoje? Quando puder, responde o check-in!"
+  - "Ei! Só pra não deixar passar - consegue responder?"
+  - "Opa! Me conta como foi, ainda dá pra registrar! 🎯"
+
 ctas:
   see_tasks:
     - "Veja o restante: 'minhas tarefas'"

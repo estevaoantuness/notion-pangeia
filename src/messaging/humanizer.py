@@ -346,6 +346,21 @@ class MessageHumanizer:
         """
         return self.pick('checkins', checkin_type)
 
+    def get_followup_message(self) -> str:
+        """
+        Retorna mensagem de follow-up para check-in não respondido.
+
+        Usa lista simples de variações para parecer natural e humanizado.
+
+        Returns:
+            Mensagem de follow-up aleatória (1 de 15 variações)
+        """
+        followups = self.replies.get('checkin_followups', [])
+        if not followups:
+            return "Oi! Ainda estou esperando sua resposta do check-in anterior. Consegue responder?"
+
+        return random.choice(followups)
+
     def get_task_list_message(
         self,
         has_tasks: bool,

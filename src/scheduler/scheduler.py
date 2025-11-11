@@ -474,6 +474,29 @@ class TaskScheduler:
                     )
                     logger.info(f"📍 Recorded pending check-in: {checkin_id}")
 
+                    # ═══════════════════════════════════════════════════════════════════
+                    # AGENDAR FOLLOW-UP (15 MINUTOS APÓS ENVIO)
+                    # ═══════════════════════════════════════════════════════════════════
+                    try:
+                        followup_time = datetime.now(TZ) + timedelta(minutes=15)
+                        followup_job_id = f"followup-{checkin_id}"
+
+                        self.scheduler.add_job(
+                            func=self._send_followup_if_needed,
+                            trigger=DateTrigger(run_date=followup_time),
+                            id=followup_job_id,
+                            name=f"Follow-up: {checkin_key} para {nome}",
+                            replace_existing=True,
+                            kwargs={
+                                'user_id': nome,
+                                'checkin_id': checkin_id,
+                                'checkin_type': checkin_key
+                            }
+                        )
+                        logger.info(f"⏰ Follow-up agendado para {followup_time.strftime('%H:%M:%S')}")
+                    except Exception as e:
+                        logger.warning(f"⚠️ Erro ao agendar follow-up: {e}")
+
                     total_enviados += 1
                 else:
                     logger.error(f"❌ Falha ao enviar para {nome}: {error}")
@@ -486,6 +509,56 @@ class TaskScheduler:
         logger.info("=" * 60)
         logger.info(f"📊 RESUMO: {total_enviados} enviados, {total_erros} erros")
         logger.info("=" * 60)
+
+    def _send_followup_if_needed(self, user_id: str, checkin_id: str, checkin_type: str):
+        """
+        Envia follow-up de check-in se o usuário ainda não respondeu.
+
+        Chamado automaticamente 15 minutos após o envio do check-in inicial.
+        Verifica se há um check-in pendente e, se houver, envia uma mensagem
+        de follow-up aleatória das 15 opções.
+
+        Args:
+            user_id: ID do usuário
+            checkin_id: ID do check-in enviado
+            checkin_type: Tipo de check-in (metas, planning, closing, etc)
+        """
+        try:
+            from src.checkins.pending_tracker import get_pending_checkin_tracker
+
+            tracker = get_pending_checkin_tracker()
+            pending_checkin = tracker.get_pending_checkin(user_id)
+
+            # Verifica se ainda há check-in pendente
+            if pending_checkin and pending_checkin.checkin_id == checkin_id:
+                # Usuário não respondeu - enviar follow-up
+                followup_msg = self.humanizer.get_followup_message()
+
+                logger.info("=" * 60)
+                logger.info(f"📬 ENVIANDO FOLLOW-UP PARA {user_id}")
+                logger.info("=" * 60)
+
+                success, sid, error = self.whatsapp_sender.send_message(
+                    person_name=user_id,
+                    message=followup_msg
+                )
+
+                if success:
+                    logger.info(f"✅ Follow-up enviado para {user_id}. SID: {sid}")
+                    logger.info(f"📨 Mensagem: {followup_msg[:80]}...")
+                else:
+                    logger.error(f"❌ Falha ao enviar follow-up para {user_id}: {error}")
+
+                logger.info("=" * 60)
+
+            else:
+                # Usuário já respondeu - skip
+                logger.info(
+                    f"✓ Follow-up skipped: {user_id} já respondeu ao check-in {checkin_id}"
+                )
+
+        except Exception as e:
+            logger.error(f"❌ Erro ao enviar follow-up para {user_id}: {e}", exc_info=True)
 
     def materialize_times_for_day(self, day: datetime) -> list:
         """

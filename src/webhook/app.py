@@ -44,11 +44,36 @@ command_processor = CommandProcessor()
 # Inicializa processador de áudio
 audio_processor = get_audio_processor()
 
-# Inicializa scheduler
-scheduler = get_scheduler()
-scheduler.setup_jobs()
-scheduler.start()
-logger.info("✅ Scheduler ATIVADO - mensagens automáticas habilitadas")
+# Variável de controle para garantir inicialização única do scheduler
+_scheduler_initialized = False
+scheduler = None
+
+
+def initialize_scheduler():
+    """
+    Inicializa o scheduler uma única vez.
+
+    Esta função garante que o scheduler só seja inicializado uma vez,
+    mesmo que o módulo seja importado múltiplas vezes.
+    """
+    global _scheduler_initialized, scheduler
+
+    if _scheduler_initialized:
+        logger.debug("⏭️  Scheduler já foi inicializado, pulando...")
+        return
+
+    logger.info("🔧 Inicializando scheduler...")
+    scheduler = get_scheduler()
+    scheduler.setup_jobs()
+    scheduler.start()
+    logger.info("✅ Scheduler ATIVADO - mensagens automáticas habilitadas")
+    _scheduler_initialized = True
+
+
+@app.before_first_request
+def _init_scheduler():
+    """Inicializa scheduler na primeira requisição da aplicação."""
+    initialize_scheduler()
 
 
 @app.route('/health', methods=['GET'])
@@ -140,6 +165,12 @@ def scheduler_run_job(job_id: str):
         JSON com resultado
     """
     try:
+        if not scheduler:
+            return {
+                "status": "error",
+                "message": "Scheduler não foi inicializado"
+            }, 503
+
         success = scheduler.run_job_now(job_id)
 
         if success:

@@ -19,54 +19,63 @@ logger = logging.getLogger(__name__)
 # Mapeamento de colaboradores: nome completo → informações
 COLABORADORES: Dict[str, Dict[str, any]] = {
     "Estevao Antunes": {
+        "nome": "Estevao Antunes",
         "telefone": "+554191851256",
         "cargo": "Desenvolvedor",
         "ativo": True,
         "notion_id": None  # Será preenchido automaticamente
     },
     "Julio Inoue": {
+        "nome": "Julio Inoue",
         "telefone": "+5511999322027",
         "cargo": "Desenvolvedor",
         "ativo": False,
         "notion_id": None
     },
     "Arthur Leuzzi": {
+        "nome": "Arthur Leuzzi",
         "telefone": "+554888428246",
         "cargo": "Desenvolvedor",
         "ativo": False,
         "notion_id": None
     },
     "Joaquim": {
+        "nome": "Joaquim",
         "telefone": "+5511980992410",
         "cargo": "Desenvolvedor",
         "ativo": False,
         "notion_id": None
     },
     "Kevin": {
+        "nome": "Kevin",
         "telefone": "+554792054701",
         "cargo": "Desenvolvedor",
         "ativo": False,
         "notion_id": None
     },
     "Leo Confettura": {
+        "nome": "Leo Confettura",
         "telefone": "+552498117033",
         "cargo": "Desenvolvedor",
         "ativo": False,
         "notion_id": None
     },
     "Luna Machado": {
+        "nome": "Luna Machado",
         "telefone": "+554484282600",
         "cargo": "Desenvolvedora",
         "ativo": False,
         "notion_id": None
     },
     "Sami Monteleone": {
+        "nome": "Sami Monteleone",
         "telefone": "+551998100715",
         "cargo": "Desenvolvedor",
         "ativo": False,
         "notion_id": None
     },
     "Saraiva": {
+        "nome": "Saraiva",
         "telefone": "+551199143605",
         "cargo": "Desenvolvedor",
         "ativo": False,

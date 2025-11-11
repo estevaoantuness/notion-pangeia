@@ -257,6 +257,44 @@ class TestSchedulerConfiguration:
         enabled = os.getenv("ENABLE_RANDOM_CHECKINS", "true").lower() == "true"
         assert isinstance(enabled, bool), "ENABLE_RANDOM_CHECKINS deve ser boolean"
 
+    def test_scheduler_redis_configuration(self):
+        """Verifica configurações de Redis para scheduler"""
+        redis_host = os.getenv("REDIS_HOST", "localhost")
+        redis_port = os.getenv("REDIS_PORT", "6379")
+
+        assert isinstance(redis_host, str), "REDIS_HOST deve ser string"
+        assert len(redis_host) > 0, "REDIS_HOST não deve estar vazio"
+
+        try:
+            port = int(redis_port)
+            assert 1 <= port <= 65535, f"REDIS_PORT deve estar entre 1-65535: {port}"
+        except ValueError:
+            pytest.fail(f"REDIS_PORT deve ser número inteiro: {redis_port}")
+
+    def test_scheduler_timeout_configuration(self):
+        """Verifica configuração de timeout para check-ins"""
+        # Timeout padrão é 120 minutos (2 horas)
+        timeout_str = os.getenv("CHECKIN_RESPONSE_TIMEOUT_MINUTES", "120")
+
+        try:
+            timeout = int(timeout_str)
+            assert timeout > 0, f"Timeout deve ser positivo: {timeout}"
+            assert timeout <= 1440, f"Timeout não deve exceder 24h (1440 min): {timeout}"
+        except ValueError:
+            pytest.fail(f"CHECKIN_RESPONSE_TIMEOUT_MINUTES deve ser número: {timeout_str}")
+
+    def test_scheduler_followup_delay_configuration(self):
+        """Verifica configuração de delay para follow-ups"""
+        # Delay padrão é 15 minutos
+        delay_str = os.getenv("CHECKIN_FOLLOWUP_DELAY_MINUTES", "15")
+
+        try:
+            delay = int(delay_str)
+            assert delay > 0, f"Follow-up delay deve ser positivo: {delay}"
+            assert delay < 60, f"Follow-up delay deve ser menor que 60 minutos: {delay}"
+        except ValueError:
+            pytest.fail(f"CHECKIN_FOLLOWUP_DELAY_MINUTES deve ser número: {delay_str}")
+
 
 class TestNLPConfiguration:
     """Testa configuração NLP"""
@@ -284,13 +322,29 @@ class TestNLPConfiguration:
             pytest.fail(f"Erro ao testar detecção de intenção: {e}")
 
     def test_yes_no_detection(self):
-        """Testa detecção de sim/não"""
+        """Testa detecção de sim/não em português
+
+        is_confirmation() retorna:
+        - True para confirmações positivas (sim, ok, etc)
+        - False para negações (não, nao)
+        - None para texto não reconhecido ou intenções não-binary
+        """
         try:
             from src.commands.normalizer import is_confirmation
 
-            assert is_confirmation("sim") == True, "Deve detectar 'sim'"
-            assert is_confirmation("não") == True, "Deve detectar 'não'"
-            assert is_confirmation("talvez") == False, "Não deve detectar 'talvez'"
+            # Testa confirmações positivas em português
+            assert is_confirmation("sim") == True, "Deve retornar True para 'sim'"
+            assert is_confirmation("ok") == True, "Deve retornar True para 'ok'"
+
+            # Testa confirmações negativas em português - deve retornar False
+            assert is_confirmation("não") == False, "Deve retornar False para 'não'"
+            assert is_confirmation("nao") == False, "Deve retornar False para 'nao'"
+
+            # Testa que retorna None para texto não reconhecido
+            assert is_confirmation("talvez") is None, "Deve retornar None para 'talvez' (indefinido)"
+            assert is_confirmation("oi") is None, "Deve retornar None para texto aleatório"
+            assert is_confirmation("yes") is None, "Deve retornar None para 'yes' (inglês, não suportado)"
+            assert is_confirmation("no") is None, "Deve retornar None para 'no' (inglês, não suportado)"
         except Exception as e:
             pytest.fail(f"Erro ao testar confirmação: {e}")
 

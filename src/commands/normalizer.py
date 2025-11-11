@@ -92,22 +92,25 @@ KEYWORD_SETS: Dict[str, Set[str]] = {
     },
     "list_tasks": {
         "tarefas", "tasks", "lista", "listar", "mostrar", "ver",
-        "quais", "minhas", "meus"
+        "quais", "minhas", "meus", "pendentes", "resto", "restante",
+        "faltam", "falta"
     },
     "progress": {
         "progresso", "status", "como", "quanto", "andamento",
-        "resumo", "relatório", "avanço"
+        "resumo", "relatório", "avanço", "geral"
     },
     "done_task": {
         "feito", "pronto", "finalizei", "completei", "concluí",
-        "terminei", "foi feita"
+        "terminei", "foi feita", "baixa", "cabo"
     },
     "in_progress_task": {
         "fazendo", "comecei", "iniciando", "trabalhando",
-        "andamento", "vou fazer", "comeco", "fazer"
+        "andamento", "vou fazer", "comeco", "fazer",
+        "puxa", "coloca", "tocando"
     },
     "help": {
-        "ajuda", "help", "comandos", "como", "tutorial"
+        "ajuda", "help", "comandos", "como", "tutorial",
+        "orienta", "manda"
     },
     "want": {
         "quero", "quer", "gostaria", "prefiro", "escolho", "seleciono",
@@ -155,7 +158,8 @@ SYNONYM_MAP = {
     "minhas tarefas": "tarefas", "meus itens": "tarefas",
     "ver tarefas": "tarefas", "mostrar tarefas": "tarefas",
     "quais tarefas": "tarefas", "o que tenho": "tarefas",
-    "o que falta": "tarefas",
+    "o que falta": "tarefas", "tarefas pendentes": "tarefas",
+    "lista geral": "tarefas", "tarefas do dia": "tarefas",
 
     # Comandos - Ver mais
     "mostrar mais": "ver mais",
@@ -165,11 +169,13 @@ SYNONYM_MAP = {
     "status": "progresso",
     "quanto falta": "progresso", "como estou": "progresso",
     "como está": "progresso", "como esta": "progresso",
-    "resumo": "progresso",
+    "resumo": "progresso", "status geral": "progresso",
+    "como ta": "progresso", "como tá": "progresso",
 
     # Comandos - Ajuda
     "help": "ajuda", "comandos": "ajuda",
     "comando": "ajuda", "como usar": "ajuda", "como uso": "ajuda",
+    "manda ai": "ajuda", "me orienta": "ajuda", "preciso de orientação": "ajuda",
 
     # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
     # COMANDOS DE TUTORIAIS DIRETOS
@@ -592,6 +598,7 @@ PATTERNS: List[CommandPattern] = [
     # Ex: "quero marcar 1 como feito", "marca 1 2 como pronto"
     ("done_task", re.compile(r"^(quero|marca|marque|consegues?|podes?)\s+\w*\s*(marcar|feito|pronto)\s+(?P<indices>(?:\d+\s*)+)\s+(feito|pronto|pronta|concluido|como feito)$"), 0.85),
     ("done_task", re.compile(r"^(concluí|conclui|finalizei|terminei)\s+(?:a|o)?\s+(?P<indices>(?:\d+\s*)+)$"), 0.85),
+    ("done_task", re.compile(r"^(?:dei\s+(?:baixa|cabo)|zer(?:ei|ou|ado)|liquidei)\s+(?:nas?|nos?)?\s*(?P<indices>(?:\d+\s*)+)$"), 0.88),
 
     # In progress task - formato simples
     ("in_progress_task", re.compile(r"^(andamento|fazendo|em andamento)\s+(?P<indices>(?:\d+[,\s]*)+)$"), 0.99),
@@ -605,6 +612,8 @@ PATTERNS: List[CommandPattern] = [
     # Ex: "estou fazendo 1", "começei a fazer 2 3"
     ("in_progress_task", re.compile(r"^(estou|vou|comecei|comeco|vou fazer|estou fazendo)\s+\w*\s*(fazer|fazendo|andamento)?\s+(?P<indices>(?:\d+\s*)+)$"), 0.85),
     ("in_progress_task", re.compile(r"^(marca|marque|consegues?|podes?)\s+\w*\s*(andamento|fazendo|em andamento)\s+(?P<indices>(?:\d+\s*)+)$"), 0.85),
+    ("in_progress_task", re.compile(r"^(puxa|puxe|coloca|coloque)\s+(?P<indices>(?:\d+\s*)+)\s+(?:pro|para|no)\s+(andamento|fazendo)$"), 0.88),
+    ("in_progress_task", re.compile(r"^(tocando|levando)\s+(?P<indices>(?:\d+\s*)+)$"), 0.87),
 
     ("blocked_task", re.compile(r"^(bloqueada|bloqueado)\s+(?P<index>\d+)(?:\s*[-:]\s*(?P<reason>.+))?$"), 0.95),
 
@@ -635,6 +644,8 @@ PATTERNS: List[CommandPattern] = [
     # Listar tarefas com escopo explícito
     ("list_tasks", re.compile(r"^(tarefas|tasks)\s+(?:da|do|de)?\s*(?P<scope>semana|mes|mês|todas?|completa?)$"), 0.90),
     ("list_tasks", re.compile(r"^(?:todas?|toda)\s+(?:as|a)?\s*(tarefas|tasks)$"), 0.90),
+    ("list_tasks", re.compile(r"^(tarefas|tasks)\s+(?:pendentes|que\s+faltam|em\s+aberto)$"), 0.90),
+    ("list_tasks", re.compile(r"^(?:o\s+que|qual)\s+(?:falta|resta)(?:\s+(?:do|da)\s+dia)?$"), 0.88),
 
     # Listar tarefas de um projeto específico
     ("list_tasks", re.compile(r"^(tarefas|tasks)\s+(?:do|da|de)\s+(?:projeto\s+)?(?P<project>[\w\s\-]+)$"), 0.88),
@@ -652,6 +663,8 @@ PATTERNS: List[CommandPattern] = [
     # Ex: "como estou indo", "qual é meu progresso", "mostra meu progresso"
     ("progress", re.compile(r"^(como|qual|mostra|qual\s+e|como\s+esta)\s+\w*\s*(e|esta|está|estou|meu|o meu)\s+(progresso|status|como vai|como estou)$"), 0.85),
     ("progress", re.compile(r"^(quero|pode|consegue)\s+\w*\s*(ver|mostrar|listar)\s+(progresso|status|meu progresso)$"), 0.85),
+    ("progress", re.compile(r"^(?:qual|como)\s+(?:o\s+)?status\s+(?:geral|do\s+dia)$"), 0.90),
+    ("progress", re.compile(r"^(?:como)\s+(?:ta|tá|esta|está)\s+(?:o\s+)?dia$"), 0.88),
     ("progress", re.compile(r"^(progresso|status)\s+(?:da|do|de)?\s*(?P<scope>semana|dia|hoje)$"), 0.90),
 
     # Create task com projeto/título inline

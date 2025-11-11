@@ -93,6 +93,8 @@ DONE_TESTS = [
     ("pronto 2", "done_task", 0.99, {"index": 2}),
     ("completei 3", "done_task", 0.99, {"index": 3}),
     ("2 foi feita", "done_task", 0.99, {"index": 2}),
+    ("dei baixa na 4", "done_task", 0.90, {"index": 4}),
+    ("zerou 5", "done_task", 0.90, {"index": 5}),
 ]
 
 # Grupo 3: Comandos de tarefas - Em andamento
@@ -106,6 +108,8 @@ IN_PROGRESS_TESTS = [
     ("começando 3", "in_progress_task", 0.99, {"index": 3}),
     ("comecei a 4", "in_progress_task", 0.99, {"index": 4}),
     ("fazendo a segunda", "in_progress_task", 0.99, {"index": 2}),
+    ("puxa 2 pro andamento", "in_progress_task", 0.90, {"index": 2}),
+    ("tocando 5", "in_progress_task", 0.88, {"index": 5}),
 ]
 
 # Grupo 4: Comandos de tarefas - Bloqueadas (COM motivo)
@@ -138,6 +142,10 @@ LIST_PROGRESS_TESTS = [
     ("status", "progress", 0.98),
     ("quanto falta?", "progress", 0.98),
     ("andamento do dia", "progress", 0.98),
+    ("tarefas pendentes", "list_tasks", 0.92),
+    ("o que falta do dia?", "list_tasks", 0.92),
+    ("qual o status geral?", "progress", 0.92),
+    ("como tá o dia?", "progress", 0.90),
 ]
 
 # Grupo 7: Ajuda
@@ -147,6 +155,8 @@ HELP_TESTS = [
     ("?", "help", 0.95),
     ("como usar?", "help", 0.95),
     ("comandos", "help", 0.95),
+    ("manda ai os comandos", "help", 0.92),
+    ("me orienta", "help", 0.92),
 ]
 
 # Grupo 8: Confirmações

@@ -369,6 +369,7 @@ class MessageHumanizer:
 
         Returns:
             Mensagem de follow-up contextualizada com {done}, {total}, {percent} preenchidos
+            e frase final motivacional adaptada ao horário do dia.
         """
         import datetime
 
@@ -398,11 +399,27 @@ class MessageHumanizer:
         # Se temos dados de progresso, preencher placeholders
         if done is not None and total is not None and total > 0:
             percent = int((done / total) * 100)
-            message = message.format(
-                done=done,
-                total=total,
-                percent=percent
-            )
+            try:
+                message = message.format(
+                    done=done,
+                    total=total,
+                    percent=percent
+                )
+            except KeyError:
+                # Mensagem não tem placeholders, continua normal
+                pass
+
+        # Adicionar frase final contextualizada ao horário
+        try:
+            closings = self.replies.get('followup_closings', {})
+            period_closings = closings.get(period, [])
+
+            if period_closings:
+                closing = random.choice(period_closings)
+                message += f"\n\n{closing}"
+        except Exception as e:
+            logger.warning(f"Erro ao adicionar closing contextualizado: {e}")
+            # Continua sem closing se houver erro
 
         return message
 

@@ -222,6 +222,33 @@ checkin_followups:
     - "✅ Resultados: {percent}% do planejado. Alguma coisa travou? 🎯"
     - "🏆 Encerando com {percent}%! De {total} tarefas, {done} saíram do papel. Parabéns! 🎊"
 
+# Frases motivacionais finais contextualizadas por horário
+followup_closings:
+  morning:  # 08:00-11:59 - Começo do dia
+    - "Bora começar com tudo! 💪"
+    - "Vamo fazer um grande dia! 🚀"
+    - "Pegue essa energia e siga! ⚡"
+    - "Dia cheio de oportunidades! 🌟"
+    - "Vem com tudo! 💥"
+
+  afternoon:  # 12:00-17:59 - Meio do dia
+    - "Ainda dá tempo de terminar com chave de ouro! 🔑"
+    - "Você consegue completar isso até o final do dia! 💪"
+    - "Pode acelerar aí, você tá no ritmo! ⚡"
+    - "Foco total no que falta! 🎯"
+    - "Vamo terminar forte! 🔥"
+    - "Metade do dia conquistada, bora completar! 🏁"
+    - "Você tem tempo de sobra, vai lá! ⏰"
+
+  evening:  # 18:00-23:59 - Final do dia
+    - "Reta final, bora fechar com chave de ouro! 🔑✨"
+    - "Essas últimas vão fazer toda diferença! 💎"
+    - "Você consegue terminar o dia forte! 💪"
+    - "Vamo completar o que falta agora! 🎊"
+    - "Últimas horas, bora dar tudo! 🔥"
+    - "Fecha o dia com vitória! 🏆"
+    - "Que termina lindo o seu dia! 🌟"
+
 ctas:
   see_tasks:
     - "Veja o restante: 'minhas tarefas'"

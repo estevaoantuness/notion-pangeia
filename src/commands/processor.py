@@ -483,29 +483,21 @@ Posso te ajudar com suas tarefas ou o progresso do dia. O que você prefere?"""
 
             try:
                 if help_type == "help_comandos" or help_type == "comandos":
-                    return True, """Posso te ajudar de várias formas:
-
-📋 *Suas tarefas* - peça para ver suas tarefas do dia
-📊 *Progresso* - veja como está o progresso
-✅ *Marcar concluído* - pode dizer "terminei a tarefa 2" ou "pronto 3"
-🔄 *Começar* - pode dizer "comecei a 2" ou "estou trabalhando na 3"
-➕ *Criar tarefa* - me conte sobre uma nova tarefa que você quer adicionar
-
-Qualquer dúvida, é só chamar! 😊"""
+                    return True, self.onboarding.get_quick_help()
 
                 elif help_type == "help_exemplos" or help_type == "exemplos":
-                    return True, """Aqui estão exemplos de como conversar comigo:
+                    return True, """📚 *Exemplos:*
 
-"Ver minhas tarefas"
-"Como está o progresso?"
-"Terminei a tarefa 2"
-"Comecei a 3"
-"Preciso de ajuda"
+"minhas tarefas" → lista suas tarefas
+"feito 2" → marca tarefa 2 como concluída
+"andamento 3" → marca tarefa 3 como em andamento
+"progresso" → mostra progresso do dia
+"ajuda" → lista todos os comandos
 
-Você pode falar de forma natural, como com um colega!"""
+Fale naturalmente - aceito variações e gírias! 💬"""
 
                 else:
-                    # Ajuda padrão - oferece tutorial
+                    # Ajuda padrão - oferece tutorial completo
                     return True, self.onboarding.start_help_flow(person_name)
 
             except Exception as e:

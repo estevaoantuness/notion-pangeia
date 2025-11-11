@@ -275,6 +275,22 @@ class OnboardingManager:
                 "Tutorial: *completo* ou *básico*?"
             )
 
+    def get_quick_help(self) -> str:
+        """
+        Retorna ajuda rápida (quando usuário digita 'ajuda').
+
+        Returns:
+            Mensagem de ajuda básica
+        """
+        message = "Legal! Posso te ajudar com:\n\n"
+        message += "📋 *Ver tarefas* - 'minhas tarefas'\n"
+        message += "✅ *Marcar concluída* - 'feito 1'\n"
+        message += "🔵 *Marcar em andamento* - 'fazendo 1'\n"
+        message += "📊 *Ver progresso* - 'progresso'\n"
+        message += "❓ *Ver todos comandos* - 'ajuda'"
+
+        return message
+
     def start_help_flow(self, person_name: str) -> str:
         """
         Inicia fluxo de ajuda com pergunta.
@@ -290,9 +306,22 @@ class OnboardingManager:
         # Marcar que está aguardando resposta
         _onboarding_state[person_name] = 'waiting_help_answer'
 
-        message = "📖 Tutorial:\n\n"
-        message += "*completo* - tudo explicado\n"
-        message += "*básico* - só o essencial"
+        message = "🤖 *Como posso ajudar:*\n\n"
+        message += "📋 *Ver tarefas:*\n"
+        message += "• 'minhas tarefas' - lista resumida\n"
+        message += "• 'ver mais' - lista completa\n"
+        message += "• 'progresso' - relatório do dia\n\n"
+        message += "✅ *Marcar concluída:*\n"
+        message += "• 'feito 2' - marcar tarefa 2\n"
+        message += "• 'feito 1 2 3' - marcar várias\n"
+        message += "• 'pronto 2' / 'concluí 2' - sinônimos\n\n"
+        message += "🔵 *Marcar em andamento:*\n"
+        message += "• 'andamento 3' - marcar tarefa 3\n"
+        message += "• 'fazendo 2' / 'comecei 2' - sinônimos\n\n"
+        message += "❓ *Mais:*\n"
+        message += "• 'tutorial' - guia completo\n"
+        message += "• 'exemplos' - casos práticos\n\n"
+        message += "O que você precisa?"
 
         return message
 

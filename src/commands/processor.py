@@ -135,13 +135,13 @@ O que você precisa?"""
         """
         hour = datetime.now().hour
 
-        # Saudação contextual
+        # Saudação contextual usando humanizer (com anti-repetição)
         if hour < 12:
-            greeting = "Bom dia!"
+            greeting = self.humanizer.pick("greetings", "morning", name=person_name)
         elif hour < 18:
-            greeting = "Boa tarde!"
+            greeting = self.humanizer.pick("greetings", "afternoon", name=person_name)
         else:
-            greeting = "Boa noite!"
+            greeting = self.humanizer.pick("greetings", "evening", name=person_name)
 
         # Adiciona lista de comandos
         commands_list = """
@@ -443,18 +443,21 @@ Comandos disponíveis:
             greeting, tasks_reminder = self._get_contextual_greeting(person_name)
             return True, greeting
 
-        # Despedidas, Agradecimentos, Smalltalk - respostas simples
+        # Despedidas, Agradecimentos, Smalltalk - respostas com humanizer
         if intent == "goodbye":
             logger.info(f"Intent 'goodbye' detectado")
-            return True, "Até logo! 👋"
+            farewell = self.humanizer.pick("acknowledgments", "positive")
+            return True, f"{farewell} Até logo! 👋"
 
         if intent == "thanks":
             logger.info(f"Intent 'thanks' detectado")
-            return True, "De nada! 😊"
+            gratitude_response = self.humanizer.pick("gratitude_responses", "casual")
+            return True, gratitude_response
 
         if intent in ["thanks_closing", "smalltalk_mood"]:
-            logger.info(f"Intent '{intent}' detectado - resposta simples")
-            return True, "Tudo bem por aqui! 😊"
+            logger.info(f"Intent '{intent}' detectado - resposta casual")
+            filler = self.humanizer.pick("fillers", "casual")
+            return True, f"{filler} Tudo bem por aqui! 😊"
 
         # Ajuda - oferece tutorial completo ou básico
         if intent == "help":
@@ -675,15 +678,18 @@ Comandos disponíveis:
                 elif action == "show_tasks":
                     return self.handlers.handle_list(person_name)
                 else:
-                    return True, "Ok! 👍"
+                    confirmation = self.humanizer.pick("confirmations", "positive")
+                    return True, confirmation
             else:
                 # Sem contexto - dar CTA útil
-                return True, "Beleza! Me diga: 'tarefas' ou 'progresso' 😉"
+                confirmation = self.humanizer.pick("confirmations", "positive")
+                return True, f"{confirmation} Me diga: 'tarefas' ou 'progresso' 😉"
 
         if intent == "confirm_no":
             # Limpar qualquer contexto pendente
             self._clear_user_state(person_name)
-            return True, "Tranquilo! Se quiser, peça 'tarefas' quando for a hora."
+            acknowledgment = self.humanizer.pick("acknowledgments", "professional")
+            return True, f"{acknowledgment} Se quiser, peça 'tarefas' quando for a hora."
 
         # Intent desconhecido
         logger.warning(f"Intent não tratado: {intent}")

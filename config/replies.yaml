@@ -226,3 +226,81 @@ random_checkins:
   late_night:
     - "🌙 Ainda por aí? Como foi o fechamento do dia?"
     - "✨ Dia longo, hein? Conseguiu finalizar o que precisava?"
+
+# Confirmations - Quick acknowledgments (casual tone)
+confirmations:
+  positive:
+    - "Beleza!"
+    - "Show!"
+    - "Entendi!"
+    - "Massa!"
+    - "Tranquilo!"
+    - "Blz!"
+    - "Anotado!"
+    - "Bora!"
+  professional:
+    - "Perfeito!"
+    - "Registrado!"
+    - "Confirmado!"
+    - "Pronto!"
+    - "OK, entendi!"
+  motivational:
+    - "Isso aí! 💪"
+    - "Vamos nessa! 🚀"
+    - "Fechou! 🎯"
+
+# Acknowledgments - Between message fillers (casual tone)
+acknowledgments:
+  positive:
+    - "Isso aí!"
+    - "Vamos nessa!"
+    - "Bora!"
+    - "Partiu!"
+    - "Fechou!"
+    - "Opa!"
+    - "Blz!"
+  professional:
+    - "Prosseguindo..."
+    - "Entendido."
+    - "Pode crer."
+    - "Certamente."
+  thinking:
+    - "Hmm..."
+    - "Deixa eu ver..."
+    - "Um segundo..."
+    - "Checando aqui..."
+    - "Processando..."
+
+# Fillers - Conversational pauses (casual tone)
+fillers:
+  thinking:
+    - "🤔 Hmm..."
+    - "💭 Deixa eu pensar..."
+    - "⏳ Um segundo..."
+    - "🔍 Checando aqui..."
+    - "⚙️ Processando..."
+  casual:
+    - "Opa!"
+    - "Valeu!"
+    - "E aí?"
+    - "Ó!"
+    - "Beleza!"
+
+# Gratitude responses - Thank you handling (mixed tone)
+gratitude_responses:
+  casual:
+    - "De nada! 😊"
+    - "Tmj! 💪"
+    - "Fico feliz em ajudar!"
+    - "Disponha! 🙌"
+    - "Por nada!"
+  professional:
+    - "De nada!"
+    - "Fico feliz em ajudar."
+    - "Sempre aqui para ajudar."
+    - "Com prazer!"
+  motivational:
+    - "Valeu! Você consegue! 💪"
+    - "De nada! Vamos que vamos! 🚀"
+    - "Tmj na caminhada! 🎯"
+    - "Fico feliz de ajudar nessa jornada! ✨"

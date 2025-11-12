@@ -56,7 +56,8 @@ NUM_WORDS_PT = {
 # Confirmações positivas
 YES_SET: Set[str] = {
     "sim", "s", "ok", "okay", "okey", "isso", "pode", "manda ver", "beleza", "blz",
-    "confirmo", "confirmar", "isso mesmo", "vamos", "bora",
+    "confirmo", "confirmar", "isso mesmo", "vamos", "bora", "partiu", "preparado", "preparada",
+    "vamos nessa", "vambora",
     "👍", "✅", "✓"
 }
 
@@ -83,6 +84,7 @@ KEYWORD_SETS: Dict[str, Set[str]] = {
         "sim", "s", "pode", "pode ser", "ok", "okay", "okey",
         "beleza", "blz", "bora", "vamos", "isso", "dale", "top",
         "confirmo", "confirmar", "positivo", "correto", "claro",
+        "partiu", "preparado", "preparada", "vamos nessa", "vambora",
         "👍", "✅", "✓"
     },
     "confirm_no": {

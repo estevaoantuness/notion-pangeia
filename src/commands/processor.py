@@ -23,6 +23,7 @@ from src.commands.normalizer import (
     ParseResult,
     is_confirmation,
     normalize_indices,
+    canonicalize,
 )
 from src.commands.handlers import CommandHandlers
 from config.colaboradores import get_colaborador_by_phone
@@ -300,6 +301,18 @@ Posso te ajudar com suas tarefas ou o progresso do dia. O que você prefere?"""
 
             # Ambíguo - não é confirmação clara, processar como mensagem normal
             # Não limpar estado ainda
+            question = pending_state.get("pending_confirm", {}).get("question")
+            if question == "ask_task_or_progress":
+                choice = self._interpret_task_or_progress_choice(message)
+                if choice == "tasks":
+                    self._clear_user_state(person_name)
+                    return self.handlers.handle_list(person_name)
+                elif choice == "progress":
+                    self._clear_user_state(person_name)
+                    return self.handlers.handle_progress(person_name)
+                else:
+                    prompt = self.humanizer.pick("confirmations", "positive")
+                    return True, f"{prompt} Você prefere ver *tarefas* ou o *progresso* do dia?"
 
         intent = pending_state.get("intent")
 
@@ -428,6 +441,20 @@ Posso te ajudar com suas tarefas ou o progresso do dia. O que você prefere?"""
         # Estado desconhecido
         self._clear_user_state(person_name)
         return True, "Desculpe, perdi o contexto. Pode repetir o que você precisa?"
+
+    def _interpret_task_or_progress_choice(self, message: str) -> Optional[str]:
+        """Tenta identificar se o usuário pediu tarefas ou progresso."""
+        normalized = canonicalize(message)
+        tokens = set(normalized.split())
+
+        task_keywords = {"tarefa", "tarefas", "tasks", "lista", "listar", "ver"}
+        progress_keywords = {"progresso", "progress", "status", "andamento"}
+
+        if tokens & progress_keywords or any(word in normalized for word in progress_keywords):
+            return "progress"
+        if tokens & task_keywords or any(word in normalized for word in task_keywords):
+            return "tasks"
+        return None
 
     def _execute_intent(
         self,

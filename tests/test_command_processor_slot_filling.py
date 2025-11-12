@@ -9,6 +9,8 @@ class FakeHandlers:
         self.done_calls = []
         self.in_progress_calls = []
         self.show_calls = []
+        self.list_called = False
+        self.progress_called = False
 
     def handle_done(self, person_name, task_number):
         self.done_calls.append(task_number)
@@ -21,6 +23,14 @@ class FakeHandlers:
     def handle_show_task(self, person_name, task_number):
         self.show_calls.append(task_number)
         return True, f"detalhes {task_number}"
+
+    def handle_list(self, person_name):
+        self.list_called = True
+        return True, "lista enviada"
+
+    def handle_progress(self, person_name):
+        self.progress_called = True
+        return True, "progresso enviado"
 
 
 class DummyHumanizer:
@@ -81,4 +91,39 @@ def test_show_task_slot_filling_uses_first_index(processor):
     assert success is True
     assert message == "detalhes 5"
     assert handlers.show_calls == [5]
+    assert proc._get_user_state("Joao") is None
+
+
+def test_pending_question_handles_neutral_choice(processor):
+    proc, handlers = processor
+    proc._set_user_state("Joao", {
+        "pending_confirm": {
+            "action": "ask_task_or_progress",
+            "question": "ask_task_or_progress"
+        }
+    })
+    pending = proc._get_user_state("Joao")
+
+    success, message = proc._handle_slot_filling("Joao", "quero por favor", pending)
+
+    assert success is True
+    assert "tarefas" in message.lower()
+    assert handlers.list_called is False
+    assert handlers.progress_called is False
+
+
+def test_pending_question_routes_to_progress(processor):
+    proc, handlers = processor
+    proc._set_user_state("Joao", {
+        "pending_confirm": {
+            "action": "ask_task_or_progress",
+            "question": "ask_task_or_progress"
+        }
+    })
+    pending = proc._get_user_state("Joao")
+
+    success, message = proc._handle_slot_filling("Joao", "quero ver o progresso", pending)
+
+    assert success is True
+    assert handlers.progress_called is True
     assert proc._get_user_state("Joao") is None

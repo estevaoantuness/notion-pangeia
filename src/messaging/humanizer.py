@@ -397,17 +397,17 @@ class MessageHumanizer:
         message = random.choice(period_messages)
 
         # Se temos dados de progresso, preencher placeholders
-        if done is not None and total is not None and total > 0:
-            percent = int((done / total) * 100)
-            try:
-                message = message.format(
-                    done=done,
-                    total=total,
-                    percent=percent
-                )
-            except KeyError:
-                # Mensagem não tem placeholders, continua normal
-                pass
+        try:
+            safe_total = total if (isinstance(total, (int, float)) and total > 0) else 0
+            safe_done = done if isinstance(done, (int, float)) else 0
+            percent = int((safe_done / safe_total) * 100) if safe_total else 0
+            message = message.format(
+                done=safe_done,
+                total=safe_total,
+                percent=percent
+            )
+        except Exception as e:
+            logger.warning(f"Erro ao preencher follow-up: {e}")
 
         # Adicionar frase final contextualizada ao horário
         try:

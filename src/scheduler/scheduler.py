@@ -539,12 +539,13 @@ class TaskScheduler:
                 total = None
                 try:
                     tasks_mgr = TasksManager()
-                    all_tasks = tasks_mgr.get_all_tasks()
-                    total = len(all_tasks)
-                    done = sum(1 for t in all_tasks if t.get('status') == 'Done')
+                    progress = tasks_mgr.calculate_progress(user_id)
+                    total = progress.get("total") or 0
+                    done = progress.get("concluidas") or 0
                 except Exception as e:
                     logger.warning(f"⚠️ Não consegui recuperar tasks para progresso: {e}")
-                    # Continua sem dados de progresso
+                    total = 0
+                    done = 0
 
                 # Gerar follow-up contextualizado com hora e progresso
                 followup_msg = self.humanizer.get_contextual_followup(

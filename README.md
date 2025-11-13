@@ -11,12 +11,20 @@
 
 ## 📊 Status do Projeto
 
-**Versão:** 2.2 - Produção (Phase 1 + 3-Question Flow)
-**Última Atualização:** Novembro 2025
+**Versão:** 2.3 - Produção (Phase 1 + Daily Checkins + Dashboard)
+**Última Atualização:** Novembro 13, 2025
 **Cobertura NLP:** 85.2% (127/149 testes) | Phase 1 +25% melhoria
 **Conversas Realistas:** 100% (55/55 passos)
-**Novos Recursos:** Fluxo de 3 perguntas para criar tasks
-**Status:** ✅ **Funcional e em Produção com melhorias Phase 1**
+**Novos Recursos:** Sistema de Checkins Diários + Dashboard Web
+**Status:** ✅ **Funcional e em Produção com Sistema de Checkins**
+
+### 🆕 Novidades - Sistema de Checkins Diários
+- ✅ **3 Checkins por Dia:** Manhã (06:00), Tarde (12:00), Noite (18:00)
+- ✅ **Automático:** Scheduler cria e envia checkins automaticamente
+- ✅ **Persistência:** Respostas salvas em PostgreSQL/Railway
+- ✅ **Dashboard Web:** Visualização em tempo real (http://localhost:5000)
+- ✅ **Bug Fix:** Corrigido erro "Ops, tive um problema" no webhook
+- ✅ **Testes:** Sistema 100% testado com simulações e testes end-to-end
 
 ---
 
@@ -102,13 +110,31 @@ Bot: ✅ Tarefa criada!
 | **Ver progresso** | "progresso", "status", "percentual" | \`progresso\` |
 | **Ajuda** | "ajuda", "help", "comandos" | \`ajuda\` |
 
-### ⏰ **Check-ins Automáticos**
+### ⏰ **Check-ins Automáticos Diários**
 
-**Status:** ⚠️ **Atualmente DESABILITADO**
+**Status:** ✅ **ATIVO em Produção (Novembro 2025)**
 
-O sistema possui capacidade de enviar check-ins automáticos ao longo do dia, mas está desativado para evitar mensagens não solicitadas. O bot funciona de forma **100% reativa** - só responde quando você envia mensagem.
+O sistema envia automaticamente **3 check-ins por dia**:
 
-Para ativar check-ins (opcional), configure os horários no `.env` e habilite o scheduler.
+| Horário | Pergunta | Tipo |
+|---------|----------|------|
+| 06:00 | 🎯 "Qual é a meta principal de hoje?" | Metas |
+| 12:00 | 🌤️ "Como está o ritmo do dia?" | Status |
+| 18:00 | 🌙 "Como foi seu dia?" | Fechamento |
+
+**Como funciona:**
+1. **Automático:** Scheduler cria checkins diários para todos os usuários
+2. **Pendente:** Tracker marca como pendente por 2 horas
+3. **Resposta:** Usuário responde qualquer momento nessa janela
+4. **Salvo:** Webhook detecta como resposta e salva em PostgreSQL
+5. **Confirmado:** Bot responde "✅ Sua resposta foi registrada!"
+
+**Dashboard Web:**
+```bash
+python3 dashboard.py
+# Acesse: http://localhost:5000
+# Veja estatísticas, gráficos e histórico em tempo real
+```
 
 ### 🧠 **Slot-Filling Inteligente**
 

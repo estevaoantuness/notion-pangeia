@@ -18,6 +18,11 @@ openai==2.6.0
 # Environment & Configuration
 python-dotenv==1.0.0
 
+# Database
+sqlalchemy==2.0.23
+psycopg2-binary==2.9.9
+supabase==2.3.5
+
 # NLP & Text Processing
 # Using Python's built-in difflib instead (no external dependencies)
 

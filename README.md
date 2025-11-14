@@ -108,6 +108,7 @@ Bot: ✅ Tarefa criada!
 | **Iniciar tarefa** | "andamento N", "fazendo N", "começando N" | \`andamento 2\` |
 | **Bloquear** | "bloqueada N - motivo" | \`bloqueada 4 - aguardando aprovação\` |
 | **Ver progresso** | "progresso", "status", "percentual" | \`progresso\` |
+| **Ver detalhes** | "mostre N", "ver N", "detalhes N" | \`mostre 2\` |
 | **Ajuda** | "ajuda", "help", "comandos" | \`ajuda\` |
 
 ### ⏰ **Check-ins Automáticos Diários**

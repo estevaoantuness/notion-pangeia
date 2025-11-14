@@ -540,6 +540,14 @@ class CommandHandlers:
         message += "     🔵 1 em andamento\n"
         message += "     ⚪ 2 pendentes\n\n"
         message += "━━━━━━━━━━━━━━━━━━━━━━\n"
+        message += "*🔍 VER DETALHES*\n\n"
+        message += "Você: mostre 2\n"
+        message += "Bot: 📋 *TAREFA #2*\n"
+        message += "     📌 Revisar documento\n"
+        message += "     Status: 🔵 Em Andamento\n"
+        message += "     Prioridade: ⭐⭐ Média\n"
+        message += "     Prazo: 15/11 (Amanhã)\n\n"
+        message += "━━━━━━━━━━━━━━━━━━━━━━\n"
         message += "Digite: *tarefas* para começar!"
 
         # Envia mensagem

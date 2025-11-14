@@ -29,14 +29,14 @@ COLABORADORES: Dict[str, Dict[str, any]] = {
         "nome": "Julio Inoue",
         "telefone": "+5511999322027",
         "cargo": "Desenvolvedor",
-        "ativo": False,
+        "ativo": True,
         "notion_id": None
     },
     "Arthur Leuzzi": {
         "nome": "Arthur Leuzzi",
         "telefone": "+554888428246",
         "cargo": "Desenvolvedor",
-        "ativo": False,
+        "ativo": True,
         "notion_id": None
     },
     "Joaquim": {

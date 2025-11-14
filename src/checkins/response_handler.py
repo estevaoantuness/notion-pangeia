@@ -14,6 +14,7 @@ Fluxo:
 """
 
 import logging
+import random
 from typing import Tuple, Optional
 from datetime import datetime
 from zoneinfo import ZoneInfo
@@ -120,29 +121,137 @@ class CheckinResponseHandler:
 
     def _generate_acknowledgment(self, person_name: str, checkin_type: str) -> str:
         """
-        Gera mensagem de confirmação personalizada.
+        Gera mensagem de confirmação personalizada com múltiplas variações.
+
+        Fornece feedback visual ao usuário confirmando que a resposta foi registrada,
+        com variações para não parecer robótico.
 
         Args:
             person_name: Nome da pessoa
-            checkin_type: Tipo de checkin
+            checkin_type: Tipo de checkin (metas, planning, status, consolidado, closing, etc)
 
         Returns:
-            Mensagem de confirmação
+            Mensagem de confirmação personalizada
         """
         first_name = person_name.split()[0]
+        hour = datetime.now(tz=TZ).hour
 
-        # Diferentes mensagens por tipo de checkin
+        # Variações por tipo de checkin - múltiplas opções para cada tipo
         acknowledgments = {
-            "metas": f"Ótimo, {first_name}! 📋 Suas metas foram anotadas.",
-            "planning": f"Perfeito! 🎯 Seu planejamento foi registrado.",
-            "status": f"Ótimo! 📊 Obrigado pelo update de status.",
-            "consolidado": f"Legal! 📈 Seu consolidado foi anotado.",
-            "closing": f"Excelente! ✅ Seu fechamento foi registrado.",
-            "reflection": f"Obrigado pela reflexão! 🌟 Anotei para você.",
-            "weekend_digest": f"Legal! 🏖️ Seu status foi registrado."
+            "metas": [
+                f"✅ Perfeito, {first_name}! 📋 Suas metas foram anotadas.",
+                f"🎯 Ótimo! Suas metas estão registradas, {first_name}!",
+                f"📌 Anotar metas é essencial! Já marquei as suas. 💪",
+                f"✨ Excelente decisão, {first_name}! Metas salvas! 🚀",
+                f"💯 Meta anotada! Vamos lá conseguir! 🔥",
+                f"📝 Consegui anotar sua meta, {first_name}. Bora focar! 🎯",
+            ],
+            "planning": [
+                f"✅ Perfeito! 🎯 Seu planejamento foi registrado, {first_name}!",
+                f"📊 Planejamento salvo! Você está na trilha certa!",
+                f"🎪 Bom planejamento! Já anotei tudo para você. 💼",
+                f"✨ Seu planejamento está guardadinho! Sucesso! 🙌",
+                f"🔧 Planejamento registrado! Agora é só executar!",
+                f"📋 Ótima organização, {first_name}! Tudo salvo! ✅",
+            ],
+            "status": [
+                f"✅ Ótimo! 📊 Obrigado pelo update de status, {first_name}!",
+                f"🔄 Status atualizado! Continuamos monitorando. 👀",
+                f"📈 Ótima informação! Seu status está registrado!",
+                f"✨ Valeu pelo feedback! Anotei tudo. 📝",
+                f"👍 Status recebido e salvo, {first_name}!",
+                f"💬 Obrigado pela transparência! Tudo registrado! ✅",
+            ],
+            "consolidado": [
+                f"✅ Legal! 📈 Seu consolidado foi anotado, {first_name}!",
+                f"🎯 Consolidado registrado! Bora manter esse ritmo!",
+                f"✨ Excelente consolidação! Já marquei para você.",
+                f"💯 Seu consolidado está guardadinho! 📊",
+                f"🔥 Ótimo trabalho! Consolidado anotado!",
+                f"🚀 Continuamos avançando! Consolidado salvo, {first_name}! 📌",
+            ],
+            "closing": [
+                f"✅ Excelente! Seu fechamento foi registrado, {first_name}! 🌙",
+                f"🎉 Que dia incrível, {first_name}! Fechamento salvo!",
+                f"⭐ Adorei ver seu progresso de hoje! Tudo anotado!",
+                f"🌟 Dia finalizado com sucesso! Já registrei! 📝",
+                f"✨ Perfeito encerramento do dia, {first_name}!",
+                f"🏆 Belo dia! Fechamento confirmado! Descansa! 😌",
+            ],
+            "reflection": [
+                f"✅ Obrigado pela reflexão! 🌟 Anotei para você, {first_name}!",
+                f"💭 Que reflexão valiosa! Salva com cuidado!",
+                f"✨ Autoconhecimento é poder! Sua reflexão está guardada!",
+                f"🌱 Ótima análise! Reflexão registrada! 📖",
+                f"💡 Insights importantes! Já marquei tudo!",
+                f"🎯 Reflexão salva! Continue crescendo, {first_name}! 🚀",
+            ],
+            "weekend_digest": [
+                f"✅ Legal! 🏖️ Seu status de fim de semana foi registrado!",
+                f"🌴 Aproveite o fim de semana! Seu status está salvo!",
+                f"☀️ Ótimo jeito de encerrar a semana! Registrado!",
+                f"🎭 Belo resumo da semana, {first_name}! Anotei!",
+                f"✨ Semana encerrada com êxito! Tudo documentado!",
+                f"🏡 Aproveite o descanso! Seu digest está seguro! 📋",
+            ],
         }
 
-        return acknowledgments.get(checkin_type, f"✅ Sua resposta foi registrada, {first_name}!")
+        # Seleciona mensagem aleatória do tipo de checkin
+        messages = acknowledgments.get(checkin_type, [
+            f"✅ Sua resposta foi registrada, {first_name}!",
+            f"📝 Tudo anotado! Obrigado, {first_name}!",
+            f"✨ Resposta salva com sucesso!",
+            f"👍 Registrado! Continuamos acompanhando!",
+        ])
+
+        # Escolhe aleatoriamente uma das variações
+        response = random.choice(messages)
+
+        # Adiciona contexto contextual baseado no horário
+        next_checkin_hint = self._get_next_checkin_hint(checkin_type, hour)
+        if next_checkin_hint:
+            response += f"\n{next_checkin_hint}"
+
+        return response
+
+    def _get_next_checkin_hint(self, current_type: str, hour: int) -> Optional[str]:
+        """
+        Retorna dica sobre o próximo check-in.
+
+        Args:
+            current_type: Tipo de checkin atual
+            hour: Hora atual
+
+        Returns:
+            Mensagem com informação sobre próximo check-in ou None
+        """
+        # Próximos check-ins por tipo de checkin
+        next_checkins = {
+            "metas": ("13:30", "planejamento da tarde"),
+            "planning": ("15:30", "status da tarde"),
+            "status": ("18:00", "fechamento do dia"),
+            "consolidado": ("18:00", "reflexão noturna"),
+            "closing": ("08:00 de amanhã", "suas metas do novo dia"),
+            "reflection": ("08:00 de amanhã", "novo dia trazendo novas metas"),
+            "weekend_digest": ("segunda-feira", "uma nova semana cheia de desafios"),
+        }
+
+        next_time, next_desc = next_checkins.get(
+            current_type,
+            ("em breve", "seu próximo check-in")
+        )
+
+        hints = [
+            f"⏰ Próximo check-in às {next_time} para {next_desc}!",
+            f"📅 Nos encontramos às {next_time} com {next_desc}!",
+            f"🔔 Aviso: {next_time} teremos seu check-in de {next_desc}!",
+        ]
+
+        # 50% de chance de mostrar o hint (não ficar muito repetitivo)
+        if random.random() > 0.5:
+            return random.choice(hints)
+
+        return None
 
     def get_checkin_status(self, person_name: str) -> Optional[dict]:
         """
